@@ -222,7 +222,7 @@ export default function GallerySection() {
   const activeCard = cards[activeIndex];
 
   return (
-    <section className="mx-auto max-w-7xl px-6 py-20 md:py-24">
+    <section id="galeri-section" className="mx-auto max-w-7xl px-6 py-20 md:py-24">
       {/* Header */}
       <motion.div
         className="mb-10 max-w-xl"

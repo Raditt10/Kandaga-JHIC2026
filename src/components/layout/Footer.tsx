@@ -73,7 +73,7 @@ function ScrollWordmark() {
 
 export default function Footer() {
   return (
-    <footer className="bg-primary text-white">
+    <footer id="kontak-section" className="bg-primary text-white">
       {/* Wordmark fill-on-scroll */}
       <ScrollWordmark />
 

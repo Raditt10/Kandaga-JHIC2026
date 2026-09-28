@@ -37,6 +37,10 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+.font-tangerine {
+  font-family: var(--font-tangerine), "Tangerine", cursive;
+}
+
 /* ── Reduced motion — aksesibilitas wajib ── */
 @media (prefers-reduced-motion: reduce) {
   * {

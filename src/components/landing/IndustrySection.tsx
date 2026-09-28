@@ -203,7 +203,7 @@ function AnimatePresenceWrapper({ show, children }: { show: boolean; children: R
 
 export default function IndustrySection() {
   return (
-    <section className="relative overflow-hidden bg-cream py-20 md:py-28">
+    <section id="industri-section" className="relative overflow-hidden bg-cream py-20 md:py-28">
       <BlueprintGrid />
 
       <div className="relative mx-auto max-w-7xl px-6">

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Poppins, Inter } from "next/font/google";
+import { Poppins, Inter, Tangerine } from "next/font/google";
 import SmoothScrollProvider from "@/components/layout/SmoothScrollProvider";
 import "./globals.css";
 
@@ -15,6 +15,12 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+const tangerine = Tangerine({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-tangerine",
+});
+
 export const metadata: Metadata = {
   title: "Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung",
   description:
@@ -27,7 +33,7 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${poppins.variable} ${inter.variable}`}
+      className={`${poppins.variable} ${inter.variable} ${tangerine.variable}`}
     >
       <body suppressHydrationWarning>
         <SmoothScrollProvider>{children}</SmoothScrollProvider>

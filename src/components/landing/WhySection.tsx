@@ -165,7 +165,7 @@ export default function WhySection() {
   const [isVisible, setIsVisible] = useState(false);
 
   return (
-    <section ref={sectionRef} className="mx-auto max-w-7xl px-6 py-20 md:py-24">
+    <section id="tentang-section" ref={sectionRef} className="mx-auto max-w-7xl px-6 py-20 md:py-24">
       {/* Header */}
       <motion.div
         className="mb-12 max-w-xl"

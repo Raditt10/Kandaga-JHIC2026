@@ -32,7 +32,7 @@ const items = [
 
 export default function JurusanMenu() {
   return (
-    <section className="mx-auto max-w-7xl px-6 py-20 md:py-24">
+    <section id="jurusan-section" className="mx-auto max-w-7xl px-6 py-20 md:py-24">
       <motion.div
         variants={staggerChildren}
         initial="hidden"
