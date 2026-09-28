@@ -1,26 +1,48 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* ── Warna utama (marun) ── */
+  --color-primary:      #8B1A2F;
+  --color-primary-dark: #6B1424;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* ── Krem (background section industri) ── */
+  --color-cream: #F5F0E8;
+
+  /* ── Ink (teks gelap, bukan pure black) ── */
+  --color-ink:     #1A1A1A;
+  --color-ink-900: #1A1A1A;
+  --color-ink-700: #3D3D3D;
+  --color-ink-600: #555555;
+  --color-ink-300: #CCCCCC;
+  --color-ink-150: #E8E8E8;
+  --color-ink-100: #F2F2F2;
+
+  /* ── Accent (emas/krem untuk logo & badge) ── */
+  --color-accent: #E8C97A;
+
+  /* ── Background & foreground ── */
+  --color-background: #ffffff;
+  --color-foreground: #1A1A1A;
+
+  /* ── Font ── */
+  --font-heading: var(--font-poppins);
+  --font-sans:    var(--font-inter);
+  --font-mono:    var(--font-geist-mono);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Reduced motion — aksesibilitas wajib ── */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
