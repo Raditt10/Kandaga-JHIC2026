@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   Check,
   Circle,
@@ -275,21 +276,21 @@ export default function Home() {
             </nav>
           </div>
 
-          {/* Right Action: Mitra Perusahaan (tidak terjadi apa-apa) + Login Pill Button */}
-          <div className="flex items-center gap-3 sm:gap-4">
-            <button
-              type="button"
-              className="hidden sm:inline-block text-xs sm:text-sm font-semibold text-zinc-600 hover:text-zinc-950 transition cursor-pointer"
+          {/* Right Action: Register + Login Pill Buttons */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/register"
+              className="hidden sm:inline-block text-xs sm:text-sm font-semibold text-zinc-600 hover:text-[#90133b] transition cursor-pointer px-3 py-1.5"
             >
-              Mitra Perusahaan
-            </button>
+              Daftar Akun
+            </Link>
 
-            <button
-              onClick={() => setIsLoginModalOpen(true)}
+            <Link
+              href="/login"
               className="bg-gradient-to-r from-[#891337] to-[#a61743] hover:from-[#76102f] hover:to-[#92143b] text-white px-5 sm:px-6 py-2 rounded-full text-xs font-bold tracking-wide transition-all duration-200 shadow-md shadow-[#891337]/25 hover:shadow-lg hover:shadow-[#891337]/35 cursor-pointer active:scale-95"
             >
               Masuk
-            </button>
+            </Link>
 
             {/* Mobile Hamburger toggle */}
             <button
@@ -831,44 +832,21 @@ export default function Home() {
               </p>
             </div>
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setIsLoginModalOpen(false);
-              }}
-              className="space-y-4"
-            >
-              <div>
-                <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider mb-1.5">
-                  Email / NISN
-                </label>
-                <input
-                  type="text"
-                  placeholder="Masukkan email atau NISN"
-                  className="w-full px-4 py-3 rounded-xl border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#90133b] transition bg-zinc-50/50"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider mb-1.5">
-                  Kata Sandi
-                </label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  className="w-full px-4 py-3 rounded-xl border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#90133b] transition bg-zinc-50/50"
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-gradient-to-r from-[#891337] to-[#a61743] hover:from-[#76102f] hover:to-[#92143b] text-white py-3 rounded-xl text-sm font-bold tracking-wide transition-all shadow-md shadow-[#891337]/30 cursor-pointer active:scale-95"
+            <div className="space-y-4">
+              <Link
+                href="/login"
+                className="block text-center w-full bg-gradient-to-r from-[#891337] to-[#a61743] hover:from-[#76102f] hover:to-[#92143b] text-white py-3.5 rounded-xl text-sm font-bold tracking-wide transition-all shadow-md shadow-[#891337]/30 cursor-pointer active:scale-95"
               >
-                Masuk
-              </button>
-            </form>
+                Masuk ke Portal Kandaga
+              </Link>
+              
+              <Link
+                href="/register"
+                className="block text-center w-full bg-zinc-100 hover:bg-zinc-200 text-zinc-900 py-3.5 rounded-xl text-sm font-bold tracking-wide transition-all border border-zinc-200 cursor-pointer"
+              >
+                Daftar Akun Baru (5 Roles)
+              </Link>
+            </div>
           </div>
         </div>
       )}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Montserrat, Tangerine, Bebas_Neue } from "next/font/google";
+import AuthProvider from "@/components/AuthProvider";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -39,7 +40,7 @@ export default function RootLayout({
       className={`${montserrat.variable} ${tangerine.variable} ${bebasNeue.variable} h-full antialiased scroll-smooth`}
     >
       <body className="min-h-full flex flex-col bg-white text-zinc-900 font-sans selection:bg-[#90133b] selection:text-white">
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

@@ -1,0 +1,283 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [citext(schema: "public"), pgcrypto(schema: "public")]
+}
+
+model Role {
+  id    Int    @id @db.SmallInt
+  name  String @unique @map("username")
+  users User[]
+
+  @@map("roles")
+}
+
+model User {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  roleId       Int      @map("role_id") @db.SmallInt
+  name         String   @map("username")
+  email        String   @unique @db.Citext
+  passwordHash String   @map("password_hash")
+  status       String   @default("aktif")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  role                    Role             @relation(fields: [roleId], references: [id])
+  studentProfile          Student?
+  teacherProfile          Teacher?
+  companyProfile          Company?
+  verifiedCompanies       Company[]        @relation("CompanyVerifiedBy")
+  reviewedCreations           Creation[]           @relation("CreationReviewedBy")
+  awardedBadges           CreationBadge[]      @relation("BadgeAwardedBy")
+  reviewedContactRequests ContactRequest[] @relation("ContactRequestReviewedBy")
+  recordedPartnerships    Partnership[]    @relation("PartnershipRecordedBy")
+  notifications           Notification[]
+  auditLogs               AuditLog[]
+
+  @@index([roleId], map: "users_role_idx")
+  @@map("users")
+}
+
+model Major {
+  id       Int       @id @default(autoincrement()) @db.SmallInt
+  code     String    @unique
+  name     String    @unique
+  students Student[]
+  teachers Teacher[]
+
+  @@map("majors")
+}
+
+model Student {
+  userId        String  @id @map("user_id") @db.Uuid
+  majorId       Int     @map("major_id") @db.SmallInt
+  nis           String  @unique
+  class         String  
+  generation    Int     @db.SmallInt
+  status        String  @default("aktif")
+  bio           String?
+  currentCareer String?
+  photoUrl      String? @map("photo_url")
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  major     Major      @relation(fields: [majorId], references: [id])
+  creations Creation[]
+
+  @@index([majorId], map: "students_majors_idx")
+  @@map("students")
+}
+
+model Teacher {
+  userId  String  @id @map("user_id") @db.Uuid
+  majorId Int     @map("majors_id") @db.SmallInt
+  nip     String? @unique
+
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  major        Major  @relation(fields: [majorId], references: [id])
+  advisedCreations Creation[] @relation("CreationAdvisor")
+
+  @@index([majorId], map: "teachers_majors_idx")
+  @@map("teachers")
+}
+
+model Company {
+  userId             String    @id @map("user_id") @db.Uuid
+  name               String    @map("username")
+  field              String?   @map("field")
+  documentUrl        String?   @map("document_url")
+  verificationStatus String    @default("pending") @map("verification_status")
+  verifiedBy         String?   @map("verified_by") @db.Uuid
+  verifiedAt         DateTime? @map("verified_at") @db.Timestamptz
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verifier        User?            @relation("CompanyVerifiedBy", fields: [verifiedBy], references: [id])
+  contactRequests ContactRequest[]
+  bookmarks       Bookmark[]
+
+  @@map("companies")
+}
+
+model CreationType {
+  id    Int    @id @default(autoincrement()) @db.SmallInt
+  name  String @unique @map("username")
+  creations Creation[]
+
+  @@map("creationtypes")
+}
+
+model SkillTool {
+  id            Int        @id @default(autoincrement()) @db.SmallInt
+  name          String     @unique @map("username")
+  CreationTools CreationTool[]
+
+  @@map("tools_skills")
+}
+
+model Badge {
+  id         Int         @id @default(autoincrement()) @db.SmallInt
+  name       String      @unique @map("username")
+  tier       String      @unique
+  creationBadges CreationBadge[]
+
+  @@map("badges")
+}
+
+model Creation {
+  id           String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  studentId    String                   @map("students_id") @db.Uuid
+  advisorId    String?                  @map("teachers_advisors_id") @db.Uuid
+  typeId       Int?                     @map("creationtypes_id") @db.SmallInt
+  title        String                   @map("title")
+  description  String?                  @map("description")
+  year         Int                      @map("year") @db.SmallInt
+  status       String                   @default("pending")
+  reviewNotes  String?                  @map("review_notes")
+  reviewedBy   String?                  @map("reviewed_by") @db.Uuid
+  publishedAt  DateTime?                @map("published_at") @db.Timestamptz
+  viewCount    Int                      @default(0) @map("view_count")
+  deletedAt    DateTime?                @map("deleted_at") @db.Timestamptz
+  createdAt    DateTime                 @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime                 @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  searchVector Unsupported("tsvector")? @map("search_vector")
+
+  student         Student           @relation(fields: [studentId], references: [userId])
+  advisor         Teacher?          @relation("CreationAdvisor", fields: [advisorId], references: [userId])
+  creationType    CreationType?     @relation(fields: [typeId], references: [id])
+  reviewer        User?             @relation("CreationReviewedBy", fields: [reviewedBy], references: [id])
+  media           CreationMedia[]
+  tools           CreationTool[]
+  badges          CreationBadge[]
+  contactRequests ContactRequest[]
+  bookmarks       Bookmark[]
+
+  @@index([studentId], map: "creations_students_idx")
+  @@index([advisorId], map: "creations_advisors_idx")
+  @@index([typeId], map: "creations_creationtypes_idx")
+  @@map("creations")
+}
+
+model CreationMedia {
+  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  creationId String @map("creation_id") @db.Uuid
+  url        String
+  type       String @default("photo") @map("mediatype")
+  order      Int    @default(0) @map("orders") @db.SmallInt
+
+  creation Creation @relation(fields: [creationId], references: [id], onDelete: Cascade)
+
+  @@unique([creationId, order])
+  @@map("creations_media")
+}
+
+model CreationTool {
+  creationId String @map("creation_id") @db.Uuid
+  toolId     Int    @map("tool_id") @db.SmallInt
+
+  creation Creation  @relation(fields: [creationId], references: [id], onDelete: Cascade)
+  tool     SkillTool @relation(fields: [toolId], references: [id])
+
+  @@id([creationId, toolId])
+  @@map("creation_tools")
+}
+
+model CreationBadge {
+  creationId String   @map("creation_id") @db.Uuid
+  badgeId    Int      @map("badge_id") @db.SmallInt
+  awardedBy  String   @map("given_from") @db.Uuid
+  awardedAt  DateTime @default(now()) @map("given_at") @db.Timestamptz
+
+  creation Creation @relation(fields: [creationId], references: [id], onDelete: Cascade)
+  badge    Badge    @relation(fields: [badgeId], references: [id])
+  awarder  User     @relation("BadgeAwardedBy", fields: [awardedBy], references: [id])
+
+  @@id([creationId, badgeId])
+  @@index([badgeId], map: "creations_badge_idx")
+  @@map("creations_badge")
+}
+
+model ContactRequest {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId   String    @map("company_id") @db.Uuid
+  creationId  String    @map("creation_id") @db.Uuid
+  purpose     String  
+  message     String   
+  status      String    @default("sent")
+  bkkNotes    String?   @map("bkk_notes")
+  reviewedBy  String?   @map("reviewed_by") @db.Uuid
+  reviewedAt  DateTime? @map("reviewed_at") @db.Timestamptz
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  company     Company      @relation(fields: [companyId], references: [userId])
+  creation    Creation     @relation(fields: [creationId], references: [id])
+  reviewer    User?        @relation("ContactRequestReviewedBy", fields: [reviewedBy], references: [id])
+  partnership Partnership?
+
+  @@index([status], map: "pk_status_idx")
+  @@index([companyId], map: "pk_companies_idx")
+  @@index([creationId], map: "pk_creations_idx")
+  @@map("contact_requests")
+}
+
+model Bookmark {
+  companyId String   @map("company_id") @db.Uuid
+  creationId    String   @map("creation_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  company Company @relation(fields: [companyId], references: [userId], onDelete: Cascade)
+  creation    Creation    @relation(fields: [creationId], references: [id], onDelete: Cascade)
+
+  @@id([companyId, creationId])
+  @@map("bookmarks")
+}
+
+model Partnership {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requestId  String    @unique @map("request_id") @db.Uuid
+  type       String    
+  startDate  DateTime? @map("start_date") @db.Date
+  notes      String?
+  recordedBy String    @map("recorded_by") @db.Uuid
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  contactRequest ContactRequest @relation(fields: [requestId], references: [id])
+  recorder       User           @relation("PartnershipRecordedBy", fields: [recordedBy], references: [id])
+
+  @@map("partnerships")
+}
+
+model Notification {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  type      String   
+  title     String   
+  content   String   
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead], map: "notification_user_idx")
+  @@map("notifications")
+}
+
+model AuditLog {
+  id        BigInt   @id @default(autoincrement())
+  userId    String?  @map("user_id") @db.Uuid
+  action    String   
+  entity    String   
+  entityId  String?  @map("entity_id")
+  data      Json?    @db.JsonB
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entity, entityId], map: "audit_entity_idx")
+  @@index([createdAt], map: "audit_time_idx")
+  @@map("audit_logs")
+}
