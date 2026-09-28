@@ -177,10 +177,10 @@ export default function Home() {
 
             {/* Nav Links with Dropdowns (Developers ∨, Pricing ∨, About) */}
             <nav className="hidden md:flex items-center gap-6 text-xs sm:text-sm font-medium text-zinc-600">
-              {/* Galeri Dropdown */}
+              {/* 1. Jurusan Kami Dropdown (Sitemap) */}
               <div
                 className="relative"
-                onMouseEnter={() => setOpenDropdown("galeri")}
+                onMouseEnter={() => setOpenDropdown("jurusan")}
                 onMouseLeave={() => setOpenDropdown(null)}
               >
                 <button
@@ -191,12 +191,12 @@ export default function Home() {
                   }}
                   className="flex items-center gap-1.5 hover:text-zinc-950 transition cursor-pointer py-1"
                 >
-                  <span>Galeri</span>
+                  <span>Jurusan Kami</span>
                   <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
                 </button>
 
-                {openDropdown === "galeri" && (
-                  <div className="absolute top-full left-0 mt-2 w-52 bg-white/95 backdrop-blur-xl border border-zinc-100 rounded-2xl shadow-xl p-2 animate-in fade-in slide-in-from-top-2 duration-150">
+                {openDropdown === "jurusan" && (
+                  <div className="absolute top-full left-0 mt-2 w-56 bg-white/95 backdrop-blur-xl border border-zinc-100 rounded-2xl shadow-xl p-2 animate-in fade-in slide-in-from-top-2 duration-150">
                     <button
                       onClick={() => {
                         setActiveFilter("RPL");
@@ -237,45 +237,7 @@ export default function Home() {
                 )}
               </div>
 
-              {/* Tingkatan Dropdown */}
-              <div
-                className="relative"
-                onMouseEnter={() => setOpenDropdown("tingkatan")}
-                onMouseLeave={() => setOpenDropdown(null)}
-              >
-                <button
-                  onClick={() => {
-                    document
-                      .getElementById("keunggulan-section")
-                      ?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  className="flex items-center gap-1.5 hover:text-zinc-950 transition cursor-pointer py-1"
-                >
-                  <span>Tingkatan</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
-                </button>
-
-                {openDropdown === "tingkatan" && (
-                  <div className="absolute top-full left-0 mt-2 w-44 bg-white/95 backdrop-blur-xl border border-zinc-100 rounded-2xl shadow-xl p-2 animate-in fade-in slide-in-from-top-2 duration-150">
-                    {["Kelas X", "Kelas XI", "Kelas XII", "Kelas XIII"].map((kls) => (
-                      <button
-                        key={kls}
-                        onClick={() => {
-                          document
-                            .getElementById("galeri-section")
-                            ?.scrollIntoView({ behavior: "smooth" });
-                          setOpenDropdown(null);
-                        }}
-                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-[#90133b] transition cursor-pointer"
-                      >
-                        {kls}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* About / Tentang */}
+              {/* 2. Tentang Kami (Sitemap) */}
               <button
                 onClick={() => {
                   document
@@ -284,41 +246,49 @@ export default function Home() {
                 }}
                 className="hover:text-zinc-950 transition cursor-pointer py-1"
               >
-                Tentang
+                Tentang Kami
               </button>
 
-              {/* Etalase */}
+              {/* 3. Galeri Karya (Sitemap) */}
               <button
                 onClick={() => {
                   document
-                    .getElementById("keunggulan-section")
+                    .getElementById("galeri-section")
                     ?.scrollIntoView({ behavior: "smooth" });
                 }}
                 className="hover:text-zinc-950 transition cursor-pointer py-1"
               >
-                Etalase
+                Galeri Karya
+              </button>
+
+              {/* 4. Kontak (Sitemap) */}
+              <button
+                onClick={() => {
+                  document
+                    .getElementById("kontak-section")
+                    ?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="hover:text-zinc-950 transition cursor-pointer py-1"
+              >
+                Kontak
               </button>
             </nav>
           </div>
 
-          {/* Right Action: Masuk + Mulai Jelajahi Pill Button */}
-          <div className="flex items-center gap-4 sm:gap-5">
+          {/* Right Action: Mitra Perusahaan (tidak terjadi apa-apa) + Login Pill Button */}
+          <div className="flex items-center gap-3 sm:gap-4">
             <button
-              onClick={() => setIsLoginModalOpen(true)}
+              type="button"
               className="hidden sm:inline-block text-xs sm:text-sm font-semibold text-zinc-600 hover:text-zinc-950 transition cursor-pointer"
             >
-              Masuk
+              Mitra Perusahaan
             </button>
 
             <button
-              onClick={() => {
-                document
-                  .getElementById("galeri-section")
-                  ?.scrollIntoView({ behavior: "smooth" });
-              }}
+              onClick={() => setIsLoginModalOpen(true)}
               className="bg-gradient-to-r from-[#891337] to-[#a61743] hover:from-[#76102f] hover:to-[#92143b] text-white px-5 sm:px-6 py-2 rounded-full text-xs font-bold tracking-wide transition-all duration-200 shadow-md shadow-[#891337]/25 hover:shadow-lg hover:shadow-[#891337]/35 cursor-pointer active:scale-95"
             >
-              Mulai Jelajahi
+              Masuk
             </button>
 
             {/* Mobile Hamburger toggle */}
@@ -339,27 +309,25 @@ export default function Home() {
         {/* Mobile Dropdown Panel */}
         {isMobileMenuOpen && (
           <div className="md:hidden mt-2 bg-white/95 backdrop-blur-xl border border-zinc-200/80 rounded-3xl p-4 shadow-xl space-y-2 animate-in fade-in duration-200">
-            {["Beranda", "Galeri", "Tingkatan", "Tentang", "Etalase"].map(
+            {["Jurusan Kami", "Tentang Kami", "Galeri Karya", "Kontak"].map(
               (item) => (
                 <button
                   key={item}
                   onClick={() => {
                     setActiveNav(item);
                     setIsMobileMenuOpen(false);
-                    if (item === "Galeri") {
+                    if (item === "Jurusan Kami" || item === "Galeri Karya") {
                       document
                         .getElementById("galeri-section")
                         ?.scrollIntoView({ behavior: "smooth" });
-                    } else if (item === "Tentang") {
+                    } else if (item === "Tentang Kami") {
                       document
                         .getElementById("tentang-section")
                         ?.scrollIntoView({ behavior: "smooth" });
-                    } else if (item === "Etalase" || item === "Tingkatan") {
+                    } else if (item === "Kontak") {
                       document
-                        .getElementById("keunggulan-section")
+                        .getElementById("kontak-section")
                         ?.scrollIntoView({ behavior: "smooth" });
-                    } else {
-                      window.scrollTo({ top: 0, behavior: "smooth" });
                     }
                   }}
                   className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold transition ${
@@ -374,24 +342,20 @@ export default function Home() {
             )}
             <div className="pt-2 border-t border-zinc-100 flex items-center justify-between px-2">
               <button
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  setIsLoginModalOpen(true);
-                }}
-                className="text-xs font-bold text-zinc-700 hover:text-black"
+                type="button"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-xs font-bold text-zinc-700 hover:text-zinc-950"
               >
-                Masuk
+                Mitra Perusahaan
               </button>
               <button
                 onClick={() => {
                   setIsMobileMenuOpen(false);
-                  document
-                    .getElementById("galeri-section")
-                    ?.scrollIntoView({ behavior: "smooth" });
+                  setIsLoginModalOpen(true);
                 }}
-                className="bg-[#90133b] text-white px-4 py-1.5 rounded-full text-xs font-bold"
+                className="bg-[#90133b] text-white px-5 py-1.5 rounded-full text-xs font-bold"
               >
-                Mulai Jelajahi
+                Masuk
               </button>
             </div>
           </div>
@@ -423,12 +387,6 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           {/* Section Header */}
           <div className="mb-10">
-            <div className="inline-flex items-center gap-2 mb-2">
-              <span className="w-2 h-2 rounded-full bg-[#90133b]" />
-              <span className="text-xs uppercase tracking-widest font-bold text-zinc-500">
-                GALERI
-              </span>
-            </div>
 
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-zinc-900 tracking-tight">
               Temukan karya yang bicara.
@@ -780,7 +738,10 @@ export default function Home() {
       </section>
 
       {/* ---------------- FOOTER MODERN ACCENT BANNER (IMAGE 5) ---------------- */}
-      <footer className="bg-gradient-to-r from-[#7a0f30] via-[#90133b] to-[#6a0c27] text-white py-12 px-4 sm:px-6 relative overflow-hidden">
+      <footer
+        id="kontak-section"
+        className="bg-gradient-to-r from-[#7a0f30] via-[#90133b] to-[#6a0c27] text-white py-12 px-4 sm:px-6 relative overflow-hidden"
+      >
         {/* Subtle decorative glow */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none" />
 
