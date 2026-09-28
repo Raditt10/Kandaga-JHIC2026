@@ -1,58 +1,52 @@
 @import "tailwindcss";
 
-@theme {
-  --font-sans: var(--font-montserrat), "Montserrat", sans-serif;
-  --font-tangerine: var(--font-tangerine), "Tangerine", cursive;
-  --font-bebas: var(--font-bebas-neue), "Bebas Neue", sans-serif;
-}
+@theme inline {
+  /* ── Warna utama (marun) ── */
+  --color-primary:      #8B1A2F;
+  --color-primary-dark: #6B1424;
 
-:root {
-  --background: #ffffff;
-  --foreground: #111827;
+  /* ── Krem (background section industri) ── */
+  --color-cream: #F5F0E8;
+
+  /* ── Ink (teks gelap, bukan pure black) ── */
+  --color-ink:     #1A1A1A;
+  --color-ink-900: #1A1A1A;
+  --color-ink-700: #3D3D3D;
+  --color-ink-600: #555555;
+  --color-ink-300: #CCCCCC;
+  --color-ink-150: #E8E8E8;
+  --color-ink-100: #F2F2F2;
+
+  /* ── Accent (emas/krem untuk logo & badge) ── */
+  --color-accent: #E8C97A;
+
+  /* ── Background & foreground ── */
+  --color-background: #ffffff;
+  --color-foreground: #1A1A1A;
+
+  /* ── Font ── */
+  --font-heading: var(--font-poppins);
+  --font-sans:    var(--font-inter);
+  --font-mono:    var(--font-geist-mono);
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-montserrat), "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  overflow-x: hidden;
-  text-rendering: optimizeLegibility;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-.font-sans {
-  font-family: var(--font-montserrat), "Montserrat", sans-serif;
 }
 
 .font-tangerine {
   font-family: var(--font-tangerine), "Tangerine", cursive;
 }
 
-.font-bebas {
-  font-family: var(--font-bebas-neue), "Bebas Neue", sans-serif;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-track {
-  background: #f8f8f8;
-}
-::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
-}
-
-/* Perspective 3D utilities for carousel */
-.perspective-1000 {
-  perspective: 1200px;
-}
-
-.preserve-3d {
-  transform-style: preserve-3d;
+/* ── Reduced motion — aksesibilitas wajib ── */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
