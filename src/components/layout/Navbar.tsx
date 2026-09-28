@@ -47,13 +47,8 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
                 priority
               />
             </div>
-            <span className="inline-flex items-center select-none -ml-0.5 bg-gradient-to-r from-zinc-950 via-[#4e0e20] to-[#a61743] bg-clip-text text-transparent group-hover:from-zinc-900 group-hover:to-[#b81d4a] transition-all duration-300">
-              <span className="font-tangerine font-bold text-3xl leading-none inline-block -translate-y-[1px]">
-                K
-              </span>
-              <span className="font-extrabold text-[15px] tracking-tight -ml-0.5">
-                andaga
-              </span>
+            <span className="select-none font-bold text-base sm:text-lg tracking-tight bg-gradient-to-r from-zinc-950 via-[#4e0e20] to-[#a61743] bg-clip-text text-transparent group-hover:from-zinc-900 group-hover:to-[#b81d4a] transition-all duration-300">
+              Kandaga
             </span>
           </Link>
 
