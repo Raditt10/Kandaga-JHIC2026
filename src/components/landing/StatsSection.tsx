@@ -1,17 +1,10 @@
 "use client";
 
-"use client";
-
 import { useEffect, useRef, useState } from "react";
 import { motion, useInView } from "motion/react";
 import { staggerChildren, revealUp } from "@/lib/motion";
-
-const stats = [
-  { value: 3,    suffix: "",  label: "Jurusan Aktif" },
-  { value: 200,  suffix: "+", label: "Karya Terdokumentasi" },
-  { value: 50,   suffix: "+", label: "Siswa Berkontribusi" },
-  { value: 15,   suffix: "+", label: "Guru Pembimbing" },
-];
+import { STATS } from "@/lib/data";
+import type { Stat } from "@/types";
 
 // Hook count-up
 function useCountUp(target: number, duration = 1200, active = false) {
@@ -47,12 +40,7 @@ function StatItem({
   suffix,
   label,
   active,
-}: {
-  value: number;
-  suffix: string;
-  label: string;
-  active: boolean;
-}) {
+}: Stat & { active: boolean }) {
   const count = useCountUp(value, 1200, active);
   return (
     <motion.div variants={revealUp}>
@@ -130,7 +118,7 @@ export default function StatsSection() {
             initial="hidden"
             animate={isInView ? "show" : "hidden"}
           >
-            {stats.map((stat) => (
+            {STATS.map((stat) => (
               <StatItem
                 key={stat.label}
                 value={stat.value}

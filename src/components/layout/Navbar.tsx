@@ -32,8 +32,8 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
   };
 
   return (
-    <header className="fixed top-5 left-0 right-0 mx-auto z-50 w-[94%] max-w-4xl transform-gpu will-change-transform">
-      <div className="bg-white/98 border border-zinc-200/90 shadow-sm shadow-zinc-900/5 rounded-full px-4 sm:px-6 py-2.5 flex items-center justify-between">
+    <header className="fixed top-5 left-0 right-0 mx-auto z-50 w-[94%] max-w-4xl">
+      <div className="bg-white/95 border border-zinc-200/90 shadow-sm rounded-full px-4 sm:px-6 py-2.5 flex items-center justify-between backdrop-blur-md">
         {/* Left: Brand Icon & Navigation Links */}
         <div className="flex items-center gap-6 sm:gap-8">
           {/* Logo Brand Icon & Title (Minimalist & Elegant) */}
@@ -75,7 +75,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
               </button>
 
               {openDropdown === "jurusan" && (
-                <div className="absolute top-full left-0 mt-2 w-56 bg-white/95 backdrop-blur-xl border border-zinc-100 rounded-2xl shadow-xl p-2 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="absolute top-full left-0 mt-2 w-56 bg-white/95 backdrop-blur-md border border-zinc-100 rounded-2xl shadow-xl p-2 transition-all duration-150">
                   <button
                     type="button"
                     onClick={() => handleCategoryClick("RPL")}
@@ -171,7 +171,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
 
       {/* Mobile Dropdown Panel */}
       {isMobileMenuOpen && (
-        <div className="md:hidden mt-2 bg-white/95 backdrop-blur-xl border border-zinc-200/80 rounded-3xl p-4 shadow-xl space-y-2 animate-in fade-in duration-200">
+        <div className="md:hidden mt-2 bg-white/95 backdrop-blur-md border border-zinc-200/80 rounded-3xl p-4 shadow-xl space-y-2 transition-all duration-200">
           {["Jurusan Kami", "Tentang Kami", "Galeri Karya", "Kontak"].map(
             (item) => (
               <button

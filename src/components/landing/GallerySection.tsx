@@ -5,60 +5,18 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "motion/react";
 import { revealUp, staggerChildren } from "@/lib/motion";
-import JellyRadio, { type JellyOption } from "@/components/ui/JellyRadio";
+import JellyRadio from "@/components/ui/JellyRadio";
+import { GALLERY_FILTERS, FEATURED_PROJECTS } from "@/lib/data";
 
-const filterOptions: JellyOption[] = [
-  { value: "Semua", label: "Semua" },
-  { value: "RPL", label: "RPL" },
-  { value: "TKJ", label: "TKJ" },
-  { value: "Analis Kimia", label: "Analis Kimia" },
-  { value: "Terbaru", label: "Terbaru" },
-  { value: "Populer", label: "Populer" },
-];
-
-// Data karya — nanti ganti dengan data asli dari API/database
-const cards = [
-  {
-    src: "/images/preview-kimia.jpg",
-    alt: "Riset Analisis Kadar Logam Berat",
-    tag: "Analis Kimia",
-    title: "Riset Analisis Kadar Logam Berat",
-    desc: "Penelitian laboratorium tentang kadar logam berat pada sampel air sungai di sekitar Bandung.",
-    href: "/etalase/riset-logam-berat",
-  },
-  {
-    src: "/images/preview-iot.jpg",
-    alt: "Sistem Absensi Wajah Berbasis IoT",
-    tag: "web",
-    title: "Sistem Absensi Wajah Berbasis IoT",
-    desc: "Karya TKJ yang memanfaatkan pengenalan wajah untuk mencatat kehadiran siswa secara otomatis.",
-    href: "/etalase/absensi-iot",
-  },
-  {
-    src: "/images/preview-rpl.jpg",
-    alt: "Aplikasi Manajemen Perpustakaan",
-    tag: "RPL",
-    title: "Aplikasi Manajemen Perpustakaan",
-    desc: "Sistem manajemen perpustakaan digital dengan fitur pencarian, peminjaman, dan notifikasi.",
-    href: "/etalase/manajemen-perpustakaan",
-  },
-  {
-    src: "/images/hero-kolaborasi.jpg",
-    alt: "Platform Kolaborasi Siswa",
-    tag: "RPL",
-    title: "Platform Kolaborasi Siswa",
-    desc: "Web app untuk koordinasi proyek antar jurusan dengan fitur task management dan chat real-time.",
-    href: "/etalase/kolaborasi-siswa",
-  },
-  {
-    src: "/images/hero-tkj.jpg",
-    alt: "Monitoring Jaringan Sekolah",
-    tag: "TKJ",
-    title: "Monitoring Jaringan Sekolah",
-    desc: "Dashboard monitoring kondisi jaringan LAN sekolah dengan alert otomatis saat terjadi gangguan.",
-    href: "/etalase/monitoring-jaringan",
-  },
-];
+// Map Project → shape yang dibutuhkan DeckCard
+const cards = FEATURED_PROJECTS.map((p) => ({
+  src:   p.image,
+  alt:   p.title,
+  tag:   p.jurusan,
+  title: p.title,
+  desc:  p.description,
+  href:  p.href,
+}));
 
 // Hitung posisi & style tiap kartu relatif terhadap kartu aktif
 function getCardStyle(offset: number) {
@@ -256,7 +214,7 @@ export default function GallerySection() {
       <div className="sticky top-[73px] z-40 -mx-6 mb-14 bg-white/90 px-6 py-3 backdrop-blur">
         <JellyRadio
           name="gallery-filter"
-          options={filterOptions}
+          options={GALLERY_FILTERS}
           defaultValue="Semua"
           onChange={(val) => setActiveFilter(val)}
         />

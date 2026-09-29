@@ -1,10 +1,14 @@
 "use client";
 
-"use client";
-
 import { useRef, useState } from "react";
 import { motion } from "motion/react";
 import { staggerChildren, revealUp } from "@/lib/motion";
+import { FEATURES } from "@/lib/data";
+import type { Feature, FeatureIconKey } from "@/types";
+
+// Map iconKey → komponen SVG animasi
+// Data (FEATURES) hanya menyimpan string key, bukan referensi komponen,
+// supaya JSON-safe dan siap untuk API di Fase 2.
 
 // SVG ikon — verifikasi (check circle), industri (folder), siswa (users)
 // Animasi stroke "menggambar diri sendiri" saat masuk viewport
@@ -83,36 +87,25 @@ function AnimatedUsersIcon({ isVisible }: { isVisible: boolean }) {
   );
 }
 
-const features = [
-  {
-    number: "01",
-    Icon: AnimatedCheckIcon,
-    title: "Terverifikasi Sekolah",
-    description:
-      "Setiap karya melewati proses kurasi dan verifikasi oleh guru pembimbing sebelum ditampilkan ke publik.",
-  },
-  {
-    number: "02",
-    Icon: AnimatedFolderIcon,
-    title: "Terbuka untuk Industri",
-    description:
-      "Perusahaan dan rekruter dapat langsung menjelajahi portofolio siswa dan menemukan bakat sesuai kebutuhan.",
-  },
-  {
-    number: "03",
-    Icon: AnimatedUsersIcon,
-    title: "Milik Siswa, Diakui Sekolah",
-    description:
-      "Kandaga memastikan karya tetap menjadi portofolio pribadi siswa sekaligus bagian dari rekam jejak resmi sekolah.",
-  },
-];
+// Map iconKey → komponen animasi
+const ICON_MAP: Record<FeatureIconKey, React.ComponentType<{ isVisible: boolean }>> = {
+  check:  AnimatedCheckIcon,
+  folder: AnimatedFolderIcon,
+  users:  AnimatedUsersIcon,
+};
+
+// Gabungkan data dari data.ts dengan komponen ikon
+const features = FEATURES.map((f) => ({
+  ...f,
+  Icon: ICON_MAP[f.iconKey],
+}));
 
 // Kartu dengan tilt-on-hover ±4 derajat
 function FeatureCard({
   feature,
   isVisible,
 }: {
-  feature: (typeof features)[0];
+  feature: Feature & { Icon: React.ComponentType<{ isVisible: boolean }> };
   isVisible: boolean;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);

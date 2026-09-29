@@ -4,6 +4,8 @@ import Link from "next/link";
 import { motion, AnimatePresence, useInView } from "motion/react";
 import { useRef, useState } from "react";
 import { staggerChildren, revealUp } from "@/lib/motion";
+import { BENEFITS } from "@/lib/data";
+import type { Benefit } from "@/types";
 
 // ── Garis ukur ala blueprint teknik ──────────────────────────────────────
 function DimensionLine({ width = 120 }: { width?: number }) {
@@ -112,28 +114,8 @@ function BlueprintIllustration() {
 }
 
 // ── 3 poin manfaat dengan leader-line + tooltip hotspot ───────────────────
-const benefits = [
-  {
-    code: "01",
-    title: "Akses talenta terverifikasi",
-    desc: "Portofolio yang sudah dikurasi guru pembimbing, bukan unggahan bebas.",
-    tooltip: "Setiap karya disetujui minimal satu guru pembimbing sebelum tayang.",
-  },
-  {
-    code: "02",
-    title: "Filter sesuai kebutuhan",
-    desc: "Cari berdasarkan jurusan, skill, dan jenis karya secara spesifik.",
-    tooltip: "Filter tersedia: jurusan, tahun, kategori proyek, dan teknologi yang dipakai.",
-  },
-  {
-    code: "03",
-    title: "Proses resmi lewat BKK sekolah",
-    desc: "Setiap kontak difasilitasi dan diverifikasi pihak sekolah.",
-    tooltip: "BKK memastikan komunikasi terlindungi — siswa tidak dihubungi langsung tanpa persetujuan.",
-  },
-];
 
-function BenefitItem({ b }: { b: typeof benefits[0] }) {
+function BenefitItem({ b }: { b: Benefit }) {
   const [showTooltip, setShowTooltip] = useState(false);
 
   return (
@@ -247,7 +229,7 @@ export default function IndustrySection() {
               whileInView="show"
               viewport={{ once: true, margin: "-60px" }}
             >
-              {benefits.map((b) => (
+              {BENEFITS.map((b) => (
                 <BenefitItem key={b.code} b={b} />
               ))}
             </motion.ul>

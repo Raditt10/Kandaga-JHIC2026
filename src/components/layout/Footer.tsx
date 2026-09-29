@@ -4,27 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
-
-const navLinks = [
-  { label: "Beranda", href: "/" },
-  { label: "Gallery", href: "/galeri" },
-  { label: "Leaderboard", href: "/leaderboard" },
-  { label: "About", href: "/tentang" },
-  { label: "Kontak", href: "/kontak" },
-];
-
-const layananLinks = [
-  { label: "Verifikasi Karya", href: "/verifikasi" },
-  { label: "Akademi", href: "/akademi" },
-  { label: "Komunitas", href: "/komunitas" },
-];
-
-const industriLinks = [
-  { label: "Cari Talenta", href: "/talenta" },
-  { label: "Daftar Mitra", href: "/mitra" },
-  { label: "Program Magang", href: "/magang" },
-  { label: "Hubungi Kami", href: "/kontak" },
-];
+import { FOOTER_NAV_LINKS, FOOTER_LAYANAN_LINKS, FOOTER_INDUSTRI_LINKS } from "@/lib/data";
+import type { NavLink } from "@/types";
 
 // ── Wordmark fill-on-scroll ──────────────────────────────────────────────
 // Saat user mendekati footer, fill terisi dari outline putih → solid putih
@@ -113,7 +94,7 @@ export default function Footer() {
               NAVIGASI
             </p>
             <ul className="flex flex-col gap-2.5">
-              {navLinks.map((link) => (
+              {FOOTER_NAV_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href}
                     className="text-sm text-white/90 transition-colors hover:text-white">
@@ -130,7 +111,7 @@ export default function Footer() {
               LAYANAN
             </p>
             <ul className="flex flex-col gap-2.5">
-              {layananLinks.map((link) => (
+              {FOOTER_LAYANAN_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href}
                     className="text-sm text-white/90 transition-colors hover:text-white">
@@ -147,7 +128,7 @@ export default function Footer() {
               UNTUK INDUSTRI
             </p>
             <ul className="flex flex-col gap-2.5">
-              {industriLinks.map((link) => (
+              {FOOTER_INDUSTRI_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href}
                     className="text-sm text-white/90 transition-colors hover:text-white">

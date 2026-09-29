@@ -25,9 +25,10 @@
   --color-foreground: #1A1A1A;
 
   /* ── Font ── */
-  --font-heading: var(--font-poppins);
-  --font-sans:    var(--font-inter);
-  --font-mono:    var(--font-geist-mono);
+  --font-heading:    var(--font-poppins);
+  --font-sans:       var(--font-inter);
+  --font-mono:       var(--font-geist-mono);
+  --font-tangerine:  var(--font-tangerine);
 }
 
 body {
