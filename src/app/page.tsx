@@ -1,3 +1,4 @@
+"use client"
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Hero from "@/components/landing/Hero";
@@ -9,8 +10,19 @@ import JurusanMenu from "@/components/landing/JurusanMenu";
 import IndustrySection from "@/components/landing/IndustrySection";
 import TrustBar from "@/components/landing/TrustBar";
 import FAQSection from "@/components/landing/FAQSection";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <>
       <Navbar />

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Poppins, Inter, Tangerine } from "next/font/google";
-import SmoothScrollProvider from "@/components/layout/SmoothScrollProvider";
+import SmoothScrollProvider from "@/lib/SmoothScrollProvider";
 import "./globals.css";
+import AuthProvider from "@/lib/AuthProvider";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -36,7 +37,9 @@ export default function RootLayout({
       className={`${poppins.variable} ${inter.variable} ${tangerine.variable}`}
     >
       <body suppressHydrationWarning>
-        <SmoothScrollProvider>{children}</SmoothScrollProvider>
+        <AuthProvider>
+          <SmoothScrollProvider>{children}</SmoothScrollProvider>
+        </AuthProvider>
       </body>
     </html>
   );
