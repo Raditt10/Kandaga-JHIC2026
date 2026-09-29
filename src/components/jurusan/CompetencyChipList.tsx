@@ -25,7 +25,7 @@ export default function CompetencyChipList({
     <div ref={ref} className="space-y-3">
       {/* Label dengan DimensionLine */}
       <div className="flex items-center gap-3 mb-4">
-        <span className="text-[10px] font-mono font-semibold tracking-[0.25em] text-ink-600">
+        <span className="text-xs font-mono font-semibold tracking-[0.25em] text-ink-600">
           {label}
         </span>
         {/* Animated dimension line */}
@@ -76,9 +76,9 @@ export default function CompetencyChipList({
               delay: 0.15 + index * 0.07,
             }}
           >
-            {/* Leader line indicator */}
+            {/* nomor urut — dekoratif, aria-hidden di parent */}
             <div className="flex flex-shrink-0 items-center gap-1.5">
-              <span className="font-mono text-[9px] font-semibold text-ink-300">
+              <span className="font-mono text-xs font-semibold text-ink-600">
                 {String(index + 1).padStart(2, "0")}
               </span>
               <svg width="24" height="10" viewBox="0 0 24 10" aria-hidden="true">

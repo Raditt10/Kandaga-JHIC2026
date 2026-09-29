@@ -47,7 +47,7 @@ export default function JurusanNavTabs({ activeId, onSelect }: JurusanNavTabsPro
               <Layers className="w-4 h-4" />
               <span>Semua Jurusan</span>
               <span
-                className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
+                className={`text-xs px-1.5 py-0.5 rounded-full font-mono ${
                   activeId === "semua"
                     ? "bg-white/20 text-white"
                     : "bg-zinc-200 text-zinc-600"
@@ -75,7 +75,7 @@ export default function JurusanNavTabs({ activeId, onSelect }: JurusanNavTabsPro
                   </span>
                   <span>{jurusan.name}</span>
                   <span
-                    className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
+                    className={`text-xs px-1.5 py-0.5 rounded-full font-mono ${
                       isActive
                         ? "bg-white/20 text-white"
                         : "bg-zinc-200 text-zinc-600"
@@ -88,7 +88,7 @@ export default function JurusanNavTabs({ activeId, onSelect }: JurusanNavTabsPro
             })}
           </div>
 
-          <div className="hidden lg:flex items-center gap-2 text-[11px] font-medium text-zinc-500 shrink-0">
+          <div className="hidden lg:flex items-center gap-2 text-xs font-medium text-ink-600 shrink-0">
             <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
             <span>Terakreditasi A • Kurikulum Industri</span>
           </div>
