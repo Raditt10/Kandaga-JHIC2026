@@ -197,21 +197,21 @@ export const STATS: Stat[] = [
 export const FEATURES: Feature[] = [
   {
     number: "01",
-    iconKey: "check",
+    iconKey: "verified",
     title: "Terverifikasi Sekolah",
     description:
       "Setiap karya melewati proses kurasi dan verifikasi oleh guru pembimbing sebelum ditampilkan ke publik.",
   },
   {
     number: "02",
-    iconKey: "folder",
+    iconKey: "enterprise",
     title: "Terbuka untuk Industri",
     description:
       "Perusahaan dan rekruter dapat langsung menjelajahi portofolio siswa dan menemukan bakat sesuai kebutuhan.",
   },
   {
     number: "03",
-    iconKey: "users",
+    iconKey: "school",
     title: "Milik Siswa, Diakui Sekolah",
     description:
       "Kandaga memastikan karya tetap menjadi portofolio pribadi siswa sekaligus bagian dari rekam jejak resmi sekolah.",

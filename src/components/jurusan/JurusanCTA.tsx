@@ -1,8 +1,6 @@
-"use client";
-
 import React from "react";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import Image from "next/image";
 
 export default function JurusanCTA() {
   return (
@@ -15,12 +13,6 @@ export default function JurusanCTA() {
       <div className="pointer-events-none absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
 
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-6">
-        
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 border border-white/20 text-[#E8C97A]">
-          <span className="w-2 h-2 rounded-full bg-[#E8C97A] animate-pulse" />
-          <span>KEMITRAAN DUDI & PENDAFTARAN SISWA</span>
-        </div>
-
         <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">
           Tertarik Merekrut Talenta atau Berkolaborasi dengan SMKN 13 Bandung?
         </h2>
@@ -31,37 +23,20 @@ export default function JurusanCTA() {
           Kimia melalui saluran kemitraan resmi BKK sekolah.
         </p>
 
-        {/* Benefits bullets */}
-        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 pt-2 text-xs sm:text-sm text-zinc-200">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-[#E8C97A]" />
-            <span>Portofolio Karya Terverifikasi</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-[#E8C97A]" />
-            <span>Fasilitas Uji Kompetensi BNSP</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-[#E8C97A]" />
-            <span>Program Magang 6–10 Bulan</span>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+        {/* Action Button */}
+        <div className="flex justify-center pt-4">
           <Link
-            href="/#galeri-section"
-            className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-xs sm:text-sm font-bold bg-white text-zinc-900 hover:bg-zinc-100 transition-all shadow-lg hover:shadow-xl cursor-pointer active:scale-98"
+            href="/#jurusan-section"
+            className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl text-xs sm:text-sm font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/25 transition-all cursor-pointer shadow-sm active:scale-98"
           >
-            <span>Jelajahi Galeri Karya Teruji</span>
-            <ArrowRight className="w-4 h-4 text-[#8B1A2F]" />
-          </Link>
-
-          <Link
-            href="/#industri-section"
-            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-xs sm:text-sm font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/25 transition-all cursor-pointer"
-          >
-            <span>Hubungi Kemitraan BKK</span>
+            <span>Lihat Jurusan lainnya</span>
+            <Image
+              src="/icons/arrowsplit.svg"
+              alt="Lihat Jurusan lainnya"
+              width={18}
+              height={18}
+              className="w-4.5 h-4.5 object-contain"
+            />
           </Link>
         </div>
 

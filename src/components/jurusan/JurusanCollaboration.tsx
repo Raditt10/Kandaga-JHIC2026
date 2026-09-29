@@ -6,20 +6,10 @@ import { FlaskConical, Network, Code2, ArrowRight, CheckCircle2 } from "lucide-r
 export default function JurusanCollaboration() {
   return (
     <section className="py-20 bg-white border-b border-zinc-200 relative overflow-hidden">
-      {/* Decorative subtle grid */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#1A1A1A_1px,transparent_1px),linear-gradient(to_bottom,#1A1A1A_1px,transparent_1px)] bg-[size:32px_32px]"
-        aria-hidden="true"
-      />
-
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Header Section */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono font-bold tracking-wider uppercase bg-[#8B1A2F]/10 text-[#8B1A2F] border border-[#8B1A2F]/20">
-            <span>SINERGI INTERDISIPLINER • KANDAGA ECOSYSTEM</span>
-          </div>
-
           <h2 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold text-zinc-900 tracking-tight">
             Kolaborasi Antar Jurusan, Menghasilkan Solusi Utuh
           </h2>
