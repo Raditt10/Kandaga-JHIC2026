@@ -1,3 +1,4 @@
+"use client"
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Hero from "@/components/landing/Hero";
@@ -9,15 +10,9 @@ import JurusanMenu from "@/components/landing/JurusanMenu";
 import IndustrySection from "@/components/landing/IndustrySection";
 import TrustBar from "@/components/landing/TrustBar";
 import FAQSection from "@/components/landing/FAQSection";
+import { useEffect, useState } from "react";
 
 export default function Home() {
-  const [activeNav, setActiveNav] = useState("Beranda");
-  const [activeFilter, setActiveFilter] = useState("Semua");
-  const [activeProjectIndex, setActiveProjectIndex] = useState(2); // Center card (EcoSync) by default
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -27,29 +22,6 @@ export default function Home() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const filterOptions = [
-    "Semua",
-    "RPL",
-    "TKJ",
-    "Analis Kimia",
-    "Terbaru",
-    "Populer",
-  ];
-
-  const selectedProject = GALLERY_PROJECTS[activeProjectIndex];
-
-  const handlePrev = () => {
-    setActiveProjectIndex((prev) =>
-      prev === 0 ? GALLERY_PROJECTS.length - 1 : prev - 1
-    );
-  };
-
-  const handleNext = () => {
-    setActiveProjectIndex((prev) =>
-      prev === GALLERY_PROJECTS.length - 1 ? 0 : prev + 1
-    );
-  };
 
   return (
     <>

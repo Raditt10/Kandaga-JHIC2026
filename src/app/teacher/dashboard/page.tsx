@@ -6,13 +6,8 @@ import { useSession } from "next-auth/react"
 import {
   BookOpen,
   CheckCircle,
-  XCircle,
-  Sparkles,
-  FileCheck,
-  GraduationCap,
   Award,
   Clock,
-  FlaskConical,
 } from "lucide-react"
 
 export default function TeacherDashboardPage() {

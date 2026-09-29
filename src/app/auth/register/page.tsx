@@ -135,7 +135,7 @@ export default function RegisterPage() {
       })
 
       if (loginRes?.ok) {
-        router.push(`/dashboard/${role}`)
+        router.push(`/${role}/dashboard`)
         router.refresh()
       } else {
         router.push("/login")
@@ -319,7 +319,7 @@ export default function RegisterPage() {
                       </div>
 
                       <div className="mt-4 pt-2 border-t border-zinc-100 flex items-center justify-between text-[10px] text-zinc-400 uppercase tracking-wider font-mono">
-                        <span>Akses: /dashboard/{r.id}</span>
+                        <span>Akses: /{r.id}/dashboard</span>
                       </div>
                     </button>
                   )

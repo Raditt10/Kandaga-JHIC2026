@@ -5,13 +5,6 @@ import DashboardLayout from "@/components/DashboardLayout"
 import { useSession } from "next-auth/react"
 import {
   Briefcase,
-  TrendingUp,
-  UserCheck,
-  Building,
-  Calendar,
-  Sparkles,
-  Award,
-  Users,
 } from "lucide-react"
 
 export default function BKKDashboardPage() {

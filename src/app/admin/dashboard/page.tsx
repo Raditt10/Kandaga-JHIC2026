@@ -1,16 +1,13 @@
 "use client"
 
-import React, { useState } from "react"
+import React from "react"
 import DashboardLayout from "@/components/DashboardLayout"
 import { useSession } from "next-auth/react"
 import { usersDatabase } from "@/lib/users"
 import {
   ShieldCheck,
   Users,
-  Key,
   Shield,
-  Plus,
-  Trash2,
   Lock,
   UserCheck,
   Server,
@@ -85,7 +82,7 @@ export default function AdminDashboardPage() {
             <Lock className="w-4 h-4 text-amber-600" />
           </div>
           <p className="text-2xl font-extrabold text-emerald-600">Aktif & Strict</p>
-          <span className="text-[11px] text-zinc-500 font-medium mt-1 inline-block">Proteksi Rute /dashboard/*</span>
+          <span className="text-[11px] text-zinc-500 font-medium mt-1 inline-block">Proteksi Rute /[role]/dashboard</span>
         </div>
 
         <div className="bg-white rounded-3xl p-5 border border-zinc-200 shadow-sm">
@@ -144,7 +141,7 @@ export default function AdminDashboardPage() {
                     </span>
                   </td>
                   <td className="py-3 px-3 text-zinc-500 font-sans text-[11px]">
-                    Hanya dapat mengakses <code className="text-[#90133b] font-bold">/dashboard/{u.role}</code>
+                    Hanya dapat mengakses <code className="text-[#90133b] font-bold">/{u.role}/dashboard</code>
                   </td>
                 </tr>
               ))}

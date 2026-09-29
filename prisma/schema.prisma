@@ -32,7 +32,7 @@ model User {
   teacherProfile          Teacher?
   companyProfile          Company?
   verifiedCompanies       Company[]        @relation("CompanyVerifiedBy")
-  reviewedCreations           Creation[]           @relation("CreationReviewedBy")
+  reviewedCreations       Creation[]           @relation("CreationReviewedBy")
   awardedBadges           CreationBadge[]      @relation("BadgeAwardedBy")
   reviewedContactRequests ContactRequest[] @relation("ContactRequestReviewedBy")
   recordedPartnerships    Partnership[]    @relation("PartnershipRecordedBy")
@@ -77,8 +77,8 @@ model Teacher {
   majorId Int     @map("majors_id") @db.SmallInt
   nip     String? @unique
 
-  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  major        Major  @relation(fields: [majorId], references: [id])
+  user             User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  major            Major  @relation(fields: [majorId], references: [id])
   advisedCreations Creation[] @relation("CreationAdvisor")
 
   @@index([majorId], map: "teachers_majors_idx")
@@ -103,8 +103,8 @@ model Company {
 }
 
 model CreationType {
-  id    Int    @id @default(autoincrement()) @db.SmallInt
-  name  String @unique @map("username")
+  id        Int    @id @default(autoincrement()) @db.SmallInt
+  name      String @unique @map("username")
   creations Creation[]
 
   @@map("creationtypes")
@@ -119,9 +119,9 @@ model SkillTool {
 }
 
 model Badge {
-  id         Int         @id @default(autoincrement()) @db.SmallInt
-  name       String      @unique @map("username")
-  tier       String      @unique
+  id             Int         @id @default(autoincrement()) @db.SmallInt
+  name           String      @unique @map("username")
+  tier           String      @unique
   creationBadges CreationBadge[]
 
   @@map("badges")
@@ -225,9 +225,9 @@ model ContactRequest {
 }
 
 model Bookmark {
-  companyId String   @map("company_id") @db.Uuid
-  creationId    String   @map("creation_id") @db.Uuid
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  companyId  String   @map("company_id") @db.Uuid
+  creationId String   @map("creation_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   company Company @relation(fields: [companyId], references: [userId], onDelete: Cascade)
   creation    Creation    @relation(fields: [creationId], references: [id], onDelete: Cascade)

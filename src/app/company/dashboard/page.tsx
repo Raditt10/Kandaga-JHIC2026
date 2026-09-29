@@ -8,11 +8,6 @@ import {
   Search,
   UserCheck,
   Briefcase,
-  ExternalLink,
-  Award,
-  Sparkles,
-  CheckCircle2,
-  Layers,
 } from "lucide-react"
 
 export default function CompanyDashboardPage() {
