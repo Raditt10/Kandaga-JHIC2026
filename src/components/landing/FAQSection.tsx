@@ -3,34 +3,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { staggerChildren, revealUp } from "@/lib/motion";
-
-const faqs = [
-  {
-    id: "siapa-mitra",
-    q: "Siapa yang bisa mendaftar sebagai mitra industri?",
-    a: "Perusahaan, UMKM, lembaga, atau instansi pemerintah yang ingin mengakses portofolio siswa SMKN 13 Bandung untuk keperluan rekrutmen, kerja sama PKL, atau riset. Pendaftaran diverifikasi oleh Koordinator BKK sekolah sebelum akun aktif.",
-  },
-  {
-    id: "biaya",
-    q: "Apakah ada biaya untuk menjadi mitra?",
-    a: "Tidak. Akses katalog karya dan fitur pencarian talenta sepenuhnya gratis untuk mitra industri yang sudah terverifikasi. Kandaga adalah platform resmi sekolah, bukan layanan komersial.",
-  },
-  {
-    id: "verifikasi",
-    q: "Berapa lama proses verifikasi akun perusahaan?",
-    a: "Proses verifikasi biasanya berlangsung 1–3 hari kerja. Tim BKK akan menghubungi narahubung yang didaftarkan melalui email atau telepon untuk konfirmasi. Pastikan data perusahaan yang diisi lengkap dan valid.",
-  },
-  {
-    id: "upload-karya",
-    q: "Sebagai siswa, bagaimana cara mengunggah karya ke Kandaga?",
-    a: "Karya tidak dapat diunggah langsung oleh siswa — setiap karya harus diajukan melalui guru pembimbing jurusan untuk dikurasi terlebih dahulu. Hubungi guru pembimbing di jurusan masing-masing (RPL, TKJ, atau Analis Kimia) untuk memulai proses pengajuan.",
-  },
-  {
-    id: "bkk",
-    q: "Apa itu BKK dan apa perannya di Kandaga?",
-    a: "BKK (Bursa Kerja Khusus) adalah unit resmi di SMKN 13 Bandung yang bertugas memfasilitasi hubungan antara siswa/alumni dengan dunia industri. Di Kandaga, BKK berperan sebagai verifikator akun mitra dan fasilitator komunikasi antara perusahaan dengan siswa/guru.",
-  },
-];
+import { FAQS } from "@/lib/data";
+import type { FAQ } from "@/types";
 
 // Easing overshoot sedikit — sesuai spesifikasi design2.md
 const OVERSHOOT = [0.34, 1.56, 0.64, 1] as const;
@@ -40,7 +14,7 @@ function FAQItem({
   isOpen,
   onToggle,
 }: {
-  faq: (typeof faqs)[0];
+  faq: FAQ;
   isOpen: boolean;
   onToggle: () => void;
 }) {
@@ -136,7 +110,7 @@ export default function FAQSection() {
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
-          {faqs.map((faq) => (
+          {FAQS.map((faq) => (
             <FAQItem
               key={faq.id}
               faq={faq}

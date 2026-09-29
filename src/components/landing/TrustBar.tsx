@@ -2,16 +2,7 @@
 
 import { motion } from "motion/react";
 import { staggerChildren, revealUp } from "@/lib/motion";
-
-// Dummy mitra — ganti dengan logo SVG/Image asli saat data tersedia
-const partners = [
-  { name: "PT Telkom Indonesia", abbr: "TLK" },
-  { name: "PT Bandung Techno Park", abbr: "BTP" },
-  { name: "CV Inovasi Digital", abbr: "IDG" },
-  { name: "PT Aplikasi Karya Anak Bangsa", abbr: "AKAB" },
-  { name: "Dinas Pendidikan Jabar", abbr: "DIKJ" },
-  { name: "PT Global Teknologi", abbr: "GTK" },
-];
+import { PARTNERS } from "@/lib/data";
 
 export default function TrustBar() {
   return (
@@ -36,7 +27,7 @@ export default function TrustBar() {
             variants={staggerChildren}
             className="flex flex-wrap items-center justify-center gap-8 md:gap-12"
           >
-            {partners.map((p) => (
+            {PARTNERS.map((p) => (
               <motion.div
                 key={p.abbr}
                 variants={revealUp}

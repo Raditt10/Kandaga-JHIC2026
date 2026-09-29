@@ -3,8 +3,8 @@
 import dynamic from "next/dynamic";
 import { motion } from "motion/react";
 import { staggerChildren, revealUp } from "@/lib/motion";
+import { JURUSAN_LIST } from "@/lib/data";
 
-// Lazy-load FlowingMenu karena membawa GSAP — tidak boleh memengaruhi LCP Hero
 const FlowingMenu = dynamic(() => import("@/components/ui/FlowingMenu"), {
   ssr: false,
   loading: () => (
@@ -12,23 +12,12 @@ const FlowingMenu = dynamic(() => import("@/components/ui/FlowingMenu"), {
   ),
 });
 
-const items = [
-  {
-    link: "/jurusan/analis-kimia",
-    text: "Analis Kimia",
-    image: "/images/hero-kimia.jpg",
-  },
-  {
-    link: "/jurusan/tkj",
-    text: "TKJ",
-    image: "/images/hero-tkj.jpg",
-  },
-  {
-    link: "/jurusan/rpl",
-    text: "RPL",
-    image: "/images/preview-rpl.jpg",
-  },
-];
+// Map JURUSAN_LIST ke shape yang dibutuhkan FlowingMenu
+const items = JURUSAN_LIST.map((j) => ({
+  link:  j.link,
+  text:  j.name,
+  image: j.image,
+}));
 
 export default function JurusanMenu() {
   return (
