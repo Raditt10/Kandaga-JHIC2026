@@ -108,12 +108,8 @@ function LoginFormContent() {
       const normalizedRole = userRole.toLowerCase() === "students" ? "student" : userRole.toLowerCase()
 
       // Redirect to designated role page or specified callback
-      if (callbackUrl && callbackUrl.includes("/dashboard")) {
-        router.push(callbackUrl)
-      } else {
-        router.push(`/${normalizedRole}/dashboard`)
-      }
-      router.refresh()
+        router.push(`/${normalizedRole}`)
+        router.refresh()
     } catch (err) {
       setError("Terjadi kesalahan saat masuk. Silakan coba lagi.")
       setLoading(false)
@@ -219,28 +215,28 @@ function LoginFormContent() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <button
               type="button"
-              onClick={() => signIn("google", { callbackUrl: "/dashboard/student" })}
+              onClick={() => signIn("google", { callbackUrl: "/student" })}
               className="py-2.5 px-3 border border-zinc-200 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 transition flex items-center justify-center gap-1.5"
             >
               <span>Google</span>
             </button>
             <button
               type="button"
-              onClick={() => signIn("github", { callbackUrl: "/dashboard/student" })}
+              onClick={() => signIn("github", { callbackUrl: "/student" })}
               className="py-2.5 px-3 border border-zinc-200 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 transition flex items-center justify-center gap-1.5"
             >
               <span>GitHub</span>
             </button>
             <button
               type="button"
-              onClick={() => signIn("facebook", { callbackUrl: "/dashboard/student" })}
+              onClick={() => signIn("facebook", { callbackUrl: "/student" })}
               className="py-2.5 px-3 border border-zinc-200 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 transition flex items-center justify-center gap-1.5"
             >
               <span>Facebook</span>
             </button>
             <button
               type="button"
-              onClick={() => signIn("linkedin", { callbackUrl: "/dashboard/student" })}
+              onClick={() => signIn("linkedin", { callbackUrl: "/student" })}
               className="py-2.5 px-3 border border-zinc-200 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 transition flex items-center justify-center gap-1.5"
             >
               <span>LinkedIn</span>
@@ -249,7 +245,7 @@ function LoginFormContent() {
 
           <p className="text-center text-xs text-zinc-500 mt-6">
             Belum memiliki akun Kandaga?{" "}
-            <Link href="/register" className="font-bold text-[#90133b] hover:underline">
+            <Link href="/auth/register" className="font-bold text-[#90133b] hover:underline">
               Daftar sekarang
             </Link>
           </p>

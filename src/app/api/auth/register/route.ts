@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
-import { prisma } from '@/lib/prisma'
+import { Role } from "@prisma/client"
+import bcrypt from 'bcryptjs'
+import prisma from '@/lib/prisma'
 
 export async function POST(req: Request) {
   try {
@@ -35,34 +37,51 @@ export async function POST(req: Request) {
       )
     }
 
-    const result = await prisma.users.create(
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    const result = await prisma.users.create({
       data: {
         name: username,
         email,
-        passwordHash: 
+        passwordHash: hashedPassword,
+        role: mapRole(role)
       }
-    )
-
-    if (result.error) {
-      return NextResponse.json({ error: result.error }, { status: 400 })
-    }
+    })
 
     return NextResponse.json(
       {
         message: "Registrasi berhasil!",
         user: {
-          id: result.user?.id,
-          username: result.user?.username,
-          email: result.user?.email,
-          role: result.user?.role,
+          id: result.id,
+          username: result.name,
+          email: result.email,
+          role: result.role,
         },
       },
       { status: 201 }
     )
   } catch (error) {
+    console.log(error)
     return NextResponse.json(
-      { error: "Gagal memproses pendaftaran. Pastikan data valid." },
+      { error: "terjadi kesalahan saat registrasi akun. " },
       { status: 500 }
     )
+  }
+}
+
+function mapRole(value: string) {
+  switch (value.trim().toLowerCase()) {
+    case 'student':
+      return Role.Student
+    case 'teacher':
+      return Role.Teacher
+    case 'company':
+      return Role.Company
+    case 'admin':
+      return Role.Admin
+    case 'bkk':
+      return Role.BKK
+    default:
+      return Role.Student
   }
 }

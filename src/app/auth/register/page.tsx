@@ -135,7 +135,7 @@ export default function RegisterPage() {
       })
 
       if (loginRes?.ok) {
-        router.push(`/${role}/dashboard`)
+        router.push(`/${role}`)
         router.refresh()
       } else {
         router.push("/auth/login")

@@ -23,7 +23,7 @@ async function main() {
   await prisma.partnerships.deleteMany()
   await prisma.notifications.deleteMany()
   await prisma.auditLogs.deleteMany()
-  console.log('🌱 remove initial data complete. Seeding database...')
+  console.log('🌱 remove existing data complete. Seeding database...')
 
 
   const userdata = [
@@ -61,7 +61,7 @@ async function main() {
 
   // Add your seed data here
   for (const user of userdata) {
-    const users = await prisma.users.create({
+    await prisma.users.create({
       data: {
         name: user.name,
         email: user.email,
@@ -104,7 +104,6 @@ async function main() {
   for (const major of majorsdata) {
     await prisma.major.create({
       data: {
-        slug: major.slug,
         name: major.name,
         fullName: major.fullName,
         image: major.image,
@@ -203,7 +202,7 @@ function mapRole(role: string) {
     case 'company':
       return Role.Company
     default:
-      return Role.BKK
+      return Role.Student
   }
 }
 
@@ -212,6 +211,7 @@ function mapProjectType(value: string) {
     case 'rpl': return ProjectType.RPL
     case 'tkj': return ProjectType.TKJ
     case 'ka': return ProjectType.KA
+    default: return ProjectType.RPL
   }
 }
 

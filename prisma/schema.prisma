@@ -39,11 +39,12 @@ model Users {
   auditLogs               AuditLogs[]
   faqAsker                FAQs[]            @relation("FAQSAsker")
   faqReplier              FAQs[]            @relation("FAQsReplier")
+
+  @@map("users")
 }
 
 model Major {
-  id          Int       @id @default(autoincrement()) @db.SmallInt
-  slug        String    @unique
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String    @unique
   fullName    String
   image       String
@@ -57,7 +58,7 @@ model Major {
 
 model Student {
   userId        String  @id @map("user_id") @db.Uuid
-  majorId       Int     @map("major_id") @db.SmallInt
+  majorId       String  @map("major_id") @db.Uuid
   nis           String  @unique
   class         String  
   generation    Int     @db.SmallInt
@@ -76,7 +77,7 @@ model Student {
 
 model Teacher {
   userId  String  @id @map("user_id") @db.Uuid
-  majorId Int     @map("majors_id") @db.SmallInt
+  majorId String     @map("majors_id")
   nip     String? @unique
 
   user             Users      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -123,6 +124,8 @@ model Badges {
   name           String      @unique @map("username")
   tier           String      @unique
   projectBadges  ProjectsBadge[]
+
+  @@map("badges")
 }
 
 model Projects {
@@ -186,10 +189,10 @@ model ProjectsTool {
 model ProjectsBadge {
   projectId String   @map("project_id") @db.Uuid
   badgeId   Int      @map("badge_id") @db.SmallInt
-  awardedBy String   @map("given_from") @db.Uuid
-  awardedAt DateTime @default(now()) @map("given_at") @db.Timestamptz
+  awardedBy String   @map("awarded_from") @db.Uuid
+  awardedAt DateTime @default(now()) @map("awarded_at") @db.Timestamptz
 
-  project Projects @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project Projects  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   badge   Badges    @relation(fields: [badgeId], references: [id])
   awarder Users     @relation("BadgeAwardedBy", fields: [awardedBy], references: [id])
 
@@ -201,7 +204,7 @@ model ProjectsBadge {
 model ContactRequests {
   id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   companyId   String    @map("company_id") @db.Uuid
-  projectId  String    @map("project_id") @db.Uuid
+  projectId   String    @map("project_id") @db.Uuid
   purpose     String  
   message     String   
   status      String    @default("sent")
@@ -231,6 +234,8 @@ model Bookmarks {
   project    Projects    @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@id([companyId, projectId])
+
+  @@map("bookmarks")
 }
 
 model Partnerships {
@@ -244,6 +249,7 @@ model Partnerships {
 
   contactRequest ContactRequests @relation(fields: [requestId], references: [id])
   recorder       Users           @relation("PartnershipRecordedBy", fields: [recordedBy], references: [id])
+  @@map("partnerships")
 }
 
 model Notifications {
@@ -258,10 +264,11 @@ model Notifications {
   user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, isRead], map: "notification_user_idx")
+  @@map("notifications")
 }
 
 model AuditLogs {
-  id        BigInt   @id @default(autoincrement())
+  id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId    String?  @map("user_id") @db.Uuid
   action    String   
   entity    String   
@@ -278,7 +285,7 @@ model AuditLogs {
 
 model FAQs {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  askerId    String   @map("asker_id") @db.Uuid
+  askerId   String   @map("asker_id") @db.Uuid
   replierId String   @map("replier_id") @db.Uuid
   question  String
   answer    String
