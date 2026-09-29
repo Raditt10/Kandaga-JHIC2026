@@ -21,11 +21,11 @@ import {
   ArrowRight,
   Layers,
   Wrench,
-  Check,
   Building2,
   ExternalLink,
 } from "lucide-react";
 import { JurusanDetail } from "@/data/jurusanData";
+import CompetencyChipList from "@/components/jurusan/CompetencyChipList";
 
 // Icon resolver helper
 function ProgramIcon({ name, className }: { name: string; className?: string }) {
@@ -94,34 +94,23 @@ export default function JurusanDetailSection({
             </span>
           </div>
 
-          <h2 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold text-zinc-900 tracking-tight">
+          {/* P0 fix: heading hierarchy h2, font-heading, ink-700, max-w-[65ch] */}
+          <h2 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold text-ink tracking-tight">
             {jurusan.name}
           </h2>
 
-          <p className="font-medium text-base sm:text-lg text-[#8B1A2F]">
+          <p className="font-medium text-base sm:text-lg text-primary">
             {jurusan.tagline}
           </p>
 
-          <p className="text-sm sm:text-base text-zinc-600 leading-relaxed">
+          {/* P0 fix: kontras ink-700, max-w-[65ch] untuk optimal line length */}
+          <p className="text-base text-ink-700 leading-relaxed max-w-[65ch]">
             {jurusan.description}
           </p>
 
-          {/* Fokus Utama Pills */}
+          {/* Fokus Utama — ganti grid checkmark dengan CompetencyChipList */}
           <div className="pt-2">
-            <p className="text-xs font-mono uppercase tracking-wider text-zinc-400 mb-2">
-              Fokus Kompetensi Utama:
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {jurusan.coreFocus.map((focus, i) => (
-                <span
-                  key={i}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium bg-white border border-zinc-200 text-zinc-700 shadow-2xs"
-                >
-                  <Check className="w-3 h-3 text-[#8B1A2F]" />
-                  <span>{focus}</span>
-                </span>
-              ))}
-            </div>
+            <CompetencyChipList items={jurusan.coreFocus} label="KOMPETENSI UTAMA" />
           </div>
         </div>
 
@@ -311,7 +300,7 @@ export default function JurusanDetailSection({
                           key={fi}
                           className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-100 flex items-center gap-1"
                         >
-                          <Check className="w-3 h-3 text-emerald-600" />
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                           <span>{feat}</span>
                         </span>
                       ))}

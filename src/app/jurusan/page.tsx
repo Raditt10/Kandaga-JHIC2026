@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import JurusanHero from "@/components/jurusan/JurusanHero";
 import JurusanNavTabs from "@/components/jurusan/JurusanNavTabs";
@@ -95,8 +94,9 @@ function JurusanContent() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      {/* ── Global Floating Navbar ── */}
-      <Navbar />
+      {/* ── Navbar sengaja dihilangkan di halaman Jurusan ──
+          JurusanNavTabs sudah berfungsi sebagai navigasi kontekstual
+          di halaman ini, navbar utama akan menumpuk dan membingungkan. ── */}
 
       <main className="flex-1">
         {/* ── Section 1: Hero Section dengan Model Slot di Sisi Kanan ── */}
