@@ -12,7 +12,7 @@ import { GALLERY_FILTERS, FEATURED_PROJECTS } from "@/lib/data";
 const cards = FEATURED_PROJECTS.map((p) => ({
   src:   p.image,
   alt:   p.title,
-  tag:   p.jurusan,
+  tag:   p.jurusan === "tkj" ? "TKJ" : p.jurusan === "rpl" ? "RPL" : p.jurusan === "analis-kimia" ? "Analis Kimia" : p.jurusan,
   title: p.title,
   desc:  p.description,
   href:  p.href,

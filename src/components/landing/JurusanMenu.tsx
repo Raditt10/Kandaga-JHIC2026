@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { staggerChildren, revealUp } from "@/lib/motion";
 import { JURUSAN_LIST } from "@/lib/data";
 
+// Lazy-load FlowingMenu karena membawa GSAP — tidak boleh memengaruhi LCP Hero
 const FlowingMenu = dynamic(() => import("@/components/ui/FlowingMenu"), {
   ssr: false,
   loading: () => (
@@ -14,8 +15,8 @@ const FlowingMenu = dynamic(() => import("@/components/ui/FlowingMenu"), {
 
 // Map JURUSAN_LIST ke shape yang dibutuhkan FlowingMenu
 const items = JURUSAN_LIST.map((j) => ({
-  link:  j.link,
-  text:  j.name,
+  link: `/jurusan?tab=${j.slug}`,
+  text: j.name,
   image: j.image,
 }));
 
