@@ -15,7 +15,7 @@ const FlowingMenu = dynamic(() => import("@/components/ui/FlowingMenu"), {
 
 // Map JURUSAN_LIST ke shape yang dibutuhkan FlowingMenu
 const items = JURUSAN_LIST.map((j) => ({
-  link: `/jurusan?tab=${j.slug}`,
+  link: `/jurusan/${j.slug}`,
   text: j.name,
   image: j.image,
 }));
@@ -30,15 +30,9 @@ export default function JurusanMenu() {
         viewport={{ once: true, margin: "-80px" }}
         className="mb-8"
       >
-        <motion.span
-          variants={revealUp}
-          className="text-xs font-semibold tracking-[0.3em] text-ink-600"
-        >
-          JURUSAN
-        </motion.span>
         <motion.h2
           variants={revealUp}
-          className="mt-2 font-heading text-3xl font-semibold text-ink md:text-4xl"
+          className="font-heading text-3xl font-semibold text-ink md:text-4xl"
         >
           Jelajahi per Jurusan
         </motion.h2>

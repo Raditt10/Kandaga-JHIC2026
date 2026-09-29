@@ -3,8 +3,22 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSession, signOut } from "next-auth/react";
+import {
+  ChevronDown,
+  Menu,
+  X,
+  User as UserIcon,
+  LogOut,
+  LayoutDashboard,
+  GraduationCap,
+  ShieldCheck,
+  Building2,
+  BookOpen,
+  Briefcase,
+  ArrowRight
+} from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
-import { ChevronDown, Menu, X, ArrowRight } from "lucide-react";
 
 export interface NavbarProps {
   onOpenLogin?: () => void;
@@ -12,9 +26,49 @@ export interface NavbarProps {
 }
 
 export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
+  const { data: session, status } = useSession();
   const [activeNav, setActiveNav] = useState("Beranda");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  const rawRole = (session?.user?.role || "student").toLowerCase();
+  const normalizedRole =
+    rawRole === "students" ? "student" : rawRole === "bkk" ? "bkk" : rawRole;
+
+  const roleMeta: Record<
+    string,
+    { label: string; badgeColor: string; icon: React.ElementType }
+  > = {
+    student: {
+      label: "Student",
+      badgeColor: "bg-rose-100 text-rose-800 border-rose-200",
+      icon: GraduationCap,
+    },
+    admin: {
+      label: "Admin",
+      badgeColor: "bg-rose-900 text-white border-rose-950",
+      icon: ShieldCheck,
+    },
+    company: {
+      label: "Company",
+      badgeColor: "bg-blue-100 text-blue-800 border-blue-200",
+      icon: Building2,
+    },
+    teacher: {
+      label: "Teacher",
+      badgeColor: "bg-amber-100 text-amber-800 border-amber-200",
+      icon: BookOpen,
+    },
+    bkk: {
+      label: "BKK",
+      badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+      icon: Briefcase,
+    },
+  };
+
+  const currentRoleMeta = roleMeta[normalizedRole] || roleMeta.student;
+  const RoleIcon = currentRoleMeta.icon;
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
   const pathname = usePathname();
@@ -62,7 +116,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
         "Analis Kimia": "analis-kimia",
       };
       const slug = slugMap[category] || "rpl";
-      router.push(`/jurusan#${slug}`);
+      router.push(`/jurusan/${slug}`);
     }
     setOpenDropdown(null);
     setIsMobileMenuOpen(false);
@@ -118,7 +172,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
               onMouseLeave={handleDropdownLeave}
             >
               <Link
-                href="/jurusan"
+                href="/jurusan/rpl"
                 className="flex items-center gap-1.5 hover:text-zinc-950 transition cursor-pointer py-1 whitespace-nowrap"
               >
                 <span className="whitespace-nowrap">Jurusan Kami</span>
@@ -136,35 +190,48 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
                   onMouseLeave={handleDropdownLeave}
                 >
                   {/* Dropdown Card with hover bridge before pseudo-element */}
-                  <div className="bg-white/98 backdrop-blur-xl border border-zinc-200/90 rounded-2xl shadow-xl p-2 relative before:absolute before:-top-3 before:left-0 before:right-0 before:h-3 before:content-['']">
+                  <div className="bg-white/98 backdrop-blur-xl border border-zinc-200/90 rounded-2xl shadow-xl p-2 relative before:absolute before:-top-3 before:left-0 before:right-0 before:h-3 before:content-[''] space-y-1">
                     <Link
-                      href="/jurusan"
+                      href="/jurusan/rpl"
                       onClick={() => setOpenDropdown(null)}
-                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-[#8B1A2F] bg-[#8B1A2F]/5 hover:bg-[#8B1A2F]/10 transition cursor-pointer mb-1 border border-[#8B1A2F]/15"
+                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-[#8B1A2F]/5 hover:text-[#8B1A2F] transition cursor-pointer group"
                     >
-                      <span>Semua Jurusan</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
+                      <span>Rekayasa Perangkat Lunak (RPL)</span>
+                      <Image
+                        src="/icons/arrowright.svg"
+                        alt="Arrow"
+                        width={14}
+                        height={14}
+                        className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all object-contain"
+                      />
                     </Link>
                     <Link
-                      href="/jurusan?tab=rpl"
+                      href="/jurusan/tkj"
                       onClick={() => setOpenDropdown(null)}
-                      className="block w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-[#90133b] transition cursor-pointer"
+                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-[#8B1A2F]/5 hover:text-[#8B1A2F] transition cursor-pointer group"
                     >
-                      Rekayasa Perangkat Lunak (RPL)
+                      <span>Teknik Komputer Jaringan (TKJ)</span>
+                      <Image
+                        src="/icons/arrowright.svg"
+                        alt="Arrow"
+                        width={14}
+                        height={14}
+                        className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all object-contain"
+                      />
                     </Link>
                     <Link
-                      href="/jurusan?tab=tkj"
+                      href="/jurusan/analis-kimia"
                       onClick={() => setOpenDropdown(null)}
-                      className="block w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-[#90133b] transition cursor-pointer"
+                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-[#8B1A2F]/5 hover:text-[#8B1A2F] transition cursor-pointer group"
                     >
-                      Teknik Komputer Jaringan (TKJ)
-                    </Link>
-                    <Link
-                      href="/jurusan?tab=analis-kimia"
-                      onClick={() => setOpenDropdown(null)}
-                      className="block w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-[#90133b] transition cursor-pointer"
-                    >
-                      Analis Kimia (4 Tahun)
+                      <span>Analis Kimia (4 Tahun)</span>
+                      <Image
+                        src="/icons/arrowright.svg"
+                        alt="Arrow"
+                        width={14}
+                        height={14}
+                        className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all object-contain"
+                      />
                     </Link>
                   </div>
                 </div>
@@ -197,31 +264,94 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
             >
               Kontak
             </button>
+            <button
+              type="button"
+              onClick={() => navigateToSection("industri-section")}
+              className="hidden sm:inline-block text-xs sm:text-sm font-semibold text-zinc-600 hover:text-zinc-950 transition cursor-pointer"
+            >
+              Mitra Perusahaan
+            </button>
           </nav>
         </div>
 
-        {/* Right Action: Mitra Perusahaan + Login Pill Button */}
-        <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-          <button
-            type="button"
-            onClick={() => navigateToSection("industri-section")}
-            className="hidden sm:inline-block text-xs sm:text-sm font-semibold text-zinc-600 hover:text-zinc-950 transition cursor-pointer whitespace-nowrap shrink-0"
-          >
-            Mitra Perusahaan
-          </button>
+        {/* Right Action: Profile Avatar or Login Button */}
+        <div className="flex items-center gap-3 sm:gap-4">
+          {status === "authenticated" && session?.user ? (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="flex items-center gap-2 px-2.5 py-1 rounded-full border border-zinc-200 bg-zinc-50/80 hover:bg-zinc-100 transition cursor-pointer shadow-xs"
+              >
+                <div className="w-7 h-7 rounded-full bg-gradient-to-r from-[#891337] to-[#a61743] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                  {session.user.username
+                    ? session.user.username.charAt(0).toUpperCase()
+                    : "U"}
+                </div>
+                <span className="hidden sm:inline-block text-xs font-bold text-zinc-800 max-w-[100px] truncate">
+                  {session.user.username || "Profile"}
+                </span>
+                <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
+              </button>
 
-          <Link
-            href="/login"
-            onClick={(e) => {
-              if (onOpenLogin) {
-                e.preventDefault();
-                onOpenLogin();
-              }
-            }}
-            className="bg-gradient-to-r from-[#891337] to-[#a61743] hover:from-[#76102f] hover:to-[#92143b] text-white px-5 sm:px-6 py-2 rounded-full text-xs font-bold tracking-wide transition-all duration-200 shadow-md shadow-[#891337]/25 hover:shadow-lg hover:shadow-[#891337]/35 cursor-pointer active:scale-95 whitespace-nowrap shrink-0"
-          >
-            Masuk
-          </Link>
+              {/* Profile Dropdown Menu */}
+              {isProfileOpen && (
+                <div className="absolute right-0 top-full mt-2 w-64 bg-white/95 backdrop-blur-xl border border-zinc-200/90 rounded-2xl shadow-xl p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div className="p-3 bg-zinc-50 rounded-xl mb-2 border border-zinc-100">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-xs font-bold text-zinc-900 truncate">
+                        {session.user.username || "Pengguna"}
+                      </p>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase ${currentRoleMeta.badgeColor}`}
+                      >
+                        {currentRoleMeta.label}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-zinc-500 font-mono truncate">
+                      {session.user.email}
+                    </p>
+                  </div>
+
+                  <Link
+                    href={`/${normalizedRole}/dashboard`}
+                    onClick={() => setIsProfileOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-zinc-800 hover:bg-[#891337]/10 hover:text-[#891337] transition cursor-pointer"
+                  >
+                    <LayoutDashboard className="w-4 h-4 text-[#891337]" />
+                    <span>Portal Dashboard</span>
+                  </Link>
+
+                  <div className="my-1 border-t border-zinc-100" />
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      signOut({ callbackUrl: "/" });
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition cursor-pointer text-left"
+                  >
+                    <LogOut className="w-4 h-4 text-rose-600" />
+                    <span>Keluar (Sign Out)</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link
+              href="/auth/login"
+              onClick={(e) => {
+                if (onOpenLogin) {
+                  e.preventDefault();
+                  onOpenLogin();
+                }
+              }}
+              className="bg-gradient-to-r from-[#891337] to-[#a61743] hover:from-[#76102f] hover:to-[#92143b] text-white px-5 sm:px-6 py-2 rounded-full text-xs font-bold tracking-wide transition-all duration-200 shadow-md shadow-[#891337]/25 hover:shadow-lg hover:shadow-[#891337]/35 cursor-pointer active:scale-95"
+            >
+              Masuk
+            </Link>
+          )}
 
           {/* Mobile Hamburger toggle */}
           <button
@@ -257,7 +387,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
                       router.push("/");
                     }
                   } else if (item === "Jurusan Kami") {
-                    router.push("/jurusan");
+                    router.push("/jurusan/rpl");
                   } else if (item === "Galeri Karya") {
                     navigateToSection("galeri-section");
                   } else if (item === "Tentang Kami") {
@@ -287,19 +417,29 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
             >
               Mitra Perusahaan
             </button>
-            <Link
-              href="/login"
-              onClick={(e) => {
-                setIsMobileMenuOpen(false);
-                if (onOpenLogin) {
-                  e.preventDefault();
-                  onOpenLogin();
-                }
-              }}
-              className="bg-[#90133b] text-white px-5 py-1.5 rounded-full text-xs font-bold cursor-pointer"
-            >
-              Masuk
-            </Link>
+            {status === "authenticated" && session?.user ? (
+              <Link
+                href={`/${normalizedRole}/dashboard`}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="bg-[#90133b] text-white px-5 py-1.5 rounded-full text-xs font-bold cursor-pointer"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <Link
+                href="/auth/login"
+                onClick={(e) => {
+                  setIsMobileMenuOpen(false);
+                  if (onOpenLogin) {
+                    e.preventDefault();
+                    onOpenLogin();
+                  }
+                }}
+                className="bg-[#90133b] text-white px-5 py-1.5 rounded-full text-xs font-bold cursor-pointer"
+              >
+                Masuk
+              </Link>
+            )}
           </div>
         </div>
       )}

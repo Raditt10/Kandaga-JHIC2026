@@ -189,15 +189,9 @@ export default function GallerySection() {
         whileInView="show"
         viewport={{ once: true, margin: "-80px" }}
       >
-        <motion.span
-          variants={revealUp}
-          className="text-xs font-semibold tracking-[0.3em] text-ink-600"
-        >
-          GALERI
-        </motion.span>
         <motion.h2
           variants={revealUp}
-          className="mt-2 font-heading text-3xl font-semibold text-ink md:text-4xl"
+          className="font-heading text-3xl font-semibold text-ink md:text-4xl"
         >
           Temukan karya yang bicara.
         </motion.h2>
@@ -336,9 +330,16 @@ export default function GallerySection() {
           </p>
           <a
             href={activeCard.href}
-            className="mt-4 inline-block text-sm font-semibold text-primary hover:text-primary-dark"
+            className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dark group"
           >
-            Read More →
+            <span>Read More</span>
+            <Image
+              src="/icons/arrowright.svg"
+              alt="Read More"
+              width={14}
+              height={14}
+              className="w-3.5 h-3.5 object-contain transition-transform group-hover:translate-x-1"
+            />
           </a>
         </motion.div>
       </AnimatePresence>
