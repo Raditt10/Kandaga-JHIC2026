@@ -138,7 +138,7 @@ export default function RegisterPage() {
         router.push(`/${role}/dashboard`)
         router.refresh()
       } else {
-        router.push("/login")
+        router.push("/auth/login")
       }
     } catch (err) {
       setError("Terjadi kesalahan koneksi server. Silakan coba lagi.")
@@ -169,7 +169,7 @@ export default function RegisterPage() {
               Beranda
             </Link>
             <Link
-              href="/login"
+              href="/auth/login"
               className="bg-gradient-to-r from-[#891337] to-[#a61743] hover:from-[#76102f] hover:to-[#92143b] text-white px-5 py-2 rounded-full font-bold tracking-wide transition-all shadow-md shadow-[#891337]/25"
             >
               Sudah Punya Akun? Masuk
@@ -348,7 +348,7 @@ export default function RegisterPage() {
 
           <p className="text-center text-xs text-zinc-500 mt-8">
             Sudah memiliki akun terdaftar?{" "}
-            <Link href="/login" className="font-bold text-[#90133b] hover:underline">
+            <Link href="/auth/login" className="font-bold text-[#90133b] hover:underline">
               Masuk ke portal
             </Link>
           </p>

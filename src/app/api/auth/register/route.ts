@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { createUser } from "@/lib/users"
+import { prisma } from '@/lib/prisma'
 
 export async function POST(req: Request) {
   try {
@@ -35,7 +35,13 @@ export async function POST(req: Request) {
       )
     }
 
-    const result = createUser({ username, email, password, role })
+    const result = await prisma.users.create(
+      data: {
+        name: username,
+        email,
+        passwordHash: 
+      }
+    )
 
     if (result.error) {
       return NextResponse.json({ error: result.error }, { status: 400 })

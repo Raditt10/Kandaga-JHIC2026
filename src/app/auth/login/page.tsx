@@ -353,7 +353,7 @@ export default function LoginPage() {
               Beranda
             </Link>
             <Link
-              href="/register"
+              href="/auth/register"
               className="bg-gradient-to-r from-[#891337] to-[#a61743] hover:from-[#76102f] hover:to-[#92143b] text-white px-5 py-2 rounded-full font-bold tracking-wide transition-all shadow-md shadow-[#891337]/25"
             >
               Daftar Akun
