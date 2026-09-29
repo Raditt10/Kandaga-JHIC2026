@@ -9,17 +9,16 @@ datasource db {
   extensions = [citext(schema: "public"), pgcrypto(schema: "public")]
 }
 
-model Role {
-  id    Int    @id @db.SmallInt
-  name  String @unique @map("username")
-  users User[]
-
-  @@map("roles")
+enum Role {
+  Student
+  Teacher
+  Company
+  Admin
+  BKK
 }
 
 model User {
   id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  roleId       Int      @map("role_id") @db.SmallInt
   name         String   @map("username")
   email        String   @unique @db.Citext
   passwordHash String   @map("password_hash")
@@ -27,7 +26,7 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
-  role                    Role             @relation(fields: [roleId], references: [id])
+  role                    Role
   studentProfile          Student?
   teacherProfile          Teacher?
   companyProfile          Company?
@@ -38,9 +37,6 @@ model User {
   recordedPartnerships    Partnership[]    @relation("PartnershipRecordedBy")
   notifications           Notification[]
   auditLogs               AuditLog[]
-
-  @@index([roleId], map: "users_role_idx")
-  @@map("users")
 }
 
 model Major {
