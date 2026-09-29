@@ -19,10 +19,11 @@ export default function SmoothScrollProvider({
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     });
 
-    // Pakai requestAnimationFrame dengan cleanup yang benar
-    // Simpan rafId supaya bisa di-cancel saat unmount
-    let rafId: number;
+    // Expose lenis instance globally for smooth programmatic scroll navigation
+    (window as unknown as { lenis?: Lenis }).lenis = lenis;
 
+    // Pakai requestAnimationFrame dengan cleanup yang benar
+    let rafId: number;
     function raf(time: number) {
       lenis.raf(time);
       rafId = requestAnimationFrame(raf);
@@ -40,6 +41,7 @@ export default function SmoothScrollProvider({
     document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
+      delete (window as unknown as { lenis?: Lenis }).lenis;
       cancelAnimationFrame(rafId);
       document.removeEventListener("visibilitychange", handleVisibility);
       lenis.destroy();

@@ -16,7 +16,9 @@ import {
   Building2,
   BookOpen,
   Briefcase,
+  ArrowRight
 } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
 
 export interface NavbarProps {
   onOpenLogin?: () => void;
@@ -67,30 +69,66 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
 
   const currentRoleMeta = roleMeta[normalizedRole] || roleMeta.student;
   const RoleIcon = currentRoleMeta.icon;
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
 
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+  const handleDropdownEnter = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
+    setOpenDropdown("jurusan");
+  };
+
+  const handleDropdownLeave = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => {
+      setOpenDropdown(null);
+    }, 180);
+  };
+
+  const navigateToSection = (id: string) => {
+    if (pathname === "/") {
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+        return;
+      }
+    }
+    router.push(`/#${id}`);
   };
 
   const handleCategoryClick = (category: string) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
     if (onSelectCategory) {
       onSelectCategory(category);
+      navigateToSection("galeri-section");
+    } else {
+      const slugMap: Record<string, string> = {
+        RPL: "rpl",
+        TKJ: "tkj",
+        "Analis Kimia": "analis-kimia",
+      };
+      const slug = slugMap[category] || "rpl";
+      router.push(`/jurusan#${slug}`);
     }
-    scrollToSection("galeri-section");
     setOpenDropdown(null);
     setIsMobileMenuOpen(false);
   };
 
   return (
-    <header className="fixed top-5 left-0 right-0 mx-auto z-50 w-[94%] max-w-4xl">
-      <div className="bg-white/95 border border-zinc-200/90 shadow-sm rounded-full px-4 sm:px-6 py-2.5 flex items-center justify-between backdrop-blur-md">
+    <header className="fixed top-5 left-0 right-0 mx-auto z-50 w-[96%] max-w-5xl lg:max-w-6xl transform-gpu will-change-transform">
+      <div className="bg-white/98 border border-zinc-200/90 shadow-sm shadow-zinc-900/5 rounded-full px-5 sm:px-7 py-2.5 flex items-center justify-between">
         {/* Left: Brand Icon & Navigation Links */}
-        <div className="flex items-center gap-6 sm:gap-8">
+        <div className="flex items-center gap-6 lg:gap-8">
           {/* Logo Brand Icon & Title (Minimalist & Elegant) */}
-          <Link href="/" className="flex items-center gap-1 group">
+          <Link href="/" className="flex items-center gap-1.5 group shrink-0">
             <div className="w-8 h-8 relative rounded-full overflow-hidden shadow-xs ring-1 ring-zinc-900/5 transition-transform duration-200 group-hover:scale-105 shrink-0">
               <Image
                 src="/logo.png"
@@ -99,52 +137,90 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
                 className="object-contain"
                 priority
               />
-            </div>
-            <span className="select-none font-bold text-base sm:text-lg tracking-tight bg-gradient-to-r from-zinc-950 via-[#4e0e20] to-[#a61743] bg-clip-text text-transparent group-hover:from-zinc-900 group-hover:to-[#b81d4a] transition-all duration-300">
-              Kandaga
+            </div> 
+            <span className="select-none font-bold text-base sm:text-lg tracking-tight bg-gradient-to-r from-zinc-950 via-[#4e0e20] to-[#a61743] bg-clip-text text-transparent group-hover:from-zinc-900 group-hover:to-[#b81d4a] transition-all duration-300 whitespace-nowrap">
+              KANDAGA
             </span>
           </Link>
 
           {/* Desktop Nav Links with Dropdown */}
-          <nav className="hidden md:flex items-center gap-6 text-xs sm:text-sm font-medium text-zinc-600">
+          <nav className="hidden md:flex items-center gap-5 lg:gap-7 text-xs sm:text-sm font-medium text-zinc-600 whitespace-nowrap">
+            {/* 0. Beranda */}
+            <button
+              type="button"
+              onClick={() => {
+                setActiveNav("Beranda");
+                if (pathname === "/") {
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                } else {
+                  router.push("/");
+                }
+              }}
+              className={`hover:text-zinc-950 transition cursor-pointer py-1 whitespace-nowrap shrink-0 ${
+                pathname === "/" && activeNav === "Beranda"
+                  ? "text-[#8B1A2F] font-bold"
+                  : ""
+              }`}
+            >
+              Beranda
+            </button>
+
             {/* 1. Jurusan Kami Dropdown (Sitemap) */}
             <div
-              className="relative"
-              onMouseEnter={() => setOpenDropdown("jurusan")}
-              onMouseLeave={() => setOpenDropdown(null)}
+              className="relative py-1 shrink-0"
+              onMouseEnter={handleDropdownEnter}
+              onMouseLeave={handleDropdownLeave}
             >
-              <button
-                type="button"
-                onClick={() => scrollToSection("jurusan-section")}
-                className="flex items-center gap-1.5 hover:text-zinc-950 transition cursor-pointer py-1"
+              <Link
+                href="/jurusan"
+                className="flex items-center gap-1.5 hover:text-zinc-950 transition cursor-pointer py-1 whitespace-nowrap"
               >
-                <span>Jurusan Kami</span>
-                <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
-              </button>
+                <span className="whitespace-nowrap">Jurusan Kami</span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 text-zinc-400 transition-transform duration-200 shrink-0 ${
+                    openDropdown === "jurusan" ? "rotate-180 text-zinc-800" : ""
+                  }`}
+                />
+              </Link>
 
               {openDropdown === "jurusan" && (
-                <div className="absolute top-full left-0 mt-2 w-56 bg-white/95 backdrop-blur-md border border-zinc-100 rounded-2xl shadow-xl p-2 transition-all duration-150">
-                  <button
-                    type="button"
-                    onClick={() => handleCategoryClick("RPL")}
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-[#90133b] transition cursor-pointer"
-                  >
-                    Rekayasa Perangkat Lunak
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleCategoryClick("TKJ")}
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-[#90133b] transition cursor-pointer"
-                  >
-                    Teknik Komputer Jaringan
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleCategoryClick("Analis Kimia")}
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-[#90133b] transition cursor-pointer"
-                  >
-                    Analis Kimia
-                  </button>
+                <div
+                  className="absolute top-full left-0 pt-2 w-64 z-50 animate-in fade-in slide-in-from-top-1 duration-150"
+                  onMouseEnter={handleDropdownEnter}
+                  onMouseLeave={handleDropdownLeave}
+                >
+                  {/* Dropdown Card with hover bridge before pseudo-element */}
+                  <div className="bg-white/98 backdrop-blur-xl border border-zinc-200/90 rounded-2xl shadow-xl p-2 relative before:absolute before:-top-3 before:left-0 before:right-0 before:h-3 before:content-['']">
+                    <Link
+                      href="/jurusan"
+                      onClick={() => setOpenDropdown(null)}
+                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-[#8B1A2F] bg-[#8B1A2F]/5 hover:bg-[#8B1A2F]/10 transition cursor-pointer mb-1 border border-[#8B1A2F]/15"
+                    >
+                      <span>Semua Jurusan</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                    <Link
+                      href="/jurusan?tab=rpl"
+                      onClick={() => setOpenDropdown(null)}
+                      className="block w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-[#90133b] transition cursor-pointer"
+                    >
+                      Rekayasa Perangkat Lunak (RPL)
+                    </Link>
+                    <Link
+                      href="/jurusan?tab=tkj"
+                      onClick={() => setOpenDropdown(null)}
+                      className="block w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-[#90133b] transition cursor-pointer"
+                    >
+                      Teknik Komputer Jaringan (TKJ)
+                    </Link>
+                    <Link
+                      href="/jurusan?tab=analis-kimia"
+                      onClick={() => setOpenDropdown(null)}
+                      className="block w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-[#90133b] transition cursor-pointer"
+                    >
+                      Analis Kimia (4 Tahun)
+                    </Link>
+                  </div>
                 </div>
               )}
             </div>
@@ -152,8 +228,8 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
             {/* 2. Tentang Kami */}
             <button
               type="button"
-              onClick={() => scrollToSection("tentang-section")}
-              className="hover:text-zinc-950 transition cursor-pointer py-1"
+              onClick={() => navigateToSection("tentang-section")}
+              className="hover:text-zinc-950 transition cursor-pointer py-1 whitespace-nowrap shrink-0"
             >
               Tentang Kami
             </button>
@@ -161,8 +237,8 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
             {/* 3. Galeri Karya */}
             <button
               type="button"
-              onClick={() => scrollToSection("galeri-section")}
-              className="hover:text-zinc-950 transition cursor-pointer py-1"
+              onClick={() => navigateToSection("galeri-section")}
+              className="hover:text-zinc-950 transition cursor-pointer py-1 whitespace-nowrap shrink-0"
             >
               Galeri Karya
             </button>
@@ -170,14 +246,14 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
             {/* 4. Kontak */}
             <button
               type="button"
-              onClick={() => scrollToSection("kontak-section")}
-              className="hover:text-zinc-950 transition cursor-pointer py-1"
+              onClick={() => navigateToSection("kontak-section")}
+              className="hover:text-zinc-950 transition cursor-pointer py-1 whitespace-nowrap shrink-0"
             >
               Kontak
             </button>
             <button
               type="button"
-              onClick={() => scrollToSection("industri-section")}
+              onClick={() => navigateToSection("industri-section")}
               className="hidden sm:inline-block text-xs sm:text-sm font-semibold text-zinc-600 hover:text-zinc-950 transition cursor-pointer"
             >
               Mitra Perusahaan
@@ -282,8 +358,8 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
 
       {/* Mobile Dropdown Panel */}
       {isMobileMenuOpen && (
-        <div className="md:hidden mt-2 bg-white/95 backdrop-blur-md border border-zinc-200/80 rounded-3xl p-4 shadow-xl space-y-2 transition-all duration-200">
-          {["Jurusan Kami", "Tentang Kami", "Galeri Karya", "Kontak"].map(
+        <div className="md:hidden mt-2 bg-white/95 backdrop-blur-xl border border-zinc-200/80 rounded-3xl p-4 shadow-xl space-y-2 animate-in fade-in duration-200">
+          {["Beranda", "Jurusan Kami", "Tentang Kami", "Galeri Karya", "Kontak"].map(
             (item) => (
               <button
                 key={item}
@@ -291,14 +367,20 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
                 onClick={() => {
                   setActiveNav(item);
                   setIsMobileMenuOpen(false);
-                  if (item === "Jurusan Kami") {
-                    scrollToSection("jurusan-section");
+                  if (item === "Beranda") {
+                    if (pathname === "/") {
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    } else {
+                      router.push("/");
+                    }
+                  } else if (item === "Jurusan Kami") {
+                    router.push("/jurusan");
                   } else if (item === "Galeri Karya") {
-                    scrollToSection("galeri-section");
+                    navigateToSection("galeri-section");
                   } else if (item === "Tentang Kami") {
-                    scrollToSection("tentang-section");
+                    navigateToSection("tentang-section");
                   } else if (item === "Kontak") {
-                    scrollToSection("kontak-section");
+                    navigateToSection("kontak-section");
                   }
                 }}
                 className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold transition ${
@@ -316,7 +398,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
               type="button"
               onClick={() => {
                 setIsMobileMenuOpen(false);
-                scrollToSection("industri-section");
+                navigateToSection("industri-section");
               }}
               className="text-xs font-bold text-zinc-700 hover:text-zinc-950"
             >

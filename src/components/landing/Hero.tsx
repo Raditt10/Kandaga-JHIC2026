@@ -90,7 +90,7 @@ export default function Hero() {
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "8%"]);
 
   return (
-    <section ref={sectionRef} className="relative overflow-hidden">
+    <section ref={sectionRef} id="beranda-section" className="relative overflow-hidden">
       {/* 3 panel curtain reveal staggered */}
       <motion.div
         className="grid h-[420px] grid-cols-3 md:h-[480px]"
