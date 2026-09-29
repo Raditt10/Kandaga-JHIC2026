@@ -97,8 +97,8 @@ Pastikan device Anda telah terpasang:
 git clone https://github.com/Raditt10/Kandaga-JHIC2026.git
 cd Kandaga-JHIC2026
 
-# Install dependensi menggunakan pnpm
-pnpm install
+# Install dependensi menggunakan npm, pnpm atau package manager lainnya
+npm install
 ```
 
 ---
@@ -138,7 +138,7 @@ npx prisma db seed
 ### 5. Jalankan Server Development
 
 ```bash
-pnpm dev
+npm run dev
 ```
 
 Buka browser Anda dan akses:
@@ -153,9 +153,9 @@ Untuk memverifikasi kompilasi produksi tanpa error:
 ```bash
 # Pembersihan cache & build Next.js
 rm -rf .next
-pnpm build
+npm run build
 
 # Jalankan server produksi
-pnpm start
+npm run start
 ```
 
