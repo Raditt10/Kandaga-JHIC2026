@@ -13,7 +13,7 @@ export default function JurusanCTA() {
       color="rgba(255,255,255,0.06)"
       size={500}
     >
-      {/* Static blueprint grid — tidak bergerak, bukan animated noise */}
+      {/* Blueprint grid statis */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.07] bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:32px_32px]"
         aria-hidden="true"
@@ -22,27 +22,27 @@ export default function JurusanCTA() {
 
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-8">
 
-        {/* Label — sentence case, bukan all-caps kalimat panjang */}
+        {/* Label — sentence case, ≤4 kata (design-rules §5) */}
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 border border-white/20 text-accent">
           <span className="w-2 h-2 rounded-full bg-accent animate-pulse" aria-hidden="true" />
           <span>Kemitraan DUDI &amp; Pendaftaran Siswa</span>
         </div>
 
-        {/* P0 + adopted: massive typography + warna putih solid (bukan abu di atas marun) */}
+        {/* massive typography — putih solid, bukan zinc di atas marun */}
         <h2 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] text-white">
           Tertarik Merekrut Talenta
           <br className="hidden sm:block" />
           atau Berkolaborasi?
         </h2>
 
-        {/* P0 fix: teks putih/cream di atas marun — bukan zinc-200 yang bisa gagal kontras */}
+        {/* body text: cream (kontras aman di atas marun), max-w-[60ch] */}
         <p className="text-cream text-base sm:text-lg max-w-[60ch] mx-auto leading-relaxed">
           Platform Kandaga memverifikasi kompetensi siswa secara transparan.
           Dapatkan akses langsung ke talenta siap kerja dari jurusan RPL, TKJ,
           maupun Analis Kimia melalui saluran kemitraan resmi BKK sekolah.
         </p>
 
-        {/* Benefits — teks putih, ukuran text-sm minimum */}
+        {/* Benefits — text-sm minimum */}
         <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-sm text-white/90">
           {[
             "Portofolio Karya Terverifikasi",
@@ -56,7 +56,7 @@ export default function JurusanCTA() {
           ))}
         </div>
 
-        {/* CTA buttons — MagneticButton untuk tombol utama */}
+        {/* CTA — MagneticButton untuk tombol utama */}
         <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
           <MagneticButton radius={50} strength={8}>
             <Link

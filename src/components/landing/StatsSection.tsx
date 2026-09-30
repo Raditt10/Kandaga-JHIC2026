@@ -88,15 +88,9 @@ export default function StatsSection() {
             initial="hidden"
             animate={isInView ? "show" : "hidden"}
           >
-            <motion.span
-              variants={revealUp}
-              className="text-xs font-semibold tracking-[0.3em] text-white/50"
-            >
-              TENTANG KARYA
-            </motion.span>
             <motion.h2
               variants={revealUp}
-              className="mt-3 font-heading text-3xl font-semibold text-white md:text-4xl"
+              className="font-heading text-3xl font-semibold text-white md:text-4xl"
             >
               Lebih dari sekadar{" "}
               <span className="text-primary">tugas.</span>

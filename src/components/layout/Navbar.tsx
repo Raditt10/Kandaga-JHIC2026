@@ -116,7 +116,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
         "Analis Kimia": "analis-kimia",
       };
       const slug = slugMap[category] || "rpl";
-      router.push(`/jurusan#${slug}`);
+      router.push(`/jurusan/${slug}`);
     }
     setOpenDropdown(null);
     setIsMobileMenuOpen(false);
@@ -172,7 +172,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
               onMouseLeave={handleDropdownLeave}
             >
               <Link
-                href="/jurusan"
+                href="/jurusan/rpl"
                 className="flex items-center gap-1.5 hover:text-zinc-950 transition cursor-pointer py-1 whitespace-nowrap"
               >
                 <span className="whitespace-nowrap">Jurusan Kami</span>
@@ -190,35 +190,48 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
                   onMouseLeave={handleDropdownLeave}
                 >
                   {/* Dropdown Card with hover bridge before pseudo-element */}
-                  <div className="bg-white/98 backdrop-blur-xl border border-zinc-200/90 rounded-2xl shadow-xl p-2 relative before:absolute before:-top-3 before:left-0 before:right-0 before:h-3 before:content-['']">
+                  <div className="bg-white/98 backdrop-blur-xl border border-zinc-200/90 rounded-2xl shadow-xl p-2 relative before:absolute before:-top-3 before:left-0 before:right-0 before:h-3 before:content-[''] space-y-1">
                     <Link
-                      href="/jurusan"
+                      href="/jurusan/rpl"
                       onClick={() => setOpenDropdown(null)}
-                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-[#8B1A2F] bg-[#8B1A2F]/5 hover:bg-[#8B1A2F]/10 transition cursor-pointer mb-1 border border-[#8B1A2F]/15"
+                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-[#8B1A2F]/5 hover:text-[#8B1A2F] transition cursor-pointer group"
                     >
-                      <span>Semua Jurusan</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
+                      <span>Rekayasa Perangkat Lunak (RPL)</span>
+                      <Image
+                        src="/icons/arrowright.svg"
+                        alt="Arrow"
+                        width={14}
+                        height={14}
+                        className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all object-contain"
+                      />
                     </Link>
                     <Link
-                      href="/jurusan?tab=rpl"
+                      href="/jurusan/tkj"
                       onClick={() => setOpenDropdown(null)}
-                      className="block w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-[#90133b] transition cursor-pointer"
+                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-[#8B1A2F]/5 hover:text-[#8B1A2F] transition cursor-pointer group"
                     >
-                      Rekayasa Perangkat Lunak (RPL)
+                      <span>Teknik Komputer Jaringan (TKJ)</span>
+                      <Image
+                        src="/icons/arrowright.svg"
+                        alt="Arrow"
+                        width={14}
+                        height={14}
+                        className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all object-contain"
+                      />
                     </Link>
                     <Link
-                      href="/jurusan?tab=tkj"
+                      href="/jurusan/analis-kimia"
                       onClick={() => setOpenDropdown(null)}
-                      className="block w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-[#90133b] transition cursor-pointer"
+                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-[#8B1A2F]/5 hover:text-[#8B1A2F] transition cursor-pointer group"
                     >
-                      Teknik Komputer Jaringan (TKJ)
-                    </Link>
-                    <Link
-                      href="/jurusan?tab=analis-kimia"
-                      onClick={() => setOpenDropdown(null)}
-                      className="block w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-[#90133b] transition cursor-pointer"
-                    >
-                      Analis Kimia (4 Tahun)
+                      <span>Analis Kimia (4 Tahun)</span>
+                      <Image
+                        src="/icons/arrowright.svg"
+                        alt="Arrow"
+                        width={14}
+                        height={14}
+                        className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all object-contain"
+                      />
                     </Link>
                   </div>
                 </div>
@@ -374,7 +387,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
                       router.push("/");
                     }
                   } else if (item === "Jurusan Kami") {
-                    router.push("/jurusan");
+                    router.push("/jurusan/rpl");
                   } else if (item === "Galeri Karya") {
                     navigateToSection("galeri-section");
                   } else if (item === "Tentang Kami") {

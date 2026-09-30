@@ -2,20 +2,18 @@
 
 /**
  * Heading outline (design-rules.md §3):
- *   h2: "Kolaborasi antar jurusan..."   ← section heading
- *     h3: "Analis Kimia"               ← pilar 1 (kolom teks, bukan kartu)
- *     h3: "Teknik Komputer & Jaringan" ← pilar 2
- *     h3: "Rekayasa Perangkat Lunak"   ← pilar 3
- *       h4: judul karya kolaboratif    ← showcase
+ *   h2: "Kolaborasi antar jurusan..."
+ *     h3: "Analis Kimia"
+ *     h3: "Teknik Komputer & Jaringan"
+ *     h3: "Rekayasa Perangkat Lunak"
+ *       h4: judul karya kolaboratif
  *
- * Design-rules fixes:
- * - All-caps: hanya label pendek ≤4 kata (§5)
- * - Nested cards: 3 kartu pilar → 3 kolom teks dengan garis pemisah vertikal,
- *   tanpa card/border/shadow (§6 — aturan max 1 pola kartu per halaman,
- *   jatah sudah dipakai di tab Program Unggulan JurusanDetailSection)
- * - text-[10px]/[11px] → text-xs minimum (§2)
- * - zinc-400 → ink-600 untuk kontras WCAG AA (§7)
- * - Paragraf tanpa max-w → max-w-[65ch] (§4)
+ * Design-rules fixes applied:
+ * §2 — text-xs minimum (tidak ada text-[10px]/[11px])
+ * §4 — max-w-[65ch] pada semua paragraf body
+ * §5 — all-caps hanya ≤4 kata (sentence case untuk kalimat panjang)
+ * §6 — 3 kartu pilar → 3 kolom teks dengan divide-x (tanpa card/border/shadow)
+ * §7 — zinc-400 → ink-600/700 (WCAG AA)
  */
 
 import React from "react";
@@ -24,12 +22,12 @@ import { FlaskConical, Network, Code2, CheckCircle2 } from "lucide-react";
 const pillars = [
   {
     icon: <FlaskConical className="w-5 h-5 text-primary" aria-hidden="true" />,
-    label: "Pilar 1",           // all-caps OK — 2 kata
+    label: "Pilar 1",
     name: "Analis Kimia",
     description:
       "Menyediakan kalibrasi sensor kimiawi, pengujian parameter air limbah (BOD/COD), preparasi reagen uji, serta validasi data analisis sesuai ISO 17025.",
     tag: "Sensor Calibration & Lab QA",
-    connector: "Transmisi IoT",  // sentence case, bukan all-caps
+    connector: "Transmisi IoT",
   },
   {
     icon: <Network className="w-5 h-5 text-[#1A365D]" aria-hidden="true" />,
@@ -38,7 +36,7 @@ const pillars = [
     description:
       "Membangun arsitektur jaringan sensor nirkabel (LoRa/WiFi), gateway IoT, routing aman berenkripsi, administrasi server Linux, serta pengamanan transmisi data.",
     tag: "IoT Gateway & Secure Pipeline",
-    connector: "Data streaming",  // sentence case
+    connector: "Data streaming",
   },
   {
     icon: <Code2 className="w-5 h-5 text-primary" aria-hidden="true" />,
@@ -64,12 +62,12 @@ export default function JurusanCollaboration() {
 
         {/* Header */}
         <div className="max-w-2xl space-y-3 mb-14">
-          {/* all-caps label — 2 kata, OK */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-semibold tracking-wider bg-primary/8 text-primary border border-primary/20">
+          {/* label pendek — sentence case */}
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-semibold tracking-wider bg-primary/10 text-primary border border-primary/20">
             Sinergi interdisipliner
           </div>
 
-          {/* h2 */}
+          {/* h2 — font-heading wajib */}
           <h2 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold text-ink tracking-tight">
             Kolaborasi antar jurusan, menghasilkan solusi utuh
           </h2>
@@ -83,19 +81,16 @@ export default function JurusanCollaboration() {
           </p>
         </div>
 
-        {/* ── 3 pilar: kolom teks dengan garis pemisah vertikal ──
-            Tidak ada card/border/shadow — pola berbeda dari grid kartu
-            di tab Program Unggulan (design-rules §6) ── */}
+        {/* 3 pilar: kolom teks dengan divide-x — tanpa card/border/shadow */}
         <div className="grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-ink-150">
-          {pillars.map((pilar, i) => (
+          {pillars.map((pilar) => (
             <div key={pilar.label} className="px-0 lg:px-10 py-8 lg:py-0 first:pl-0 last:pr-0 space-y-4">
-
-              {/* Label pilar — text-xs, 2 kata, all-caps OK */}
+              {/* label: text-xs, 2 kata, all-caps OK */}
               <p className="text-xs font-mono font-semibold tracking-[0.2em] text-ink-600 uppercase">
                 {pilar.label}
               </p>
 
-              {/* Ikon + h3 — heading level benar, di bawah h2 */}
+              {/* ikon + h3 */}
               <div className="flex items-center gap-3">
                 {pilar.icon}
                 <h3 className="font-heading font-bold text-base sm:text-lg text-ink">
@@ -103,18 +98,18 @@ export default function JurusanCollaboration() {
                 </h3>
               </div>
 
-              {/* Deskripsi: text-base, max-w-[65ch], ink-700 */}
+              {/* deskripsi: text-base, max-w-[65ch], ink-700 */}
               <p className="text-base text-ink-700 leading-relaxed max-w-[65ch]">
                 {pilar.description}
               </p>
 
-              {/* Tag peran — text-xs */}
+              {/* tag peran */}
               <div className="flex items-center gap-1.5 text-sm font-semibold text-emerald-700">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" aria-hidden="true" />
                 <span>{pilar.tag}</span>
               </div>
 
-              {/* Konektor antar pilar — hanya teks kecil di mobile, tidak perlu di kolom */}
+              {/* konektor — hanya di mobile */}
               {pilar.connector && (
                 <p className="text-xs text-ink-300 font-mono lg:hidden">
                   → {pilar.connector}
@@ -124,10 +119,10 @@ export default function JurusanCollaboration() {
           ))}
         </div>
 
-        {/* ── Showcase karya kolaboratif ── */}
+        {/* Showcase karya kolaboratif */}
         <div className="mt-14 pt-8 border-t border-ink-150 flex flex-col sm:flex-row sm:items-start justify-between gap-6">
           <div className="space-y-2 max-w-xl">
-            {/* label: sentence case, bukan all-caps kalimat panjang */}
+            {/* label sentence case — bukan all-caps kalimat panjang */}
             <p className="text-xs font-mono font-semibold text-primary">
               Contoh karya nyata kolaboratif:
             </p>
@@ -135,13 +130,11 @@ export default function JurusanCollaboration() {
             <h4 className="font-heading text-base sm:text-lg font-bold text-ink">
               Smart Automated Environmental Lab Chamber &amp; Water Safety Monitoring
             </h4>
-            {/* deskripsi: text-sm, max-w-[65ch], ink-700 */}
             <p className="text-sm text-ink-700 leading-relaxed max-w-[65ch]">
               Dihasilkan melalui kerja tim siswa gabungan tingkat akhir dan
               dipamerkan langsung di etalase Kandaga.
             </p>
           </div>
-          {/* tag ringkas — text-xs */}
           <span className="shrink-0 self-start inline-flex items-center px-3 py-1.5 rounded-full bg-ink-100 text-ink-700 text-xs font-mono font-medium border border-ink-150">
             3 jurusan &bull; 1 solusi terpadu
           </span>

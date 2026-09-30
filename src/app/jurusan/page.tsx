@@ -10,16 +10,12 @@ import JurusanCollaboration from "@/components/jurusan/JurusanCollaboration";
 import JurusanCTA from "@/components/jurusan/JurusanCTA";
 import { JURUSAN_DATA } from "@/data/jurusanData";
 
-// ── Smooth Scroll Helper (Compatible with Lenis & Standard DOM) ───────────────
 function scrollToSectionTarget(id: string) {
   if (typeof window === "undefined") return;
-
   const targetId = id === "semua" ? "daftar-jurusan" : id;
   const element = document.getElementById(targetId);
-
   if (!element) return;
 
-  // 1. Lenis programmatic scroll if active
   const win = window as unknown as {
     lenis?: {
       scrollTo: (
@@ -34,9 +30,7 @@ function scrollToSectionTarget(id: string) {
     return;
   }
 
-  // 2. Native scroll fallback
-  const yOffset = -85;
-  const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+  const y = element.getBoundingClientRect().top + window.pageYOffset - 85;
   window.scrollTo({ top: y, behavior: "smooth" });
 }
 
@@ -45,28 +39,21 @@ function JurusanContent() {
   const tabParam = searchParams.get("tab");
   const [activeMajor, setActiveMajor] = useState<string>("semua");
 
-  // Handle URL Query & Hash Change
   useEffect(() => {
     const hash = typeof window !== "undefined" ? window.location.hash.replace("#", "") : "";
     const selected = tabParam || hash;
-
     if (selected && ["rpl", "tkj", "analis-kimia", "semua"].includes(selected)) {
       setActiveMajor(selected);
-      // Timeout ensures DOM layout is fully mounted
-      const timer = setTimeout(() => {
-        scrollToSectionTarget(selected);
-      }, 150);
+      const timer = setTimeout(() => scrollToSectionTarget(selected), 150);
       return () => clearTimeout(timer);
     }
   }, [tabParam]);
 
-  // Observer to update active tab when user scrolls naturally
   useEffect(() => {
     const majorIds = ["rpl", "tkj", "analis-kimia"];
     const elements = majorIds
       .map((id) => document.getElementById(id))
       .filter(Boolean) as HTMLElement[];
-
     if (!elements.length) return;
 
     const observer = new IntersectionObserver(
@@ -77,10 +64,7 @@ function JurusanContent() {
           }
         });
       },
-      {
-        rootMargin: "-20% 0px -60% 0px",
-        threshold: 0.1,
-      }
+      { rootMargin: "-20% 0px -60% 0px", threshold: 0.1 }
     );
 
     elements.forEach((el) => observer.observe(el));
@@ -94,36 +78,20 @@ function JurusanContent() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      {/* ── Navbar sengaja dihilangkan di halaman Jurusan ──
-          JurusanNavTabs sudah berfungsi sebagai navigasi kontekstual
-          di halaman ini, navbar utama akan menumpuk dan membingungkan. ── */}
-
+      {/* Navbar dihilangkan — JurusanNavTabs sebagai navigasi kontekstual */}
       <main className="flex-1">
-        {/* ── Section 1: Hero Section dengan Model Slot di Sisi Kanan ── */}
         <JurusanHero onSelectMajor={handleSelectMajor} />
-
-        {/* ── Sticky Major Nav Tabs ── */}
         <JurusanNavTabs activeId={activeMajor} onSelect={handleSelectMajor} />
 
-        {/* ── Section 2: Penjelasan Detail Setiap Jurusan ── */}
         <div id="daftar-jurusan" className="scroll-mt-24">
           {JURUSAN_DATA.map((jurusan, index) => (
-            <JurusanDetailSection
-              key={jurusan.id}
-              jurusan={jurusan}
-              index={index}
-            />
+            <JurusanDetailSection key={jurusan.id} jurusan={jurusan} index={index} />
           ))}
         </div>
 
-        {/* ── Section 3: Sinergi Interdisipliner & Kolaborasi Antar Jurusan ── */}
         <JurusanCollaboration />
-
-        {/* ── Section 4: Call to Action (CTA) Kemitraan & Galeri ── */}
         <JurusanCTA />
       </main>
-
-      {/* ── Global Footer ── */}
       <Footer />
     </div>
   );

@@ -68,7 +68,16 @@ export type Stat = {
 // WHY SECTION (Fitur / Keunggulan)
 // ─────────────────────────────────────────────
 
-export type FeatureIconKey = "check" | "folder" | "users";
+export type FeatureIconKey =
+  | "verified"
+  | "enterprise"
+  | "school"
+  | "factory"
+  | "task"
+  | "assignment"
+  | "check"
+  | "folder"
+  | "users";
 
 export type Feature = {
   number: string;         // "01" | "02" | "03"
