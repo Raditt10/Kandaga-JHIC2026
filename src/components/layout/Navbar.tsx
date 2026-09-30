@@ -248,22 +248,28 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
             </button>
 
             {/* 3. Galeri Karya */}
-            <button
-              type="button"
-              onClick={() => navigateToSection("galeri-section")}
+            <Link
+              href="/galeri-karya"
               className="hover:text-zinc-950 transition cursor-pointer py-1 whitespace-nowrap shrink-0"
             >
               Galeri Karya
-            </button>
+            </Link>
 
-            {/* 4. Kontak */}
-            <button
-              type="button"
-              onClick={() => navigateToSection("kontak-section")}
+            {/* 4. Kontak → scroll ke #footer */}
+            <a
+              href="#footer"
+              onClick={(e) => {
+                e.preventDefault();
+                if (pathname !== "/") {
+                  router.push("/#footer");
+                  return;
+                }
+                document.getElementById("footer")?.scrollIntoView({ behavior: "smooth" });
+              }}
               className="hover:text-zinc-950 transition cursor-pointer py-1 whitespace-nowrap shrink-0"
             >
               Kontak
-            </button>
+            </a>
             <button
               type="button"
               onClick={() => navigateToSection("industri-section")}
@@ -389,11 +395,15 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
                   } else if (item === "Jurusan Kami") {
                     router.push("/jurusan/rpl");
                   } else if (item === "Galeri Karya") {
-                    navigateToSection("galeri-section");
+                    router.push("/galeri-karya");
                   } else if (item === "Tentang Kami") {
                     navigateToSection("tentang-section");
                   } else if (item === "Kontak") {
-                    navigateToSection("kontak-section");
+                    if (pathname !== "/") {
+                      router.push("/#footer");
+                    } else {
+                      document.getElementById("footer")?.scrollIntoView({ behavior: "smooth" });
+                    }
                   }
                 }}
                 className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold transition ${

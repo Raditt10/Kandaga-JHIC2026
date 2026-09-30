@@ -7,6 +7,7 @@ import StatsSection from "@/components/landing/StatsSection";
 import WhySection from "@/components/landing/WhySection";
 import JurusanMenu from "@/components/landing/JurusanMenu";
 import IndustrySection from "@/components/landing/IndustrySection";
+import BKKSection from "@/components/landing/BKKSection";
 import TrustBar from "@/components/landing/TrustBar";
 import FAQSection from "@/components/landing/FAQSection";
 
@@ -35,6 +36,9 @@ export default function Home() {
 
         {/* 7. Untuk Industri & Mitra: blueprint layout + tooltip hotspot */}
         <IndustrySection />
+
+        {/* 7b. Cara kerja BKK — anchor #cara-kerja-bkk */}
+        <BKKSection />
 
         {/* 8. Trust bar: logo mitra */}
         <TrustBar />

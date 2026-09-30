@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
 import { curtainReveal, wordmarkReveal, staggerChildren } from "@/lib/motion";
@@ -100,9 +101,12 @@ export default function Hero() {
               transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
               aria-hidden="true"
             />
-            <button className="relative rounded-full bg-primary px-7 py-3 text-xs font-semibold tracking-wide text-white transition-colors hover:bg-primary-dark md:text-sm">
+            <Link
+              href="/galeri-karya"
+              className="relative block rounded-full bg-primary px-7 py-3 text-xs font-semibold tracking-wide text-white transition-colors hover:bg-primary-dark md:text-sm"
+            >
               MULAI JELAJAHI
-            </button>
+            </Link>
           </MagneticButton>
         </motion.div>
       </div>
