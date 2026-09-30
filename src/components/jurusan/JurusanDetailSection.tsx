@@ -7,22 +7,46 @@
  *       h4: {prog.title}
  *     h3: "Tahapan Belajar"
  *       h4: {step.title}
- *     h3: "Fasilitas & Lab"      ← tabel, bukan nested card
- *     h3: "Peluang Karir"        ← list, bukan nested card
+ *     h3: "Fasilitas & Lab"      ← tabel, lazy-loaded
+ *     h3: "Peluang Karir"        ← list, lazy-loaded
  *     h3: {highlightProject}     ← showcase
  */
 
-import React, { useState } from "react";
+import React, { useState, useTransition } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { motion } from "motion/react";
 import {
   Code2, Network, FlaskConical, Award, Clock, Sparkles,
   ShieldCheck, Activity, Lock, Zap, Briefcase, CheckCircle2,
   Search, ArrowRight, Layers, Wrench, Building2, ExternalLink,
-  TrendingUp,
 } from "lucide-react";
 import { JurusanDetail } from "@/data/jurusanData";
 import CompetencyChipList from "@/components/jurusan/CompetencyChipList";
+
+// ── Skeleton sederhana untuk tab yang sedang di-load ────────────────────
+function TabSkeleton() {
+  return (
+    <div className="space-y-4 animate-pulse" aria-hidden="true">
+      <div className="h-6 w-48 rounded-lg bg-ink-150" />
+      <div className="h-4 w-full rounded bg-ink-100" />
+      <div className="h-4 w-5/6 rounded bg-ink-100" />
+      <div className="h-4 w-4/6 rounded bg-ink-100" />
+    </div>
+  );
+}
+
+// ── Tab Fasilitas & Karir di-lazy load ─────────────────────────────────
+// Mencegah JS kedua tab ini masuk bundle awal — hanya di-fetch saat diklik
+const FasilitasTab = dynamic(
+  () => import("@/components/jurusan/tabs/FasilitasTab"),
+  { loading: () => <TabSkeleton />, ssr: false }
+);
+
+const KarirTab = dynamic(
+  () => import("@/components/jurusan/tabs/KarirTab"),
+  { loading: () => <TabSkeleton />, ssr: false }
+);
 
 function ProgramIcon({ name, className }: { name: string; className?: string }) {
   switch (name) {
@@ -50,7 +74,13 @@ export default function JurusanDetailSection({
   index: number;
 }) {
   const [activeTab, setActiveTab] = useState<"program" | "aktivitas" | "fasilitas" | "karir">("program");
+  // useTransition: ganti tab tanpa blokir UI — skeleton muncul instan
+  const [isPending, startTransition] = useTransition();
   const isEven = index % 2 === 0;
+
+  const handleTabChange = (id: "program" | "aktivitas" | "fasilitas" | "karir") => {
+    startTransition(() => setActiveTab(id));
+  };
 
   return (
     <section
@@ -107,7 +137,7 @@ export default function JurusanDetailSection({
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                onClick={() => handleTabChange(tab.id as typeof activeTab)}
                 className={`inline-flex items-center gap-2 pb-3 px-2 text-sm font-semibold transition-all relative cursor-pointer ${
                   isActive ? "text-primary" : "text-ink-600 hover:text-ink"
                 }`}
@@ -125,8 +155,8 @@ export default function JurusanDetailSection({
           })}
         </div>
 
-        {/* ── 3. Konten Tab ── */}
-        <div className="mt-8">
+        {/* ── 3. Konten Tab — opacity saat pending ── */}
+        <div className={`mt-8 transition-opacity duration-150 ${isPending ? "opacity-60" : "opacity-100"}`}>
 
           {/* TAB 1: PROGRAM UNGGULAN — satu-satunya grid kartu di halaman ini */}
           {activeTab === "program" && (
@@ -228,92 +258,25 @@ export default function JurusanDetailSection({
             </motion.div>
           )}
 
-          {/* TAB 3: FASILITAS — TABEL, bukan nested card */}
+          {/* TAB 3: FASILITAS — lazy-loaded (tidak masuk bundle awal) */}
           {activeTab === "fasilitas" && (
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="space-y-6"
             >
-              <h3 className="font-heading text-lg font-semibold text-ink">
-                Fasilitas &amp; Lab Industri
-              </h3>
-              <div className="overflow-hidden rounded-2xl border border-ink-150">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-ink-100 border-b border-ink-150">
-                      <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Fasilitas</th>
-                      <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading hidden sm:table-cell">Spesifikasi</th>
-                      <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading hidden md:table-cell">Fitur</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-ink-150 bg-white">
-                    {jurusan.facilities.map((fac, i) => (
-                      <tr key={i} className="hover:bg-ink-100/50 transition-colors">
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-3">
-                            <Building2 className="w-4 h-4 text-primary flex-shrink-0" aria-hidden="true" />
-                            <span className="font-medium text-ink">{fac.name}</span>
-                          </div>
-                        </td>
-                        <td className="px-5 py-4 text-ink-700 hidden sm:table-cell">
-                          <span className="font-mono text-xs bg-ink-100 px-2 py-1 rounded">{fac.spec}</span>
-                        </td>
-                        <td className="px-5 py-4 hidden md:table-cell">
-                          <div className="flex flex-wrap gap-1.5">
-                            {fac.features.map((feat, fi) => (
-                              <span key={fi} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-100">
-                                <CheckCircle2 className="w-3 h-3 text-emerald-600" aria-hidden="true" />
-                                {feat}
-                              </span>
-                            ))}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="space-y-2">
-                <p className="text-xs font-mono text-ink-600">Perangkat, software &amp; instrumen yang dikuasai:</p>
-                <div className="flex flex-wrap gap-2">
-                  {jurusan.toolsTech.map((tool, i) => (
-                    <span key={i} className="px-3 py-1.5 rounded-full text-xs font-mono font-medium bg-ink-100 text-ink-700 border border-ink-150">
-                      {tool}
-                    </span>
-                  ))}
-                </div>
-              </div>
+              <FasilitasTab jurusan={jurusan} />
             </motion.div>
           )}
 
-          {/* TAB 4: KARIR — LIST, bukan nested card */}
+          {/* TAB 4: KARIR — lazy-loaded (tidak masuk bundle awal) */}
           {activeTab === "karir" && (
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="space-y-3"
             >
-              <h3 className="font-heading text-lg font-semibold text-ink mb-6">
-                Peluang Karir &amp; Profil Lulusan
-              </h3>
-              {jurusan.careers.map((career, i) => (
-                <div key={i} className="flex items-start gap-4 py-4 border-b border-ink-150 last:border-0">
-                  <span className="font-mono text-xs font-bold text-ink-300 w-6 shrink-0 pt-0.5" aria-hidden="true">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <div className="flex-1 space-y-1">
-                    <h4 className="font-heading font-bold text-base text-ink">{career.role}</h4>
-                    <p className="text-sm text-ink-700 leading-relaxed max-w-[65ch]">{career.desc}</p>
-                  </div>
-                  <div className="shrink-0 flex items-center gap-1.5 text-xs text-ink-600">
-                    <TrendingUp className="w-3.5 h-3.5 text-emerald-600 shrink-0" aria-hidden="true" />
-                    <span>{career.demand}</span>
-                  </div>
-                </div>
-              ))}
+              <KarirTab jurusan={jurusan} />
             </motion.div>
           )}
 

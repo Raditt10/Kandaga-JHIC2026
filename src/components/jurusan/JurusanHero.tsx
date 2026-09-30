@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useTransition, useState, useMemo } from "react";
 import Link from "next/link";
 import { motion, useInView } from "motion/react";
 import { ArrowDown, Award, ShieldCheck, Cpu, ArrowUpRight } from "lucide-react";
@@ -28,6 +28,22 @@ export default function JurusanHero({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true });
+
+  // useTransition: setState tidak blokir UI — user langsung dapat feedback visual
+  const [isPending, startTransition] = useTransition();
+  const [activeId, setActiveId] = useState("semua");
+
+  // useMemo: spec jurusan aktif tidak dihitung ulang setiap render
+  const activeJurusan = useMemo(
+    () => JURUSAN_DATA.find((j) => j.id === activeId) ?? null,
+    [activeId]
+  );
+
+  const handleSelect = (id: string) => {
+    // Feedback visual instan sebelum React selesai update state
+    startTransition(() => setActiveId(id));
+    scrollToMajor(id);
+  };
 
   const scrollToMajor = (id: string) => {
     if (onSelectMajor) { onSelectMajor(id); return; }
@@ -83,18 +99,27 @@ export default function JurusanHero({
               </p>
             </div>
 
-            {/* filter pills — sentence case, gap-3, py-2.5 ≥44px tap */}
+            {/* filter pills + feedback isPending */}
             <div className="pt-2">
               <p className="text-xs font-mono text-ink-600 mb-3">
                 Pilih jurusan untuk melihat spesifikasi:
               </p>
-              <div className="flex flex-wrap gap-3">
+              {/* Wrapper dengan opacity saat pending — feedback instan ke user */}
+              <div
+                className={`flex flex-wrap gap-3 transition-opacity duration-150 ${
+                  isPending ? "opacity-60" : "opacity-100"
+                }`}
+              >
                 <button
                   type="button"
-                  onClick={() => scrollToMajor("semua")}
-                  className="group inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold bg-ink-100 hover:bg-primary text-ink-700 hover:text-white transition-all duration-200 border border-ink-150 hover:border-transparent cursor-pointer"
+                  onClick={() => handleSelect("semua")}
+                  className={`group inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 border cursor-pointer ${
+                    activeId === "semua"
+                      ? "bg-primary text-white border-transparent"
+                      : "bg-ink-100 text-ink-700 hover:bg-primary hover:text-white border-ink-150 hover:border-transparent"
+                  }`}
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary group-hover:bg-white transition-colors" aria-hidden="true" />
+                  <span className={`w-1.5 h-1.5 rounded-full transition-colors ${activeId === "semua" ? "bg-white" : "bg-primary group-hover:bg-white"}`} aria-hidden="true" />
                   Semua Jurusan
                   <span className="text-xs opacity-60 font-mono">(3)</span>
                 </button>
@@ -102,10 +127,14 @@ export default function JurusanHero({
                   <button
                     key={jurusan.id}
                     type="button"
-                    onClick={() => scrollToMajor(jurusan.id)}
-                    className="group inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold bg-ink-100 hover:bg-primary text-ink-700 hover:text-white transition-all duration-200 border border-ink-150 hover:border-transparent cursor-pointer"
+                    onClick={() => handleSelect(jurusan.id)}
+                    className={`group inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 border cursor-pointer ${
+                      activeId === jurusan.id
+                        ? "bg-primary text-white border-transparent"
+                        : "bg-ink-100 text-ink-700 hover:bg-primary hover:text-white border-ink-150 hover:border-transparent"
+                    }`}
                   >
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary group-hover:bg-white transition-colors" aria-hidden="true" />
+                    <span className={`w-1.5 h-1.5 rounded-full transition-colors ${activeId === jurusan.id ? "bg-white" : "bg-primary group-hover:bg-white"}`} aria-hidden="true" />
                     {jurusan.name}
                     <span className="text-xs opacity-60 font-mono">({jurusan.duration.split(" ")[0]} Thn)</span>
                   </button>
@@ -117,7 +146,7 @@ export default function JurusanHero({
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <button
                 type="button"
-                onClick={() => scrollToMajor("semua")}
+                onClick={() => handleSelect("semua")}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold bg-primary hover:bg-primary-dark text-white shadow-md shadow-primary/20 transition-all duration-200 cursor-pointer"
               >
                 Pelajari Detail Program
