@@ -270,18 +270,19 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
             >
               Kontak
             </a>
-            <button
-              type="button"
-              onClick={() => navigateToSection("industri-section")}
-              className="hidden sm:inline-block text-xs sm:text-sm font-semibold text-zinc-600 hover:text-zinc-950 transition cursor-pointer"
-            >
-              Mitra Perusahaan
-            </button>
           </nav>
         </div>
 
-        {/* Right Action: Profile Avatar or Login Button */}
-        <div className="flex items-center gap-3 sm:gap-4">
+        {/* Right Action: Mitra Perusahaan + Profile Avatar or Login Button */}
+        <div className="flex items-center gap-4 sm:gap-6">
+          <button
+            type="button"
+            onClick={() => navigateToSection("industri-section")}
+            className="hidden md:inline-block text-xs sm:text-sm font-medium text-zinc-600 hover:text-zinc-950 transition cursor-pointer whitespace-nowrap"
+          >
+            Mitra Perusahaan
+          </button>
+
           {status === "authenticated" && session?.user ? (
             <div className="relative">
               <button

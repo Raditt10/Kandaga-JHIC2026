@@ -4,7 +4,7 @@ import GithubProvider from "next-auth/providers/github"
 import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 import prisma from "@/lib/prisma"
-import { getDashboardUrl, normalizeRole } from "@/lib/auth"
+import { normalizeRole } from "@/lib/auth"
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET || "kandaga-dev-secret-2026",
@@ -15,6 +15,7 @@ export const authOptions: NextAuthOptions = {
   },
 
   providers: [
+    // ── 1. Credentials (login langsung ke database) ────────────────────
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -28,7 +29,7 @@ export const authOptions: NextAuthOptions = {
 
         const identifier = credentials.identifier.trim()
 
-        // Cari user — support login via email ATAU name
+        // Cari user — support login via email ATAU name (kolom `username` di DB)
         const user = await prisma.users.findFirst({
           where: {
             OR: [
@@ -49,7 +50,7 @@ export const authOptions: NextAuthOptions = {
         const role = normalizeRole(user.role)
 
         // Untuk role company, sertakan verificationStatus ke token
-        // supaya middleware bisa guard tanpa query DB lagi
+        // supaya proxy bisa guard tanpa query DB lagi
         const verificationStatus =
           role === "company"
             ? (user.companyProfile?.verificationStatus ?? "pending")
@@ -58,6 +59,7 @@ export const authOptions: NextAuthOptions = {
         return {
           id:                 user.id,
           name:               user.name,
+          username:           user.name,   // kolom `name` = username di DB
           email:              user.email,
           role,
           verificationStatus, // null untuk non-company
@@ -65,6 +67,7 @@ export const authOptions: NextAuthOptions = {
       },
     }),
 
+    // ── 2. Google OAuth ────────────────────────────────────────────────
     ...(process.env.GOOGLE_CLIENT_ID
       ? [GoogleProvider({
           clientId:     process.env.GOOGLE_CLIENT_ID,
@@ -72,6 +75,7 @@ export const authOptions: NextAuthOptions = {
         })]
       : []),
 
+    // ── 3. GitHub OAuth ────────────────────────────────────────────────
     ...(process.env.GITHUB_ID
       ? [GithubProvider({
           clientId:     process.env.GITHUB_ID,
@@ -81,23 +85,27 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
+    // Simpan id, role, username & status verifikasi ke JWT saat login
     async jwt({ token, user }) {
       if (user) {
         token.id                 = user.id
         token.role               = (user as { role?: string }).role ?? "student"
         token.email              = user.email
         token.name               = user.name
+        token.username           = ((user as { username?: string }).username ?? user.name) ?? undefined
         token.verificationStatus = (user as { verificationStatus?: string | null }).verificationStatus ?? null
       }
       return token
     },
 
+    // Ekspos role, username & status verifikasi ke session client
     async session({ session, token }) {
       if (session.user) {
         session.user.id                 = token.id                 as string
         session.user.role               = token.role               as string
         session.user.email              = token.email              as string
         session.user.name               = token.name               as string
+        session.user.username           = (token.username as string) || (token.name as string)
         session.user.verificationStatus = token.verificationStatus as string | null
       }
       return session
