@@ -341,7 +341,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
                       </Link>
 
                       <Link
-                        href="/student/post-project"
+                        href="/student/create-project"
                         onClick={() => setIsProfileOpen(false)}
                         className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-zinc-800 hover:bg-[#891337]/10 hover:text-[#891337] transition cursor-pointer"
                       >

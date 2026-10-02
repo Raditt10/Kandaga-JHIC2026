@@ -139,6 +139,7 @@ model Projects {
   description  String?
   year         Int                      @db.SmallInt
   status       String                   @default("pending")
+  coverImage   String?                  @map("cover_image")
   reviewNotes  String?                  @map("review_notes")
   reviewedBy   String?                  @map("reviewed_by") @db.Uuid
   publishedAt  DateTime?                @map("published_at") @db.Timestamptz
@@ -148,7 +149,7 @@ model Projects {
   createdAt    DateTime                 @default(now()) @map("created_at") @db.Timestamptz
   updatedAt    DateTime                 @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
   searchVector Unsupported("tsvector")? @map("search_vector")
-  projectType  ProjectType?
+  isPrivate    Boolean                  @default(false)
 
   student         Student           @relation(fields: [studentId], references: [userId])
   advisor         Teacher?          @relation("ProjectsAdvisor", fields: [advisorId], references: [userId])
@@ -193,6 +194,7 @@ model ProjectsMedia {
 model ProjectsTool {
   projectId String @map("project_id") @db.Uuid
   toolId    Int    @map("tool_id") @db.SmallInt
+  name      String @map("tool_name")
 
   project Projects  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   tool    SkillTool @relation(fields: [toolId], references: [id])

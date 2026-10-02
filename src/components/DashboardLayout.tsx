@@ -43,7 +43,7 @@ const ROLE_NAV_ITEMS: Record<RoleSlug, NavItem[]> = {
   student: [
     { href: "/student", label: "Ringkasan", icon: Layers },
     { href: "/student/my-projects", label: "Karya Saya", icon: FolderOpen },
-    { href: "/student/post-project", label: "Unggah Karya", icon: Upload },
+    { href: "/student/create-project", label: "Unggah Karya", icon: Upload },
     { href: "/gallery", label: "Galeri Publik", icon: ExternalLink },
   ],
   admin: [

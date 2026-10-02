@@ -8,21 +8,14 @@ import Footer from "@/components/layout/Footer";
 import Loading from "@/components/ui/Loading";
 import StudentProjectCard from "@/components/student/StudentProjectCard";
 import EditProjectModal from "@/components/student/EditProjectModal";
-import {
-  getStudentProjects,
-  updateProject,
-  toggleProjectVisibility,
-  deleteProject,
-} from "@/lib/studentProjectStorage";
+import StudentProjectDetailModal from "@/components/student/StudentProjectDetailModal";
 import type { GalleryProjectItem } from "@/data/galleryData";
 import {
   Plus,
   Globe,
   Lock,
-  Layers,
   Sparkles,
   Search,
-  Filter,
   Eye,
   CheckCircle2,
   AlertCircle,
@@ -42,25 +35,24 @@ export default function StudentMyProjectsPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [activeEditProject, setActiveEditProject] = useState<GalleryProjectItem | null>(null);
+  const [activeDetailProject, setActiveDetailProject] = useState<GalleryProjectItem | null>(null);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Student identifier: Farhan Maulana by default or session username
-  const studentId =
-    session?.user?.username && session.user.username !== "farhanm"
-      ? session.user.username.toLowerCase().replace(/[^a-z0-9]+/g, "-")
-      : "farhan-maulana";
-
-  const loadProjects = () => {
+  const loadProjects = async () => {
     setIsLoading(true);
+    setErrorMessage(null);
     try {
-      const items = getStudentProjects(studentId);
-      // Jika Farhan baru pertama kali membuka dan belum ada proyek kustom, ambil semua proyek Farhan
-      if (items.length === 0) {
-        const fallbackItems = getStudentProjects("farhan-maulana");
-        setProjects(fallbackItems);
-      } else {
-        setProjects(items);
+      const res = await fetch("/api/student/projects");
+      if (!res.ok) {
+        throw new Error("Gagal mengambil data proyek dari database");
       }
+      const data = await res.json();
+      setProjects(data.projects || []);
+    } catch (err: any) {
+      console.error("Error loading student projects:", err);
+      setErrorMessage("Tidak dapat memuat karya dari database. Pastikan sesi login aktif.");
+      setProjects([]);
     } finally {
       setIsLoading(false);
     }
@@ -77,7 +69,7 @@ export default function StudentMyProjectsPage() {
     return () => {
       window.removeEventListener("kandaga_projects_updated", handleUpdateEvent);
     };
-  }, [studentId]);
+  }, []);
 
   // Flash toast message
   const showFeedback = (msg: string) => {
@@ -88,32 +80,92 @@ export default function StudentMyProjectsPage() {
   };
 
   // Visibility toggle
-  const handleToggleVisibility = (projectId: string) => {
-    const updated = toggleProjectVisibility(projectId);
-    if (updated) {
+  const handleToggleVisibility = async (projectId: string) => {
+    const target = projects.find((p) => p.id === projectId);
+    if (!target) return;
+    const newIsPrivate = !target.isPrivate;
+
+    // Optimistic update in UI
+    setProjects((prev) =>
+      prev.map((p) => (p.id === projectId ? { ...p, isPrivate: newIsPrivate } : p))
+    );
+    if (activeDetailProject && activeDetailProject.id === projectId) {
+      setActiveDetailProject({ ...activeDetailProject, isPrivate: newIsPrivate });
+    }
+
+    try {
+      const res = await fetch(`/api/student/projects/${projectId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isPrivate: newIsPrivate }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Gagal memperbarui status karya");
+      }
       showFeedback(
-        updated.isPrivate
-          ? `Karya "${updated.title}" kini diubah menjadi PRIVAT.`
-          : `Karya "${updated.title}" kini telah DIPUBLIKASIKAN di Galeri Resmi.`
+        newIsPrivate
+          ? `Karya "${target.title}" kini diubah menjadi PRIVAT.`
+          : `Karya "${target.title}" kini telah DIPUBLIKASIKAN di Galeri Resmi.`
       );
-      loadProjects();
+    } catch (err: any) {
+      // Revert optimistic update
+      setProjects((prev) =>
+        prev.map((p) => (p.id === projectId ? { ...p, isPrivate: target.isPrivate } : p))
+      );
+      if (activeDetailProject && activeDetailProject.id === projectId) {
+        setActiveDetailProject({ ...activeDetailProject, isPrivate: target.isPrivate });
+      }
+      showFeedback("Gagal memperbarui status visibilitas karya.");
     }
   };
 
   // Delete project
-  const handleDelete = (projectId: string) => {
-    deleteProject(projectId);
-    showFeedback("Karya berhasil dihapus dari portofolio Anda.");
-    loadProjects();
+  const handleDelete = async (projectId: string) => {
+    const target = projects.find((p) => p.id === projectId);
+    try {
+      const res = await fetch(`/api/student/projects/${projectId}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Gagal menghapus karya");
+      }
+      setProjects((prev) => prev.filter((p) => p.id !== projectId));
+      if (activeDetailProject?.id === projectId) {
+        setActiveDetailProject(null);
+      }
+      showFeedback(`Karya "${target?.title || "Karya"}" berhasil dihapus.`);
+    } catch (err: any) {
+      console.error("Error deleting project:", err);
+      showFeedback("Gagal menghapus karya dari database. Silakan coba kembali.");
+    }
   };
 
   // Save edit modal
   const handleSaveEdit = async (updates: Partial<GalleryProjectItem>) => {
     if (!activeEditProject) return;
-    const updated = updateProject(activeEditProject.id, updates);
-    if (updated) {
-      showFeedback(`Perubahan pada "${updated.title}" berhasil disimpan.`);
-      loadProjects();
+    try {
+      const res = await fetch(`/api/student/projects/${activeEditProject.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updates),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Gagal menyimpan perubahan karya");
+      }
+      showFeedback(`Perubahan pada "${data.project?.title || activeEditProject.title}" berhasil disimpan.`);
+      setActiveEditProject(null);
+      await loadProjects();
+      if (activeDetailProject?.id === activeEditProject.id) {
+        setActiveDetailProject(data.project);
+      }
+    } catch (err: any) {
+      console.error("Error saving edits:", err);
+      showFeedback("Gagal menyimpan perubahan karya.");
     }
   };
 
@@ -167,7 +219,7 @@ export default function StudentMyProjectsPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      {isLoading && <Loading text="Memuat karya saya..." />}
+      {isLoading && <Loading text="Memuat karya..." />}
       <Navbar />
 
       <main className="flex-1 pt-24 pb-20">
@@ -218,7 +270,7 @@ export default function StudentMyProjectsPage() {
               {/* Primary Action Button */}
               <div className="flex items-center gap-3 shrink-0">
                 <Link
-                  href="/student/post-project"
+                  href="/student/create-project"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-[#8B1A2F] hover:bg-[#6B1424] text-white rounded-full text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-95"
                 >
                   <Plus className="w-4 h-4" />
@@ -280,6 +332,13 @@ export default function StudentMyProjectsPage() {
             <div className="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm font-semibold flex items-center gap-3 animate-in fade-in duration-200 shadow-xs">
               <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
               <span>{feedbackMessage}</span>
+            </div>
+          )}
+
+          {errorMessage && (
+            <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs sm:text-sm font-semibold flex items-center gap-3 shadow-xs">
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+              <span>{errorMessage}</span>
             </div>
           )}
 
@@ -360,6 +419,7 @@ export default function StudentMyProjectsPage() {
                   onEdit={(p) => setActiveEditProject(p)}
                   onToggleVisibility={handleToggleVisibility}
                   onDelete={handleDelete}
+                  onViewDetail={(p) => setActiveDetailProject(p)}
                 />
               ))}
             </div>
@@ -391,7 +451,7 @@ export default function StudentMyProjectsPage() {
                   </button>
                 ) : (
                   <Link
-                    href="/student/post-project"
+                    href="/student/create-project"
                     className="px-6 py-2.5 rounded-full bg-[#8B1A2F] text-white text-xs sm:text-sm font-bold hover:bg-[#6B1424] transition shadow-xs cursor-pointer flex items-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
@@ -404,7 +464,19 @@ export default function StudentMyProjectsPage() {
         </section>
       </main>
 
-      {/* Edit Project Modal */}
+      {/* Detail Project Modal (with scrollable body & full info) */}
+      <StudentProjectDetailModal
+        project={activeDetailProject}
+        isOpen={Boolean(activeDetailProject)}
+        onClose={() => setActiveDetailProject(null)}
+        onEdit={(p) => {
+          setActiveDetailProject(null);
+          setActiveEditProject(p);
+        }}
+        onToggleVisibility={handleToggleVisibility}
+      />
+
+      {/* Edit Project Modal (with local image upload & smooth scrolling) */}
       <EditProjectModal
         project={activeEditProject}
         isOpen={Boolean(activeEditProject)}

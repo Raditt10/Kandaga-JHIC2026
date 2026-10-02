@@ -8,12 +8,6 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Loading from "@/components/ui/Loading";
 import EditProjectModal from "@/components/student/EditProjectModal";
-import {
-  getProjectById,
-  updateProject,
-  toggleProjectVisibility,
-  deleteProject,
-} from "@/lib/studentProjectStorage";
 import type { GalleryProjectItem } from "@/data/galleryData";
 import {
   ArrowLeft,
@@ -46,13 +40,25 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const loadProject = () => {
+  const loadProject = async () => {
     setIsLoading(true);
     try {
-      const item = getProjectById(resolvedParams.id);
-      if (item) {
-        setProject(item);
+      const res = await fetch(`/api/student/projects/${resolvedParams.id}`);
+      if (!res.ok) {
+        setProject(null);
+        return;
       }
+      const data = await res.json();
+      if (data.project) {
+        setProject(data.project);
+      } else if (data.projects) {
+        setProject(data.projects);
+      } else {
+        setProject(null);
+      }
+    } catch (error) {
+      console.error("Failed to fetch project data:", error);
+      showToast("Gagal memuat data karya.");
     } finally {
       setIsLoading(false);
     }
@@ -76,37 +82,78 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  const handleToggleVisibility = () => {
+  const handleToggleVisibility = async () => {
     if (!project) return;
-    const updated = toggleProjectVisibility(project.id);
-    if (updated) {
-      setProject(updated);
-      showToast(
-        updated.isPrivate
-          ? "Status visibilitas diubah menjadi PRIVAT."
-          : "Karya berhasil DIPUBLIKASIKAN di Galeri Resmi SMKN 13!"
-      );
+    const targetIsPrivate = !project.isPrivate;
+    try {
+      const res = await fetch(`/api/student/projects/${resolvedParams.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isPrivate: targetIsPrivate }),
+      });
+      const data = await res.json();
+      if (data.success && data.project) {
+        setProject(data.project);
+        showToast(
+          data.project.isPrivate
+            ? "Status visibilitas diubah menjadi PRIVAT."
+            : "Karya berhasil DIPUBLIKASIKAN di Galeri Resmi SMKN 13!"
+        );
+      } else {
+        showToast(data.error || "Gagal memperbarui status visibilitas karya.");
+      }
+    } catch (error) {
+      console.error("Error toggling visibility:", error);
+      showToast("Gagal memperbarui status visibilitas.");
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!project) return;
     if (
       confirm(
         `Apakah Anda yakin ingin menghapus karya "${project.title}"? Tindakan ini permanen.`
       )
     ) {
-      deleteProject(project.id);
-      router.push("/student/my-projects");
+      try {
+        const deleted = await fetch(`/api/student/projects/${resolvedParams.id}`, {
+          method: "DELETE",
+        });
+        const deletedData = await deleted.json();
+        if (deletedData.success) {
+          showToast("Karya berhasil dihapus!");
+          router.push("/student/my-projects");
+        } else {
+          showToast(deletedData.error || "Gagal menghapus karya.");
+        }
+      } catch (error) {
+        console.error("Failed to delete project:", error);
+        showToast("Gagal menghapus karya.");
+      }
     }
   };
 
   const handleSaveEdit = async (updates: Partial<GalleryProjectItem>) => {
     if (!project) return;
-    const updated = updateProject(project.id, updates);
-    if (updated) {
-      setProject(updated);
-      showToast("Perubahan detail karya berhasil disimpan!");
+    try {
+      const updated = await fetch(`/api/student/projects/${resolvedParams.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updates),
+      });
+      const updatedData = await updated.json();
+      if (updatedData.success && updatedData.project) {
+        setProject(updatedData.project);
+        setIsEditModalOpen(false);
+        showToast("Perubahan detail karya berhasil disimpan!");
+      } else {
+        showToast(updatedData.error || "Gagal menyimpan perubahan karya.");
+      }
+    } catch (error) {
+      console.error("Failed to update project data:", error);
+      showToast("Gagal memperbarui karya.");
     }
   };
 

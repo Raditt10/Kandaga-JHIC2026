@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Sparkles,
   ExternalLink,
+  Maximize2,
 } from "lucide-react";
 import type { GalleryProjectItem } from "@/data/galleryData";
 
@@ -21,6 +22,7 @@ export interface StudentProjectCardProps {
   onEdit: (project: GalleryProjectItem) => void;
   onToggleVisibility: (projectId: string) => void;
   onDelete: (projectId: string) => void;
+  onViewDetail?: (project: GalleryProjectItem) => void;
 }
 
 export default function StudentProjectCard({
@@ -28,6 +30,7 @@ export default function StudentProjectCard({
   onEdit,
   onToggleVisibility,
   onDelete,
+  onViewDetail,
 }: StudentProjectCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -59,7 +62,7 @@ export default function StudentProjectCard({
         month: "short",
         year: "numeric",
       })
-    : `${project.year}`;
+    : `${project.year || new Date().getFullYear()}`;
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -82,6 +85,13 @@ export default function StudentProjectCard({
     onEdit(project);
   };
 
+  const handleDetailClick = (e: React.MouseEvent) => {
+    if (onViewDetail) {
+      e.preventDefault();
+      onViewDetail(project);
+    }
+  };
+
   return (
     <div
       className={`group relative flex flex-col bg-white rounded-2xl border border-ink-150 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 ${currentMajorStyle.border} ${
@@ -89,10 +99,12 @@ export default function StudentProjectCard({
       }`}
     >
       {/* ── Image Media Container ── */}
-      <Link
-        href={`/student/my-projects/${project.id}`}
-        className="relative aspect-[16/10] w-full overflow-hidden bg-ink-100 block"
-        aria-label={`Buka detail dan kelola karya: ${project.title}`}
+      <div
+        onClick={handleDetailClick}
+        className="relative aspect-[16/10] w-full overflow-hidden bg-ink-100 block cursor-pointer"
+        role="button"
+        tabIndex={0}
+        aria-label={`Buka detail karya: ${project.title}`}
       >
         <Image
           src={project.coverImage || "/images/preview-rpl.jpg"}
@@ -148,16 +160,16 @@ export default function StudentProjectCard({
             <span>{project.metrics?.views || 0} tayangan</span>
           </span>
         </div>
-      </Link>
+      </div>
 
       {/* ── Card Content Body ── */}
       <div className="flex flex-col flex-1 p-5 sm:p-6">
         {/* Project Title */}
-        <Link href={`/student/my-projects/${project.id}`}>
+        <div onClick={handleDetailClick} className="cursor-pointer">
           <h3 className="font-heading text-lg font-bold text-ink group-hover:text-[#8B1A2F] transition-colors line-clamp-1">
             {project.title}
           </h3>
-        </Link>
+        </div>
 
         {/* Tagline / Excerpt */}
         <p className="mt-2 text-xs sm:text-sm text-ink-600 line-clamp-2 leading-relaxed flex-1">
@@ -209,8 +221,21 @@ export default function StudentProjectCard({
             )}
           </button>
 
-          {/* Edit, View, & Delete Action Group */}
+          {/* Edit, View Modal, Full Page, & Delete Action Group */}
           <div className="flex items-center gap-1">
+            {/* Quick View / Detail Modal button */}
+            {onViewDetail && (
+              <button
+                type="button"
+                onClick={handleDetailClick}
+                className="p-2 rounded-xl text-zinc-600 hover:text-black hover:bg-zinc-100 transition cursor-pointer"
+                title="Pratinjau detail karya (Modal)"
+                aria-label="Lihat modal detail karya"
+              >
+                <Maximize2 className="w-4 h-4" />
+              </button>
+            )}
+
             <button
               type="button"
               onClick={handleEditClick}
@@ -225,7 +250,7 @@ export default function StudentProjectCard({
               href={`/student/my-projects/${project.id}`}
               className="p-2 rounded-xl text-zinc-600 hover:text-black hover:bg-zinc-100 transition"
               title="Buka halaman kelola & detail karya"
-              aria-label="Detail karya"
+              aria-label="Halaman detail karya"
             >
               <ExternalLink className="w-4 h-4" />
             </Link>

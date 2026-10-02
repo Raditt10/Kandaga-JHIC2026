@@ -685,69 +685,77 @@ async function main() {
     },
   ];
 
-  for(const gallery of galleryData){
-    await prisma.projects.create({
-      title: gallery.title,
-      description: gallery.description,
-      mainFeatures: gallery.solutionHighlights,
-      type: mapProjectType(gallery.major),
-      year: gallery.year,
-      coverImage: gallery.coverImage,
-      galleryImages: gallery.galleryImages,
-      status: gallery.status,
-      tools: gallery.tools,
-      advisor: {
-        users: {
-          connectOrCreate: {
-            where: {
-              email: gallery.advisor.advisorId + "@gmail.com",
-            },
-            create: {
-              name: gallery.advisor.name,
-              email: gallery.advisor.advisorId + "@gmail.com",
-              passwordHash: hashedPassword,
-              role: Role.Teacher,
-              avatar: gallery.studentAvatar
-            }
-          }
-        },
-      },
-      student:{
-        user:{
-          connectOrCreate: {
-            where:{
-              email: gallery.studentId + "@gmail.com",
-            },
-            create: {
-              name: gallery.studentName,
-              email: gallery.studentId + "@gmail.com",
-              passwordHash: hashedPassword,
-              role: Role.Student,
-              avatar: gallery.studentAvatar
-            }
-          },
-        },
-        connectOrCreate: {
-          where:{
-            nis: gallery.studentId,
-          },
-          create: {
-            nis: gallery.studentId,
-            fullName: gallery.studentName,
-            class: gallery.studentClass
-          }
-        }
-      },
-      badges:{
-        create: {
-          name: gallery.badgeLabel,
-          tier: gallery.badgeTier,
-        }
-      },
-      viewCount: gallery.metrics.views,
-      stars: gallery.metrics.likes
-    })
-  }
+  // for(const gallery of galleryData){
+  //   await prisma.projects.create({
+  //     data: {
+  //       id: gallery.id,
+  //       title: gallery.title,
+  //       description: gallery.description,
+  //       mainFeatures: {
+  //         create: {
+  //           projectId: gallery.id,
+  //           name: gallery.solutionHighlights[0],
+  //         }
+  //       },
+  //       type: mapProjectType(gallery.major),
+  //       year: gallery.year,
+  //       coverImage: gallery.coverImage,
+  //       galleryImages: gallery.galleryImages,
+  //       status: gallery.status,
+  //       tools: gallery.tools,
+  //       advisor: {
+  //         users: {
+  //           connectOrCreate: {
+  //             where: {
+  //               email: gallery.advisor.advisorId + "@gmail.com",
+  //             },
+  //             create: {
+  //               name: gallery.advisor.name,
+  //               email: gallery.advisor.advisorId + "@gmail.com",
+  //               passwordHash: hashedPassword,
+  //               role: Role.Teacher,
+  //               avatar: gallery.studentAvatar
+  //             }
+  //           }
+  //         },
+  //       },
+  //       student:{
+  //         user:{
+  //           connectOrCreate: {
+  //             where:{
+  //               email: gallery.studentId + "@gmail.com",
+  //             },
+  //             create: {
+  //               name: gallery.studentName,
+  //               email: gallery.studentId + "@gmail.com",
+  //               passwordHash: hashedPassword,
+  //               role: Role.Student,
+  //               avatar: gallery.studentAvatar
+  //             }
+  //           },
+  //         },
+  //         connectOrCreate: {
+  //           where:{
+  //             nis: gallery.studentId,
+  //           },
+  //           create: {
+  //             nis: gallery.studentId,
+  //             fullName: gallery.studentName,
+  //             class: gallery.studentClass
+  //           }
+  //         }
+  //       },
+  //       badges:{
+  //         create: {
+  //           name: gallery.badgeLabel,
+  //           tier: gallery.badgeTier,
+  //         }
+  //       },
+  //       viewCount: gallery.metrics.views,
+  //       stars: gallery.metrics.likes
+  //     });
+  //   }
+  // }
 
   console.log('\n✅ Seeding completed!')
   console.log('─────────────────────────────────')
