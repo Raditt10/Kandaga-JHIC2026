@@ -107,10 +107,24 @@ function LoginFormContent() {
 
       const userRole = sessionData?.user?.role || "student"
       const normalizedRole = userRole.toLowerCase() === "students" ? "student" : userRole.toLowerCase()
+      const verificationStatus = sessionData?.user?.verificationStatus as string | null
 
-      // Redirect to designated role page or specified callback
-        router.push(`/${normalizedRole}`)
-        router.refresh()
+      // Khusus company: cek status verifikasi sebelum redirect ke dashboard
+      if (normalizedRole === "company") {
+        if (!verificationStatus || verificationStatus === "pending") {
+          router.push("/mitra/menunggu")
+          return
+        }
+        if (verificationStatus === "ditolak") {
+          router.push("/mitra/ditolak")
+          return
+        }
+        // verificationStatus === "disetujui" → lanjut ke dashboard
+      }
+
+      // Redirect ke dashboard sesuai role
+      router.push(`/${normalizedRole}`)
+      router.refresh()
     } catch (err) {
       setError("Terjadi kesalahan saat masuk. Silakan coba lagi.")
       setLoading(false)
@@ -248,6 +262,10 @@ function LoginFormContent() {
             Belum memiliki akun Kandaga?{" "}
             <Link href="/auth/register" className="font-bold text-[#90133b] hover:underline">
               Daftar sekarang
+            </Link>
+            {" · "}
+            <Link href="/mitra/daftar" className="font-bold text-blue-700 hover:underline">
+              Daftar sebagai Mitra
             </Link>
           </p>
         </div>

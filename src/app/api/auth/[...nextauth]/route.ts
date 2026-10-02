@@ -11,16 +11,15 @@ export const authOptions: NextAuthOptions = {
 
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 hari
+    maxAge: 30 * 24 * 60 * 60,
   },
 
   providers: [
-    // ── 1. Credentials (email atau username + password) ──────────────
     CredentialsProvider({
       name: "Credentials",
       credentials: {
         identifier: { label: "Username / Email", type: "text" },
-        password: { label: "Password", type: "password" },
+        password:   { label: "Password",         type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.identifier || !credentials?.password) {
@@ -29,93 +28,84 @@ export const authOptions: NextAuthOptions = {
 
         const identifier = credentials.identifier.trim()
 
-        // Cari user di database — support login via email ATAU name
+        // Cari user — support login via email ATAU name
         const user = await prisma.users.findFirst({
           where: {
             OR: [
               { email: identifier },
-              { name: identifier },
+              { name:  identifier },
             ],
           },
+          // Sertakan profil company untuk cek verificationStatus
+          include: { companyProfile: true },
         })
 
-        if (!user) {
-          throw new Error("Akun tidak ditemukan.")
-        }
+        if (!user) throw new Error("Akun tidak ditemukan.")
+        if (user.status !== "aktif") throw new Error("Akun tidak aktif. Hubungi administrator.")
 
-        if (user.status !== "aktif") {
-          throw new Error("Akun tidak aktif. Hubungi administrator.")
-        }
+        const isValid = await bcrypt.compare(credentials.password, user.passwordHash)
+        if (!isValid) throw new Error("Password salah.")
 
-        // Verifikasi password dengan bcrypt
-        const isValid = await bcrypt.compare(
-          credentials.password,
-          user.passwordHash
-        )
+        const role = normalizeRole(user.role)
 
-        if (!isValid) {
-          throw new Error("Password salah.")
-        }
+        // Untuk role company, sertakan verificationStatus ke token
+        // supaya middleware bisa guard tanpa query DB lagi
+        const verificationStatus =
+          role === "company"
+            ? (user.companyProfile?.verificationStatus ?? "pending")
+            : null
 
         return {
-          id:    user.id,
-          name:  user.name,
-          email: user.email,
-          role:  normalizeRole(user.role),
+          id:                 user.id,
+          name:               user.name,
+          email:              user.email,
+          role,
+          verificationStatus, // null untuk non-company
         }
       },
     }),
 
-    // ── 2. Google OAuth ───────────────────────────────────────────────
-    // Hanya aktif kalau GOOGLE_CLIENT_ID tersedia
     ...(process.env.GOOGLE_CLIENT_ID
-      ? [
-          GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-          }),
-        ]
+      ? [GoogleProvider({
+          clientId:     process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+        })]
       : []),
 
-    // ── 3. GitHub OAuth ───────────────────────────────────────────────
     ...(process.env.GITHUB_ID
-      ? [
-          GithubProvider({
-            clientId: process.env.GITHUB_ID,
-            clientSecret: process.env.GITHUB_SECRET!,
-          }),
-        ]
+      ? [GithubProvider({
+          clientId:     process.env.GITHUB_ID,
+          clientSecret: process.env.GITHUB_SECRET!,
+        })]
       : []),
   ],
 
   callbacks: {
-    // Simpan role ke JWT saat login
     async jwt({ token, user }) {
       if (user) {
-        token.id    = user.id
-        token.role  = (user as { role?: string }).role ?? "student"
-        token.email = user.email
-        token.name  = user.name
+        token.id                 = user.id
+        token.role               = (user as { role?: string }).role ?? "student"
+        token.email              = user.email
+        token.name               = user.name
+        token.verificationStatus = (user as { verificationStatus?: string | null }).verificationStatus ?? null
       }
       return token
     },
 
-    // Ekspos role ke session supaya bisa dibaca di client
     async session({ session, token }) {
       if (session.user) {
-        session.user.id    = token.id    as string
-        session.user.role  = token.role  as string
-        session.user.email = token.email as string
-        session.user.name  = token.name  as string
+        session.user.id                 = token.id                 as string
+        session.user.role               = token.role               as string
+        session.user.email              = token.email              as string
+        session.user.name               = token.name               as string
+        session.user.verificationStatus = token.verificationStatus as string | null
       }
       return session
     },
 
-    // Redirect otomatis setelah login berdasarkan role
     async redirect({ url, baseUrl }) {
-      // Kalau ada callbackUrl eksplisit dari query string, pakai itu
       if (url.startsWith(baseUrl)) return url
-      if (url.startsWith("/")) return `${baseUrl}${url}`
+      if (url.startsWith("/"))     return `${baseUrl}${url}`
       return baseUrl
     },
   },
