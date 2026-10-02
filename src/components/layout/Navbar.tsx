@@ -3,72 +3,17 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSession, signOut } from "next-auth/react";
-import {
-  ChevronDown,
-  Menu,
-  X,
-  User as UserIcon,
-  LogOut,
-  LayoutDashboard,
-  GraduationCap,
-  ShieldCheck,
-  Building2,
-  BookOpen,
-  Briefcase,
-  ArrowRight
-} from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
-import { getDashboardUrl } from "@/lib/auth";
 
 export interface NavbarProps {
   onOpenLogin?: () => void;
   onSelectCategory?: (category: string) => void;
 }
 
-export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
-  const { data: session, status } = useSession();
+export default function Navbar({ onOpenLogin }: NavbarProps) {
   const [activeNav, setActiveNav] = useState("Beranda");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-
-  const rawRole = (session?.user?.role || "student").toLowerCase();
-  const normalizedRole =
-    rawRole === "students" ? "student" : rawRole === "bkk" ? "bkk" : rawRole;
-
-  const roleMeta: Record<
-    string,
-    { label: string; badgeColor: string; icon: React.ElementType }
-  > = {
-    student: {
-      label: "Student",
-      badgeColor: "bg-rose-100 text-rose-800 border-rose-200",
-      icon: GraduationCap,
-    },
-    admin: {
-      label: "Admin",
-      badgeColor: "bg-rose-900 text-white border-rose-950",
-      icon: ShieldCheck,
-    },
-    company: {
-      label: "Company",
-      badgeColor: "bg-blue-100 text-blue-800 border-blue-200",
-      icon: Building2,
-    },
-    teacher: {
-      label: "Teacher",
-      badgeColor: "bg-amber-100 text-amber-800 border-amber-200",
-      icon: BookOpen,
-    },
-    bkk: {
-      label: "BKK",
-      badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-      icon: Briefcase,
-    },
-  };
-
-  const currentRoleMeta = roleMeta[normalizedRole] || roleMeta.student;
-  const RoleIcon = currentRoleMeta.icon;
   const router = useRouter();
   const pathname = usePathname();
 
@@ -234,82 +179,18 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
             Mitra Perusahaan
           </button>
 
-          {status === "authenticated" && session?.user ? (
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center gap-2 px-2.5 py-1 rounded-full border border-zinc-200 bg-zinc-50/80 hover:bg-zinc-100 transition cursor-pointer shadow-xs"
-              >
-                <div className="w-7 h-7 rounded-full bg-gradient-to-r from-[#891337] to-[#a61743] text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                  {session.user.username
-                    ? session.user.username.charAt(0).toUpperCase()
-                    : "U"}
-                </div>
-                <span className="hidden sm:inline-block text-xs font-bold text-zinc-800 max-w-[100px] truncate">
-                  {session.user.username || "Profile"}
-                </span>
-                <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
-              </button>
-
-              {/* Profile Dropdown Menu */}
-              {isProfileOpen && (
-                <div className="absolute right-0 top-full mt-2 w-64 bg-white/95 backdrop-blur-xl border border-zinc-200/90 rounded-2xl shadow-xl p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                  <div className="p-3 bg-zinc-50 rounded-xl mb-2 border border-zinc-100">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-xs font-bold text-zinc-900 truncate">
-                        {session.user.username || "Pengguna"}
-                      </p>
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase ${currentRoleMeta.badgeColor}`}
-                      >
-                        {currentRoleMeta.label}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-zinc-500 font-mono truncate">
-                      {session.user.email}
-                    </p>
-                  </div>
-
-                  <Link
-                    href={getDashboardUrl(normalizedRole)}
-                    onClick={() => setIsProfileOpen(false)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-zinc-800 hover:bg-[#891337]/10 hover:text-[#891337] transition cursor-pointer"
-                  >
-                    <LayoutDashboard className="w-4 h-4 text-[#891337]" />
-                    <span>Portal Dashboard</span>
-                  </Link>
-
-                  <div className="my-1 border-t border-zinc-100" />
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsProfileOpen(false);
-                      signOut({ callbackUrl: "/" });
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition cursor-pointer text-left"
-                  >
-                    <LogOut className="w-4 h-4 text-rose-600" />
-                    <span>Keluar (Sign Out)</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <Link
-              href="/auth/login"
-              onClick={(e) => {
-                if (onOpenLogin) {
-                  e.preventDefault();
-                  onOpenLogin();
-                }
-              }}
-              className="bg-gradient-to-r from-[#891337] to-[#a61743] hover:from-[#76102f] hover:to-[#92143b] text-white px-5 sm:px-6 py-2 rounded-full text-xs font-bold tracking-wide transition-all duration-200 shadow-md shadow-[#891337]/25 hover:shadow-lg hover:shadow-[#891337]/35 cursor-pointer active:scale-95"
-            >
-              Masuk
-            </Link>
-          )}
+          <Link
+            href="/auth/login"
+            onClick={(e) => {
+              if (onOpenLogin) {
+                e.preventDefault();
+                onOpenLogin();
+              }
+            }}
+            className="bg-gradient-to-r from-[#891337] to-[#a61743] hover:from-[#76102f] hover:to-[#92143b] text-white px-5 sm:px-6 py-2 rounded-full text-xs font-bold tracking-wide transition-all duration-200 shadow-md shadow-[#891337]/25 hover:shadow-lg hover:shadow-[#891337]/35 cursor-pointer active:scale-95"
+          >
+            Masuk
+          </Link>
 
           {/* Mobile Hamburger toggle */}
           <button
@@ -377,29 +258,19 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
             >
               Mitra Perusahaan
             </button>
-            {status === "authenticated" && session?.user ? (
-              <Link
-                href={getDashboardUrl(normalizedRole)}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="bg-[#90133b] text-white px-5 py-1.5 rounded-full text-xs font-bold cursor-pointer"
-              >
-                Dashboard
-              </Link>
-            ) : (
-              <Link
-                href="/auth/login"
-                onClick={(e) => {
-                  setIsMobileMenuOpen(false);
-                  if (onOpenLogin) {
-                    e.preventDefault();
-                    onOpenLogin();
-                  }
-                }}
-                className="bg-[#90133b] text-white px-5 py-1.5 rounded-full text-xs font-bold cursor-pointer"
-              >
-                Masuk
-              </Link>
-            )}
+            <Link
+              href="/auth/login"
+              onClick={(e) => {
+                setIsMobileMenuOpen(false);
+                if (onOpenLogin) {
+                  e.preventDefault();
+                  onOpenLogin();
+                }
+              }}
+              className="bg-[#90133b] text-white px-5 py-1.5 rounded-full text-xs font-bold cursor-pointer"
+            >
+              Masuk
+            </Link>
           </div>
         </div>
       )}
