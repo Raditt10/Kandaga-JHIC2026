@@ -1,4 +1,3 @@
-// prisma/seed.ts
 import { PrismaClient, Role, ProjectType } from '@prisma/client'
 
 const prisma = new PrismaClient()
@@ -7,12 +6,10 @@ async function main() {
   console.log('🌱 Start Seeding database...')
 
   // Clear existing records to prevent duplicates (optional)
-  await prisma.users.deleteMany()
   await prisma.student.deleteMany()
   await prisma.teacher.deleteMany()
   await prisma.company.deleteMany()
   await prisma.projects.deleteMany()
-  await prisma.major.deleteMany()
   await prisma.projectsMedia.deleteMany()
   await prisma.projectsTool.deleteMany()
   await prisma.skillTool.deleteMany()
@@ -23,6 +20,8 @@ async function main() {
   await prisma.partnerships.deleteMany()
   await prisma.notifications.deleteMany()
   await prisma.auditLogs.deleteMany()
+  await prisma.users.deleteMany()
+  await prisma.major.deleteMany()
   console.log('🌱 remove existing data complete. Seeding database...')
 
 
@@ -30,31 +29,31 @@ async function main() {
     {
       name: "Alice Smith",
       email: "alicesmith@gmail.com",
-      passwordHash: "pass1234",
+      passwordHash: "password123",
       role: "student"
     },
     {
       name: "Bob Jones",
       email: "bobjones@gmail.com",
-      passwordHash: "pass1234",
+      passwordHash: "password123",
       role: "teacher"
     },
     {
       name: "Charlie Brown",
       email: "charliebrown@gmail.com",
-      passwordHash: "pass1234",
+      passwordHash: "password123",
       role: "company"
     },
     {
       name: "David Wilson",
       email: "davidwilson@gmail.com",
-      passwordHash: "pass1234",
+      passwordHash: "password123",
       role: "admin"
     },
     {
       name: "Eve Martinez",
       email: "evemartinez@gmail.com",
-      passwordHash: "pass1234",
+      passwordHash: "password123",
       role: "bkk"
     }
   ]
@@ -101,6 +100,7 @@ async function main() {
     },
   ];
 
+  
   for (const major of majorsdata) {
     await prisma.major.create({
       data: {
@@ -188,7 +188,7 @@ async function main() {
     });
   };
 
-  console.log('✅ Seeding completed successfully.')
+  console.log('✅ Seeding completed successfully.');
 }
 
 function mapRole(role: string) {

@@ -100,15 +100,10 @@ ADD COLUMN     "description" TEXT NOT NULL,
 ADD COLUMN     "fullName" TEXT NOT NULL,
 ADD COLUMN     "image" TEXT NOT NULL,
 ADD COLUMN     "link" TEXT NOT NULL,
-DROP COLUMN "id",
+DROP COLUMN    "id",
 ADD COLUMN     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
 ADD CONSTRAINT "majors_pkey" PRIMARY KEY ("id");
 
--- AlterTable
-ALTER TABLE "students" ALTER COLUMN "major_id" SET DATA TYPE TEXT;
-
--- AlterTable
-ALTER TABLE "teachers" ALTER COLUMN "majors_id" SET DATA TYPE TEXT;
 
 -- AlterTable
 ALTER TABLE "users" DROP COLUMN "role_id",
@@ -169,7 +164,7 @@ CREATE TABLE "projects_media" (
 -- CreateTable
 CREATE TABLE "project_tools" (
     "project_id" UUID NOT NULL,
-    "tool_id" SMALLINT NOT NULL,
+    "tool_id" UUID NOT NULL,
 
     CONSTRAINT "project_tools_pkey" PRIMARY KEY ("project_id","tool_id")
 );
@@ -177,7 +172,7 @@ CREATE TABLE "project_tools" (
 -- CreateTable
 CREATE TABLE "projects_badge" (
     "project_id" UUID NOT NULL,
-    "badge_id" SMALLINT NOT NULL,
+    "badge_id" UUID NOT NULL,
     "given_from" UUID NOT NULL,
     "given_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

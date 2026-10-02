@@ -28,7 +28,7 @@ CREATE TABLE "users" (
 
 -- CreateTable
 CREATE TABLE "majors" (
-    "id" SMALLSERIAL NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "code" TEXT NOT NULL,
     "name" TEXT NOT NULL,
 
@@ -38,7 +38,7 @@ CREATE TABLE "majors" (
 -- CreateTable
 CREATE TABLE "students" (
     "user_id" UUID NOT NULL,
-    "major_id" SMALLINT NOT NULL,
+    "major_id" UUID NOT NULL,
     "nis" TEXT NOT NULL,
     "class" TEXT NOT NULL,
     "generation" SMALLINT NOT NULL,
@@ -53,7 +53,7 @@ CREATE TABLE "students" (
 -- CreateTable
 CREATE TABLE "teachers" (
     "user_id" UUID NOT NULL,
-    "majors_id" SMALLINT NOT NULL,
+    "majors_id" UUID NOT NULL,
     "nip" TEXT,
 
     CONSTRAINT "teachers_pkey" PRIMARY KEY ("user_id")
@@ -74,7 +74,7 @@ CREATE TABLE "companies" (
 
 -- CreateTable
 CREATE TABLE "creationtypes" (
-    "id" SMALLSERIAL NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "username" TEXT NOT NULL,
 
     CONSTRAINT "creationtypes_pkey" PRIMARY KEY ("id")
@@ -82,7 +82,7 @@ CREATE TABLE "creationtypes" (
 
 -- CreateTable
 CREATE TABLE "tools_skills" (
-    "id" SMALLSERIAL NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "username" TEXT NOT NULL,
 
     CONSTRAINT "tools_skills_pkey" PRIMARY KEY ("id")
@@ -90,7 +90,7 @@ CREATE TABLE "tools_skills" (
 
 -- CreateTable
 CREATE TABLE "badges" (
-    "id" SMALLSERIAL NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "username" TEXT NOT NULL,
     "tier" TEXT NOT NULL,
 
@@ -102,7 +102,7 @@ CREATE TABLE "creations" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "students_id" UUID NOT NULL,
     "teachers_advisors_id" UUID,
-    "creationtypes_id" SMALLINT,
+    "creationtypes_id" UUID,
     "title" TEXT NOT NULL,
     "description" TEXT,
     "year" SMALLINT NOT NULL,
@@ -133,7 +133,7 @@ CREATE TABLE "creations_media" (
 -- CreateTable
 CREATE TABLE "creation_tools" (
     "creation_id" UUID NOT NULL,
-    "tool_id" SMALLINT NOT NULL,
+    "tool_id" UUID NOT NULL,
 
     CONSTRAINT "creation_tools_pkey" PRIMARY KEY ("creation_id","tool_id")
 );
@@ -141,7 +141,7 @@ CREATE TABLE "creation_tools" (
 -- CreateTable
 CREATE TABLE "creations_badge" (
     "creation_id" UUID NOT NULL,
-    "badge_id" SMALLINT NOT NULL,
+    "badge_id" UUID NOT NULL,
     "given_from" UUID NOT NULL,
     "given_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -202,7 +202,7 @@ CREATE TABLE "notifications" (
 
 -- CreateTable
 CREATE TABLE "audit_logs" (
-    "id" BIGSERIAL NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "user_id" UUID,
     "action" TEXT NOT NULL,
     "entity" TEXT NOT NULL,

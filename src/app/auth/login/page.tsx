@@ -105,11 +105,10 @@ function LoginFormContent() {
       const sessionData = await sessionRes.json()
 
       const userRole = sessionData?.user?.role || "student"
-      const normalizedRole = userRole.toLowerCase() === "students" ? "student" : userRole.toLowerCase()
 
       // Redirect to designated role page or specified callback
-        router.push(`/${normalizedRole}`)
-        router.refresh()
+      router.push(`/${userRole.toLowerCase()}`)
+      router.refresh()
     } catch (err) {
       setError("Terjadi kesalahan saat masuk. Silakan coba lagi.")
       setLoading(false)
