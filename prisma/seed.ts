@@ -99,6 +99,7 @@ async function main() {
     },
   ]
 
+  
   for (const major of majorsdata) {
     await prisma.major.create({ data: major })
     console.log(`  ✓ Major: ${major.name}`)

@@ -68,7 +68,6 @@ export default withAuth(
     if (pathname.startsWith("/bkk") && role !== "bkk") {
       return NextResponse.redirect(new URL("/auth/login", req.url))
     }
-
     return NextResponse.next()
   },
   {

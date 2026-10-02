@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { ChevronDown, Menu, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export interface NavbarProps {
   onOpenLogin?: () => void;
@@ -13,6 +14,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
   const [activeNav, setActiveNav] = useState("Beranda");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const router = useRouter();
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -112,7 +114,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
             {/* 3. Galeri Karya */}
             <button
               type="button"
-              onClick={() => scrollToSection("galeri-section")}
+              onClick={() => router.push("/gallery")}
               className="hover:text-zinc-950 transition cursor-pointer py-1"
             >
               Galeri Karya
@@ -173,8 +175,10 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
                 onClick={() => {
                   setActiveNav(item);
                   setIsMobileMenuOpen(false);
-                  if (item === "Jurusan Kami" || item === "Galeri Karya") {
+                  if (item === "Jurusan Kami") {
                     scrollToSection("galeri-section");
+                  } else if (item === "Galeri Karya") {
+                    router.push("/gallery");
                   } else if (item === "Tentang Kami") {
                     scrollToSection("tentang-section");
                   } else if (item === "Kontak") {

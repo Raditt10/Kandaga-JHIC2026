@@ -87,19 +87,19 @@ export default function RegisterPage() {
 
     // Validation for 4 crucial non-nullable fields
     if (!username.trim()) {
-      setError("Field 'username' bersifat non-nullable (wajib diisi).")
+      setError("Username wajib diisi.")
       return
     }
     if (!email.trim()) {
-      setError("Field 'email' bersifat non-nullable (wajib diisi).")
+      setError("Email wajib diisi.")
       return
     }
     if (!password.trim()) {
-      setError("Field 'password' bersifat non-nullable (wajib diisi).")
+      setError("Password wajib diisi.")
       return
     }
     if (!role) {
-      setError("Field 'role' bersifat non-nullable (wajib dipilih salah satu dari 5 role).")
+      setError("Role wajib dipilih salah satu dari 5 role.")
       return
     }
 
@@ -118,7 +118,6 @@ export default function RegisterPage() {
       })
 
       const data = await res.json()
-
       if (!res.ok) {
         setError(data.error || "Gagal melakukan registrasi.")
         setLoading(false)
