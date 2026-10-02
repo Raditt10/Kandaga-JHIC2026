@@ -79,6 +79,7 @@ model Teacher {
   userId  String  @id @map("user_id") @db.Uuid
   majorId String  @map("majors_id") @db.Uuid
   nip     String? @unique
+  bio     String?
 
   user             Users      @relation(fields: [userId], references: [id], onDelete: Cascade)
   major            Major      @relation(fields: [majorId], references: [id])
@@ -122,7 +123,7 @@ model SkillTool {
 
 model Badges {
   id             Int         @id @default(autoincrement()) @db.SmallInt
-  name           String      @unique @map("username")
+  name           String      @unique @map("badge_name")
   tier           String      @unique
   projectBadges  ProjectsBadge[]
 
@@ -142,6 +143,7 @@ model Projects {
   reviewedBy   String?                  @map("reviewed_by") @db.Uuid
   publishedAt  DateTime?                @map("published_at") @db.Timestamptz
   viewCount    Int                      @default(0) @map("view_count")
+  stars        Int                      @default(0)
   deletedAt    DateTime?                @map("deleted_at") @db.Timestamptz
   createdAt    DateTime                 @default(now()) @map("created_at") @db.Timestamptz
   updatedAt    DateTime                 @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
@@ -156,11 +158,23 @@ model Projects {
   badges          ProjectsBadge[]
   contactRequests ContactRequests[]
   bookmarks       Bookmarks[]
+  mainFeatures    ProjectsMainFeatures[]
 
   @@index([studentId], map: "projects_students_idx")
   @@index([advisorId], map: "projects_advisors_idx")
   @@index([searchVector], type: Gin)
   @@map("projects")
+}
+
+model ProjectsMainFeatures {
+  id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId String @map("project_id") @db.Uuid
+  feature   String
+  
+  project Projects @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, feature])
+  @@map("projects_main_features")
 }
 
 model ProjectsMedia {
@@ -245,6 +259,7 @@ model Partnerships {
   type       String    
   startDate  DateTime? @map("start_date") @db.Date
   notes      String?
+  isVerified String    @default("pending")
   recordedBy String    @map("recorded_by") @db.Uuid
   createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
 

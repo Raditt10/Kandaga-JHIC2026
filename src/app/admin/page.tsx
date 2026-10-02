@@ -1,154 +1,256 @@
-"use client"
+"use client";
 
-import React from "react"
-import DashboardLayout from "@/components/DashboardLayout"
-import { useSession } from "next-auth/react"
-import { usersDatabase } from "@/lib/users"
+import React, { useState } from "react";
+import Link from "next/link";
+import DashboardLayout from "@/components/DashboardLayout";
+import { useSession } from "next-auth/react";
+import { usersDatabase } from "@/lib/users";
 import {
   ShieldCheck,
   Users,
-  Shield,
-  Lock,
-  UserCheck,
-  Server,
-} from "lucide-react"
+  GraduationCap,
+  BookOpen,
+  Building2,
+  Briefcase,
+  Search,
+  ExternalLink,
+  CheckCircle2,
+  Sparkles,
+} from "lucide-react";
 
 export default function AdminDashboardPage() {
-  const { data: session } = useSession()
+  const { data: session } = useSession();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedRoleFilter, setSelectedRoleFilter] = useState<string>("all");
+
+  const adminName = session?.user?.username || session?.user?.name || "Administrator";
+
+  const studentCount = usersDatabase.filter((u) => u.role === "student").length;
+  const teacherCount = usersDatabase.filter((u) => u.role === "teacher").length;
+  const companyCount = usersDatabase.filter((u) => u.role === "company").length;
+  const bkkCount = usersDatabase.filter((u) => u.role === "bkk").length;
+
+  const filteredUsers = usersDatabase.filter((u) => {
+    const matchesSearch =
+      u.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole =
+      selectedRoleFilter === "all" || u.role === selectedRoleFilter;
+    return matchesSearch && matchesRole;
+  });
+
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case "admin":
+        return {
+          label: "Admin Sekolah",
+          style: "bg-rose-50 text-primary border-primary/20",
+        };
+      case "teacher":
+        return {
+          label: "Guru Kurator",
+          style: "bg-amber-50 text-amber-900 border-amber-300",
+        };
+      case "company":
+        return {
+          label: "Mitra Industri",
+          style: "bg-blue-50 text-blue-900 border-blue-200",
+        };
+      case "bkk":
+        return {
+          label: "Koordinator BKK",
+          style: "bg-emerald-50 text-emerald-900 border-emerald-300",
+        };
+      case "student":
+      default:
+        return {
+          label: "Siswa",
+          style: "bg-cream text-ink-700 border-ink-150",
+        };
+    }
+  };
 
   return (
     <DashboardLayout
-      roleTitle="Administrator Portal"
+      roleTitle="Administrator"
       roleSlug="admin"
-      badgeColor="from-[#891337] to-[#a61743]"
       icon={ShieldCheck}
+      pageTitle="Tata Kelola"
     >
-      {/* Header Welcome Card */}
-      <div className="bg-gradient-to-r from-zinc-950 via-[#4e0e20] to-[#891337] rounded-3xl p-6 sm:p-8 text-white shadow-xl mb-8 relative overflow-hidden">
-        <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-rose-200 text-xs font-bold mb-3">
-            <Server className="w-3.5 h-3.5" />
-            <span>Sistem Manajemen & Kontrol Hak Akses Kandaga</span>
+      {/* ── Welcome Banner (Kandaga School Governance) ── */}
+      <section aria-labelledby="admin-welcome-heading" className="mb-8 rounded-3xl bg-primary text-white p-6 sm:p-8 relative overflow-hidden shadow-sm">
+        <div className="relative z-10 max-w-3xl">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-accent text-xs font-semibold mb-3">
+            <Sparkles className="w-3.5 h-3.5 text-accent" aria-hidden="true" />
+            <span>Tata Kelola Institusional SMKN 13 Bandung</span>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
-            Portal Administrator 🛡️
+          <h1 id="admin-welcome-heading" className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight">
+            Pusat Kendali Administrasi
           </h1>
-          <p className="text-zinc-300 text-xs sm:text-sm max-w-2xl mt-2 leading-relaxed">
-            Sebagai Administrator, Anda memiliki otoritas penuh untuk mengelola pengguna, menetapkan 5 jenis peran (Role), serta mengkonfigurasi kebijakan keamanan.
+          <p className="text-white/80 text-sm sm:text-base mt-2 leading-relaxed">
+            Kelola otentikasi pengguna, pantau distribusi akun lintas 3 kompetensi keahlian (Analis Kimia, TKJ, RPL), dan pastikan integritas alur verifikasi karya siswa bersama BKK.
           </p>
 
-          {/* User Session Info */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6 pt-6 border-t border-white/15 text-xs">
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-              <span className="text-rose-200 block text-[11px] font-medium">Admin Active User</span>
-              <span className="font-mono font-bold text-white text-sm">{session?.user?.username || "-"}</span>
+          <div className="mt-6 flex flex-wrap items-center gap-4 text-xs text-white/90">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span>Sesi Administrator Aktif: <strong className="font-mono text-white">{adminName}</strong></span>
             </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-              <span className="text-rose-200 block text-[11px] font-medium">Email Terdaftar</span>
-              <span className="font-mono font-bold text-white text-sm">{session?.user?.email || "-"}</span>
-            </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-              <span className="text-rose-200 block text-[11px] font-medium">Otoritas System</span>
-              <span className="font-mono font-bold text-emerald-400 text-sm uppercase">FULL CONTROL ADMIN</span>
+            <span className="hidden sm:inline text-white/30">|</span>
+            <div className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-accent" />
+              <span>Standar Kebijakan Sekolah Terverifikasi</span>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Admin System Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-3xl p-5 border border-zinc-200 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-zinc-500 uppercase">Total User Terdaftar</span>
-            <Users className="w-4 h-4 text-[#90133b]" />
+      {/* ── Key Institutional Governance Metrics ── */}
+      <section aria-labelledby="admin-metrics-heading" className="mb-8">
+        <h2 id="admin-metrics-heading" className="sr-only">
+          Statistik Tata Kelola Pengguna
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Siswa */}
+          <div className="rounded-2xl border border-ink-150 bg-white p-5 shadow-xs">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-semibold text-ink-600">Siswa Terdaftar</span>
+              <div className="w-8 h-8 rounded-lg bg-cream text-primary flex items-center justify-center">
+                <GraduationCap className="w-4 h-4" aria-hidden="true" />
+              </div>
+            </div>
+            <p className="font-heading text-2xl font-extrabold text-ink">{studentCount}</p>
+            <p className="text-xs text-ink-600 mt-1">3 Kompetensi Keahlian</p>
           </div>
-          <p className="text-2xl font-extrabold text-zinc-900">{usersDatabase.length}</p>
-          <span className="text-[11px] text-emerald-600 font-semibold mt-1 inline-block">● Real-time Memory Storage</span>
-        </div>
 
-        <div className="bg-white rounded-3xl p-5 border border-zinc-200 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-zinc-500 uppercase">5 Multi Roles</span>
-            <Shield className="w-4 h-4 text-blue-600" />
+          {/* Guru Kurator */}
+          <div className="rounded-2xl border border-ink-150 bg-white p-5 shadow-xs">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-semibold text-ink-600">Guru Pembimbing</span>
+              <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-800 flex items-center justify-center">
+                <BookOpen className="w-4 h-4" aria-hidden="true" />
+              </div>
+            </div>
+            <p className="font-heading text-2xl font-extrabold text-ink">{teacherCount}</p>
+            <p className="text-xs text-ink-600 mt-1">Tim Kurator Sekolah</p>
           </div>
-          <p className="text-2xl font-extrabold text-zinc-900">5 Roles Active</p>
-          <span className="text-[11px] text-zinc-500 font-medium mt-1 inline-block">Students, Admin, Company, Teacher, BKK</span>
-        </div>
 
-        <div className="bg-white rounded-3xl p-5 border border-zinc-200 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-zinc-500 uppercase">RBAC Middleware</span>
-            <Lock className="w-4 h-4 text-amber-600" />
+          {/* Mitra Perusahaan */}
+          <div className="rounded-2xl border border-ink-150 bg-white p-5 shadow-xs">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-semibold text-ink-600">Mitra Industri (DUDI)</span>
+              <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-800 flex items-center justify-center">
+                <Building2 className="w-4 h-4" aria-hidden="true" />
+              </div>
+            </div>
+            <p className="font-heading text-2xl font-extrabold text-ink">{companyCount}</p>
+            <p className="text-xs text-ink-600 mt-1">Terhubung Melalui BKK</p>
           </div>
-          <p className="text-2xl font-extrabold text-emerald-600">Aktif & Strict</p>
-          <span className="text-[11px] text-zinc-500 font-medium mt-1 inline-block">Proteksi Rute /[role]/dashboard</span>
-        </div>
 
-        <div className="bg-white rounded-3xl p-5 border border-zinc-200 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-zinc-500 uppercase">Non-Nullable Fields</span>
-            <UserCheck className="w-4 h-4 text-purple-600" />
+          {/* Koordinator BKK */}
+          <div className="rounded-2xl border border-ink-150 bg-white p-5 shadow-xs">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-semibold text-ink-600">Koordinator BKK</span>
+              <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center">
+                <Briefcase className="w-4 h-4" aria-hidden="true" />
+              </div>
+            </div>
+            <p className="font-heading text-2xl font-extrabold text-ink">{bkkCount}</p>
+            <p className="text-xs text-ink-600 mt-1">Penyaring Minat Kerja</p>
           </div>
-          <p className="text-2xl font-extrabold text-zinc-900">4 Fields Mandatory</p>
-          <span className="text-[11px] text-zinc-500 font-medium mt-1 inline-block">username, email, password, role</span>
         </div>
-      </div>
+      </section>
 
-      {/* User Management Table */}
-      <div className="bg-white rounded-3xl p-6 border border-zinc-200 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
+      {/* ── User Accounts Governance Table ── */}
+      <section aria-labelledby="user-table-heading" className="rounded-2xl border border-ink-150 bg-white p-5 sm:p-6 shadow-xs">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-ink-150">
           <div>
-            <h3 className="text-lg font-extrabold text-zinc-900">Daftar Pengguna Sistem (5 Roles)</h3>
-            <p className="text-xs text-zinc-500 mt-0.5">
-              Setiap pengguna terikat dengan 4 field utama non-nullable.
+            <h2 id="user-table-heading" className="font-heading text-base font-bold text-ink">
+              Daftar Pengguna & Hak Akses Sistem
+            </h2>
+            <p className="text-xs text-ink-600 mt-0.5">
+              Distribusi seluruh akun pengguna resmi yang terdaftar pada platform Kandaga SMKN 13.
             </p>
           </div>
+
+          {/* Controls: Search and Filter */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-ink-400 absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
+              <input
+                type="text"
+                placeholder="Cari nama atau email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 pr-3 py-1.5 rounded-xl border border-ink-150 text-xs text-ink focus:outline-hidden focus:border-primary w-48 sm:w-56"
+              />
+            </div>
+
+            <select
+              value={selectedRoleFilter}
+              onChange={(e) => setSelectedRoleFilter(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-ink-150 text-xs text-ink focus:outline-hidden focus:border-primary bg-white cursor-pointer"
+            >
+              <option value="all">Semua Peran</option>
+              <option value="student">Siswa</option>
+              <option value="teacher">Guru Kurator</option>
+              <option value="company">Mitra Industri</option>
+              <option value="bkk">Koordinator BKK</option>
+              <option value="admin">Administrator</option>
+            </select>
+          </div>
         </div>
 
+        {/* Responsive Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-zinc-200 text-zinc-400 font-bold uppercase tracking-wider">
+              <tr className="border-b border-ink-150 text-ink-500 font-semibold uppercase tracking-wider">
                 <th className="pb-3 px-3">No</th>
-                <th className="pb-3 px-3">Username (Non-Nullable)</th>
-                <th className="pb-3 px-3">Email (Non-Nullable)</th>
-                <th className="pb-3 px-3">Role Assigned (Non-Nullable)</th>
-                <th className="pb-3 px-3">Status Akses Halaman</th>
+                <th className="pb-3 px-3">Pengguna</th>
+                <th className="pb-3 px-3">Alamat Email</th>
+                <th className="pb-3 px-3">Peran (Role)</th>
+                <th className="pb-3 px-3">Tautan Portal Akses</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100 font-mono">
-              {usersDatabase.map((u, idx) => (
-                <tr key={u.id} className="hover:bg-zinc-50 transition">
-                  <td className="py-3 px-3 text-zinc-400 font-bold">{idx + 1}</td>
-                  <td className="py-3 px-3 font-bold text-zinc-900">{u.username}</td>
-                  <td className="py-3 px-3 text-zinc-600">{u.email}</td>
-                  <td className="py-3 px-3">
-                    <span
-                      className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase font-sans ${
-                        u.role === "admin"
-                          ? "bg-rose-100 text-rose-800"
-                          : u.role === "company"
-                          ? "bg-blue-100 text-blue-800"
-                          : u.role === "teacher"
-                          ? "bg-amber-100 text-amber-800"
-                          : u.role === "bkk"
-                          ? "bg-emerald-100 text-emerald-800"
-                          : "bg-purple-100 text-purple-800"
-                      }`}
-                    >
-                      {u.role}
-                    </span>
-                  </td>
-                  <td className="py-3 px-3 text-zinc-500 font-sans text-[11px]">
-                    Hanya dapat mengakses <code className="text-[#90133b] font-bold">/{u.role}/dashboard</code>
+            <tbody className="divide-y divide-ink-150">
+              {filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-xs text-ink-600">
+                    Tidak ditemukan pengguna yang sesuai dengan pencarian.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredUsers.map((u, idx) => {
+                  const roleBadge = getRoleBadge(u.role);
+                  return (
+                    <tr key={u.id} className="hover:bg-cream/40 transition-colors">
+                      <td className="py-3 px-3 text-ink-400 font-mono font-medium">{idx + 1}</td>
+                      <td className="py-3 px-3 font-semibold text-ink">{u.username}</td>
+                      <td className="py-3 px-3 text-ink-600 font-mono">{u.email}</td>
+                      <td className="py-3 px-3">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${roleBadge.style}`}>
+                          {roleBadge.label}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3">
+                        <Link
+                          href={`/${u.role}`}
+                          className="inline-flex items-center gap-1 font-mono text-xs font-semibold text-primary hover:underline"
+                        >
+                          <span>/{u.role}</span>
+                          <ExternalLink className="w-3 h-3 text-ink-400" aria-hidden="true" />
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
     </DashboardLayout>
-  )
+  );
 }
