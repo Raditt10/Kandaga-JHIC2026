@@ -210,7 +210,7 @@ export default function IndustrySection() {
                 Daftar Sebagai Mitra Industri
               </Link>
               <Link
-                href="#cara-kerja-bkk"
+                href="/faq#bkk"
                 className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-700 hover:text-primary group"
               >
                 <span>Pelajari cara kerja BKK</span>

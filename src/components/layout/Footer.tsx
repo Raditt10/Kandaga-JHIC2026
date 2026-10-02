@@ -48,38 +48,34 @@ const socialLinks = [
   },
 ];
 
-// ── Wordmark fill-on-scroll ──────────────────────────────────────────────
-function ScrollWordmark() {
+// ── Wordmark outline background ──────────────────────────────────────────
+// Outline raksasa yang menjadi background watermark di belakang konten footer
+function BackgroundOutlineWordmark() {
   const ref = useRef<HTMLDivElement>(null);
 
   const { scrollYProgress } = useScroll({
     target: ref,
-    offset: ["start end", "center center"],
+    offset: ["start end", "end end"],
   });
 
-  const fillOpacity   = useTransform(scrollYProgress, [0, 1], [0, 1]);
-  const strokeOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
+  // Parallax halus & transisi opacity saat footer masuk viewport
+  const y = useTransform(scrollYProgress, [0, 1], ["5%", "-5%"]);
+  const opacity = useTransform(scrollYProgress, [0, 1], [0.12, 0.22]);
 
   return (
-    <div ref={ref} className="relative overflow-hidden border-b border-white/20 px-6 pt-10 pb-4">
-      {/* Layer 1: outline */}
+    <div
+      ref={ref}
+      className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden select-none z-0"
+      aria-hidden="true"
+    >
       <motion.p
-        className="font-heading text-[clamp(4rem,18vw,10rem)] font-black leading-none tracking-tight text-transparent"
+        className="w-full text-center font-heading font-black tracking-[-0.04em] leading-none text-transparent whitespace-nowrap"
         style={{
-          WebkitTextStroke: "2px rgba(255,255,255,1)",
-          opacity: strokeOpacity,
-          position: "absolute",
-          top: "2.5rem", left: "1.5rem", right: "1.5rem",
-          userSelect: "none",
+          fontSize: "clamp(4rem, 20vw, 36rem)",
+          WebkitTextStroke: "clamp(1.5px, 0.22vw, 2.5px) rgba(255, 255, 255, 0.85)",
+          y,
+          opacity,
         }}
-        aria-hidden="true"
-      >
-        KANDAGA
-      </motion.p>
-      {/* Layer 2: fill */}
-      <motion.p
-        className="relative font-heading text-[clamp(4rem,18vw,10rem)] font-black leading-none tracking-tight text-white"
-        style={{ opacity: fillOpacity }}
       >
         KANDAGA
       </motion.p>
@@ -89,26 +85,26 @@ function ScrollWordmark() {
 
 export default function Footer() {
   return (
-    <footer id="footer" className="bg-primary text-white">
-      {/* Wordmark fill-on-scroll */}
-      <ScrollWordmark />
+    <footer id="footer" className="relative overflow-hidden bg-primary text-white">
+      {/* Background outline watermark KANDAGA */}
+      <BackgroundOutlineWordmark />
 
       {/* ── Konten utama 4 kolom ── */}
-      <div className="mx-auto max-w-7xl px-6 py-12">
+      <div className="relative z-10 mx-auto max-w-7xl px-6 py-14 sm:py-16 lg:py-20">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
 
           {/* Kolom 1 — Brand + Kontak */}
           <div className="flex flex-col gap-5">
-            <Link href="/" className="inline-flex items-center gap-2">
-              <Image
-                src="/logo.svg"
-                alt="Kandaga Logo"
-                width={36}
-                height={36}
-                unoptimized
-                className="brightness-0 invert"
-              />
-              <span className="font-heading text-lg font-bold tracking-wide text-white">
+            <Link href="/" className="flex items-center gap-2 group shrink-0">
+              <div className="w-8 h-8 relative rounded-full overflow-hidden shadow-xs ring-1 ring-white/20 bg-white transition-transform duration-200 group-hover:scale-105 shrink-0">
+                <Image
+                  src="/logo.png"
+                  alt="Kandaga Logo"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+              <span className="select-none font-bold text-base sm:text-lg tracking-tight text-white group-hover:text-rose-100 transition-colors duration-200 whitespace-nowrap">
                 KANDAGA
               </span>
             </Link>
@@ -220,7 +216,7 @@ export default function Footer() {
       </div>
 
       {/* ── Bottom bar: sosmed + legal ── */}
-      <div className="border-t border-white/20">
+      <div className="relative z-10 border-t border-white/15">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-5 sm:flex-row">
 
           {/* Legal + credit */}
