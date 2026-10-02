@@ -12,6 +12,7 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import CompanyLayout from "@/components/company/CompanyLayout";
+import AjukanMinatModal, { type MinatProject } from "@/components/company/AjukanMinatModal";
 import {
   Bookmark, BookmarkX, Eye, ArrowRight,
   Loader2, AlertCircle,
@@ -29,9 +30,10 @@ type SavedItem = {
 };
 
 export default function TersimpanPage() {
-  const [items, setItems]   = useState<SavedItem[]>([]);
+  const [items, setItems]     = useState<SavedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState("");
+  const [modalItem, setModalItem] = useState<MinatProject | null>(null);
 
   const fetchTersimpan = useCallback(async () => {
     setLoading(true);
@@ -178,7 +180,10 @@ export default function TersimpanPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => {/* Fase 5 — buka modal ajukan minat */}}
+                  onClick={() => setModalItem({
+                    id: item.id, title: item.title,
+                    siswaNama: item.siswaNama, jurusanNama: item.jurusanNama, year: item.year,
+                  })}
                   className="w-full flex items-center justify-center gap-1.5 rounded-full bg-primary py-2.5 text-xs font-bold text-white hover:bg-primary-dark transition-colors"
                 >
                   Ajukan Minat via BKK
@@ -188,6 +193,15 @@ export default function TersimpanPage() {
             </article>
           ))}
         </div>
+      )}
+
+      {/* Modal ajukan minat */}
+      {modalItem && (
+        <AjukanMinatModal
+          project={modalItem}
+          onClose={() => setModalItem(null)}
+          onSuccess={() => setModalItem(null)}
+        />
       )}
 
     </CompanyLayout>

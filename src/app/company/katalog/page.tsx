@@ -18,6 +18,7 @@
 import { useCallback, useEffect, useState, useTransition } from "react";
 import Image from "next/image";
 import CompanyLayout from "@/components/company/CompanyLayout";
+import AjukanMinatModal, { type MinatProject } from "@/components/company/AjukanMinatModal";
 import {
   Search, Bookmark, BookmarkCheck, ArrowRight,
   Eye, Loader2, AlertCircle, FlaskConical, Network, Code2,
@@ -26,7 +27,6 @@ import {
 // ── Types ─────────────────────────────────────────────────────────────────
 
 type Badge = { tier: string; nama: string };
-
 type KatalogItem = {
   id:           string;
   title:        string;
@@ -57,73 +57,6 @@ const BADGE_TIER_COLOR: Record<string, string> = {
   juara:    "bg-amber-100 text-amber-700 border-amber-200",
   industri: "bg-emerald-100 text-emerald-700 border-emerald-200",
 };
-
-// ── Modal ajukan minat (kosong — diisi Fase 5) ────────────────────────────
-
-function AjukanMinatModal({
-  project,
-  onClose,
-}: {
-  project: KatalogItem;
-  onClose: () => void;
-}) {
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div className="w-full max-w-md bg-white rounded-3xl border border-ink-150 shadow-xl p-6 space-y-4">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-xs font-mono text-ink-600 mb-1">Ajukan Minat via BKK</p>
-            <h2 className="font-heading text-lg font-bold text-ink leading-snug max-w-[40ch]">
-              {project.title}
-            </h2>
-            <p className="text-xs text-ink-600 mt-1">
-              {project.siswaNama} · {project.jurusanNama} · {project.year}
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-ink-300 hover:text-ink transition-colors p-1"
-            aria-label="Tutup modal"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-              <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Placeholder — form diisi di Fase 5 */}
-        <div className="rounded-2xl border-2 border-dashed border-ink-150 p-6 text-center">
-          <Loader2 className="w-6 h-6 text-ink-300 mx-auto mb-2 animate-spin" aria-hidden="true" />
-          <p className="text-sm font-semibold text-ink-600">
-            Form ajukan minat
-          </p>
-          <p className="text-xs text-ink-300 mt-1">
-            Pilihan tujuan (magang/kerja/kolaborasi) dan pesan akan
-            tersedia di Fase 5.
-          </p>
-        </div>
-
-        <div className="flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 rounded-full border border-ink-150 py-2.5 text-sm font-semibold text-ink-700 hover:bg-ink-100 transition-colors"
-          >
-            Batal
-          </button>
-          <button
-            disabled
-            className="flex-1 rounded-full bg-primary/50 py-2.5 text-sm font-bold text-white cursor-not-allowed"
-          >
-            Kirim Minat
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ── Kartu karya ───────────────────────────────────────────────────────────
 
@@ -252,7 +185,7 @@ export default function KatalogPage() {
   const [error, setError]           = useState("");
   const [query, setQuery]           = useState("");
   const [jurusan, setJurusan]       = useState("");
-  const [modalItem, setModalItem]   = useState<KatalogItem | null>(null);
+  const [modalItem, setModalItem]   = useState<MinatProject | null>(null);
   const [isPending, startTransition]= useTransition();
 
   // ── Fetch katalog ──────────────────────────────────────────────────
@@ -401,7 +334,10 @@ export default function KatalogPage() {
               key={item.id}
               item={item}
               onBookmarkToggle={handleBookmarkToggle}
-              onAjukanMinat={setModalItem}
+              onAjukanMinat={(item) => setModalItem({
+                id: item.id, title: item.title,
+                siswaNama: item.siswaNama, jurusanNama: item.jurusanNama, year: item.year,
+              })}
             />
           ))}
         </div>
