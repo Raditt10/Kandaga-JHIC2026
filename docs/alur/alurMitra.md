@@ -243,3 +243,5 @@ dan Fase 2 di bawah, bukan dibangun dari nol.
 - [ ] Error dari trigger database (mis. coba ajukan minat sebelum
       diverifikasi) ditangani jadi pesan yang jelas di UI, bukan error
       mentah ditampilkan ke pengguna
+
+
