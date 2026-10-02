@@ -249,7 +249,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
 
             {/* 3. Galeri Karya */}
             <Link
-              href="/galeri-karya"
+              href="/gallery"
               className="hover:text-zinc-950 transition cursor-pointer py-1 whitespace-nowrap shrink-0"
             >
               Galeri Karya
@@ -395,7 +395,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
                   } else if (item === "Jurusan Kami") {
                     router.push("/jurusan/rpl");
                   } else if (item === "Galeri Karya") {
-                    router.push("/galeri-karya");
+                    router.push("/gallery");
                   } else if (item === "Tentang Kami") {
                     navigateToSection("tentang-section");
                   } else if (item === "Kontak") {
