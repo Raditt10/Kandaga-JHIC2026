@@ -39,6 +39,13 @@ export async function GET(
         },
       });
 
+      // Karya yang belum diverifikasi guru (atau sudah dihapus) tidak boleh
+      // dibuka lewat URL publik. Dikembalikan 404 — sengaja TIDAK jatuh ke
+      // data statis, supaya status verifikasi tidak bisa dilewati lewat link.
+      if (dbProject && (dbProject.status !== "approved" || dbProject.deletedAt)) {
+        return NextResponse.json({ error: "Project not found" }, { status: 404 });
+      }
+
       if (dbProject) {
         const typeSlug = dbProject.type === "KA" ? "analis-kimia" : dbProject.type?.toLowerCase() || "rpl";
         const typeLabel = dbProject.type === "KA" ? "Analis Kimia" : dbProject.type || "RPL";

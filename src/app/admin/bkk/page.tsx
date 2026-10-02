@@ -2,9 +2,10 @@
 
 import React from "react"
 import Link from "next/link"
-import { Briefcase, Building2, ExternalLink, Users, FileText } from "lucide-react"
+import { Briefcase, Building2, ExternalLink, Users } from "lucide-react"
+import AdminLayout from "@/components/admin/AdminLayout"
 
-export default function AdminBkkPage() {
+function AdminBkkContent() {
   const stats = [
     { label: "Mitra Industri Aktif", val: "18 Perusahaan", icon: Building2, color: "text-blue-600 bg-blue-50" },
     { label: "Lowongan PKL Tersedia", val: "24 Posisi", icon: Briefcase, color: "text-emerald-600 bg-emerald-50" },
@@ -77,5 +78,13 @@ export default function AdminBkkPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function AdminBkkPage() {
+  return (
+    <AdminLayout>
+      <AdminBkkContent />
+    </AdminLayout>
   )
 }

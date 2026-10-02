@@ -226,14 +226,14 @@ export const FEATURES: Feature[] = [
 //              samsung-tech.png, mepro.png, kalbe.png, medion.png
 
 export const PARTNERS: Partner[] = [
-  { name: "Kimia Farma",                abbr: "KF",   logoUrl: "/partners/kimia-farma.png" },
+  { name: "Kimia Farma",                abbr: "KF",   logoUrl: "/partners/kimiaFarma.webp" },
   { name: "LSKK – Langgeng Sejahtera",  abbr: "LSKK", logoUrl: "/partners/lskk.png" },
-  { name: "FORIT – Data Solutions",     abbr: "FORIT",logoUrl: "/partners/forit.png" },
-  { name: "BNET Academy",               abbr: "BNET", logoUrl: "/partners/bnet-academy.png" },
-  { name: "Samsung Tech Institute",     abbr: "STI",  logoUrl: "/partners/samsung-tech.png" },
-  { name: "Mepro",                      abbr: "MPR",  logoUrl: "/partners/mepro.png" },
-  { name: "Kalbe",                      abbr: "KLB",  logoUrl: "/partners/kalbe.png" },
-  { name: "Medion – Bandung Indonesia", abbr: "MDN",  logoUrl: "/partners/medion.png" },
+  { name: "FORIT – Data Solutions",     abbr: "FORIT",logoUrl: "/partners/Forit.jpg" },
+  { name: "BNET Academy",               abbr: "BNET", logoUrl: "/partners/Bnet.jpg" },
+  { name: "Samsung Tech Institute",     abbr: "STI",  logoUrl: "/partners/Samsung.jpg" },
+  { name: "Mepro",                      abbr: "MPR",  logoUrl: "/partners/Mepro.jpg" },
+  { name: "Kalbe",                      abbr: "KLB",  logoUrl: "/partners/Kalbe.jpg" },
+  { name: "Medion – Bandung Indonesia", abbr: "MDN",  logoUrl: "/partners/Medion.webp" },
 ];
 
 // ─────────────────────────────────────────────

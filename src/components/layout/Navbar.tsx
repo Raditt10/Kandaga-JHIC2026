@@ -35,6 +35,7 @@ export default function Navbar({ onOpenLogin }: NavbarProps) {
       { id: "hero", nav: "Beranda" },
       { id: "galeri-section", nav: "Karya Kami" },
       { id: "tentang-section", nav: "Tentang Kami" },
+      { id: "jurusan-section", nav: "Jurusan" },
       { id: "industri-section", nav: "Mitra Perusahaan" },
       { id: "footer", nav: "Kontak" },
     ];
@@ -94,7 +95,11 @@ export default function Navbar({ onOpenLogin }: NavbarProps) {
           </Link>
 
           {/* Desktop Nav Links with Dropdown (Ordered by section sequence on landing page) */}
-          <nav className="hidden md:flex items-center gap-5 lg:gap-7 text-xs sm:text-sm font-medium text-zinc-600 whitespace-nowrap">
+          {/* Mulai dari lg, bukan md: dengan 5 menu + "Mitra Perusahaan" + tombol
+              "Masuk", isi pill navbar lebih lebar dari kontainernya di rentang
+              768–1023px sehingga menu saling bertabrakan. Di bawah lg menu
+              ditangani hamburger. */}
+          <nav className="hidden lg:flex items-center gap-5 lg:gap-7 text-xs sm:text-sm font-medium text-zinc-600 whitespace-nowrap">
             {/* 1. Beranda */}
             <button
               type="button"
@@ -141,7 +146,21 @@ export default function Navbar({ onOpenLogin }: NavbarProps) {
               Tentang Kami
             </button>
 
-            {/* 4. Kontak → scroll ke #footer */}
+            {/* 4. Jurusan (Section muncul setelah Tentang Kami) */}
+            <button
+              type="button"
+              onClick={() => {
+                setActiveNav("Jurusan");
+                navigateToSection("jurusan-section");
+              }}
+              className={`hover:text-zinc-950 transition cursor-pointer py-1 whitespace-nowrap shrink-0 ${
+                activeNav === "Jurusan" ? "text-[#8B1A2F] font-bold" : ""
+              }`}
+            >
+              Jurusan
+            </button>
+
+            {/* 5. Kontak → scroll ke #footer */}
             <a
               href="#footer"
               onClick={(e) => {
@@ -170,7 +189,7 @@ export default function Navbar({ onOpenLogin }: NavbarProps) {
               setActiveNav("Mitra Perusahaan");
               navigateToSection("industri-section");
             }}
-            className={`hidden md:inline-block text-xs sm:text-sm font-medium hover:text-zinc-950 transition cursor-pointer whitespace-nowrap ${
+            className={`hidden lg:inline-block text-xs sm:text-sm font-medium hover:text-zinc-950 transition cursor-pointer whitespace-nowrap ${
               activeNav === "Mitra Perusahaan"
                 ? "text-[#8B1A2F] font-bold"
                 : "text-zinc-600"
@@ -196,8 +215,9 @@ export default function Navbar({ onOpenLogin }: NavbarProps) {
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-1.5 text-zinc-700 hover:text-black rounded-full cursor-pointer"
-            aria-label="Toggle navigation menu"
+            className="lg:hidden p-1.5 text-zinc-700 hover:text-black rounded-full cursor-pointer"
+            aria-label="Buka menu navigasi"
+            aria-expanded={isMobileMenuOpen}
           >
             {isMobileMenuOpen ? (
               <X className="w-5 h-5" />
@@ -210,8 +230,8 @@ export default function Navbar({ onOpenLogin }: NavbarProps) {
 
       {/* Mobile Dropdown Panel */}
       {isMobileMenuOpen && (
-        <div className="md:hidden mt-2 bg-white/95 backdrop-blur-xl border border-zinc-200/80 rounded-3xl p-4 shadow-xl space-y-2 animate-in fade-in duration-200">
-          {["Beranda", "Karya Kami", "Tentang Kami", "Kontak"].map(
+        <div className="lg:hidden mt-2 bg-white/95 backdrop-blur-xl border border-zinc-200/80 rounded-3xl p-4 shadow-xl space-y-2 animate-in fade-in duration-200">
+          {["Beranda", "Karya Kami", "Tentang Kami", "Jurusan", "Kontak"].map(
             (item) => (
               <button
                 key={item}
@@ -229,6 +249,8 @@ export default function Navbar({ onOpenLogin }: NavbarProps) {
                     navigateToSection("galeri-section");
                   } else if (item === "Tentang Kami") {
                     navigateToSection("tentang-section");
+                  } else if (item === "Jurusan") {
+                    navigateToSection("jurusan-section");
                   } else if (item === "Kontak") {
                     if (pathname !== "/") {
                       router.push("/#footer");
