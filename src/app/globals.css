@@ -25,10 +25,12 @@
   --color-foreground: #1A1A1A;
 
   /* ── Font ── */
-  --font-heading:    var(--font-poppins);
-  --font-sans:       var(--font-inter);
-  --font-mono:       var(--font-geist-mono);
-  --font-tangerine:  var(--font-tangerine);
+  --font-heading:     var(--font-poppins);
+  --font-sans:        var(--font-inter);
+  --font-mono:        var(--font-geist-mono);
+  --font-tangerine:   var(--font-tangerine);
+  --font-montserrat:  var(--font-montserrat);
+  --font-bebas:       var(--font-bebas-neue);
 }
 
 body {
@@ -36,11 +38,32 @@ body {
   color: var(--color-foreground);
   font-family: var(--font-inter), Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* ── Font utility classes ── */
 .font-tangerine {
   font-family: var(--font-tangerine), "Tangerine", cursive;
 }
+
+.font-bebas {
+  font-family: var(--font-bebas-neue), "Bebas Neue", sans-serif;
+}
+
+/* ── 3D utilities (untuk carousel/kartu) ── */
+.perspective-1000 {
+  perspective: 1200px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+/* ── Custom scrollbar ── */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #f8f8f8; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
 /* ── Reduced motion — aksesibilitas wajib ── */
 @media (prefers-reduced-motion: reduce) {

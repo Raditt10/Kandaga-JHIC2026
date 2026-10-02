@@ -1,56 +1,115 @@
+import { withAuth, NextRequestWithAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
-import { getToken } from "next-auth/jwt"
 
-export async function proxy(request: NextRequest) {
-  const path = request.nextUrl.pathname;
-  
-  const sessionToken = request.cookies.get("authjs.session-token")?.value || 
-                       request.cookies.get("__Secure-authjs.session-token")?.value;
-  
-  const isLoggedIn = !!sessionToken;
-  const isAuthPage = path.startsWith("/auth");
-  const isApiRoute = path.startsWith("/api");
-    
-  if (isApiRoute){
+/**
+ * Middleware route guard — dijalankan oleh Next.js Edge Runtime.
+ *
+ * Perlindungan yang diterapkan:
+ *
+ * 1. Semua route /company/* wajib login.
+ *    - company dengan verificationStatus "pending"  → /mitra/menunggu
+ *    - company dengan verificationStatus "ditolak"  → /mitra/ditolak
+ *    - company dengan verificationStatus "disetujui" → lanjut normal
+ *
+ * 2. Route dashboard lain (/student/*, /teacher/*, /admin/*, /bkk/*)
+ *    wajib login, tapi tidak ada pengecekan verifikasi tambahan.
+ *
+ * 3. /mitra/menunggu dan /mitra/ditolak boleh diakses TANPA login
+ *    (user baru selesai daftar belum punya session).
+ *
+ * Tidak disentuh oleh middleware ini (akses bebas):
+ *    - / (landing page)
+ *    - /auth/* (login, register)
+ *    - /mitra/daftar (form pendaftaran publik)
+ *    - /jurusan/*, /galeri-karya (halaman publik)
+ *    - /api/* (ditangani masing-masing route)
+ */
+export default withAuth(
+  function middleware(req: NextRequestWithAuth) {
+    const { pathname } = req.nextUrl
+    const token        = req.nextauth.token
+
+    // ── Guard: /company/* ──────────────────────────────────────────
+    if (pathname.startsWith("/company")) {
+      const role               = (token?.role as string | undefined)?.toLowerCase()
+      const verificationStatus = token?.verificationStatus as string | null | undefined
+
+      // Pastikan yang masuk memang role company
+      if (role !== "company") {
+        // Role lain yang entah bagaimana hit /company → ke dashboard mereka
+        return NextResponse.redirect(new URL("/auth/login", req.url))
+      }
+
+      // Company pending: belum diverifikasi BKK
+      if (!verificationStatus || verificationStatus === "pending") {
+        return NextResponse.redirect(new URL("/mitra/menunggu", req.url))
+      }
+
+      // Company ditolak
+      if (verificationStatus === "ditolak") {
+        return NextResponse.redirect(new URL("/mitra/ditolak", req.url))
+      }
+
+      // verificationStatus === "disetujui" → lanjut
+    }
+
+    // ── Guard: role lain — pastikan role cocok dengan path ──────────
+    const role = (token?.role as string | undefined)?.toLowerCase()
+
+    if (pathname.startsWith("/student") && role !== "student") {
+      return NextResponse.redirect(new URL("/auth/login", req.url))
+    }
+    if (pathname.startsWith("/teacher") && role !== "teacher") {
+      return NextResponse.redirect(new URL("/auth/login", req.url))
+    }
+    if (pathname.startsWith("/admin") && role !== "admin") {
+      return NextResponse.redirect(new URL("/auth/login", req.url))
+    }
+    if (pathname.startsWith("/bkk") && role !== "bkk") {
+      return NextResponse.redirect(new URL("/auth/login", req.url))
+    }
     return NextResponse.next()
+  },
+  {
+    callbacks: {
+      // Halaman publik yang tidak butuh login sama sekali
+      authorized({ req, token }) {
+        const { pathname } = req.nextUrl
+
+        // Route yang selalu boleh diakses tanpa token
+        const publicRoutes = [
+          "/",
+          "/auth/",
+          "/mitra/daftar",
+          "/mitra/menunggu",
+          "/mitra/ditolak",
+          "/jurusan",
+          "/galeri-karya",
+          "/api/",
+        ]
+
+        const isPublic = publicRoutes.some(
+          (r) => pathname === r || pathname.startsWith(r)
+        )
+        if (isPublic) return true
+
+        // Semua route lain (termasuk /company/*, /student/*, dll) wajib token
+        return !!token
+      },
+    },
   }
-  
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET })
-  
-  const rawRole = token?.role as string || "";
-  const userRole = rawRole.toLowerCase()
-  const normalRole = userRole === "student" ?
-    "student" : userRole === "bkk" ? 
-    "bkk" : userRole
-
-  // Define target role for each route
-  let allowedRole = ""
-  if (path.startsWith("/student")) allowedRole = "student"
-  else if (path.startsWith("/admin")) allowedRole = "admin"
-  else if (path.startsWith("/company")) allowedRole = "company"
-  else if (path.startsWith("/teacher")) allowedRole = "teacher"
-  else if (path.startsWith("/bkk")) allowedRole = "bkk"
-
-  // If route has specific role requirement and user role doesn't match, block access
-  if (allowedRole && normalRole !== allowedRole) {
-    // Redirect user to their own role's specific dashboard
-    const targetPath = `/${normalRole}`
-    return NextResponse.redirect(new URL(targetPath, request.url))
-  }
-}
-
+)
 
 export const config = {
+  // Jalankan middleware hanya pada route yang relevan
+  // Exclude static assets dan _next internal routes
   matcher: [
-        /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files with extensions
-     */
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)",
+    "/company/:path*",
+    "/student/:path*",
+    "/teacher/:path*",
+    "/admin/:path*",
+    "/bkk/:path*",
+    "/mitra/menunggu",
+    "/mitra/ditolak",
   ],
 }

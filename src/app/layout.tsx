@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { Poppins, Inter, Tangerine } from "next/font/google";
+import { Poppins, Inter, Tangerine, Montserrat, Bebas_Neue } from "next/font/google";
 import SmoothScrollProvider from "@/lib/SmoothScrollProvider";
-import "./globals.css";
 import AuthProvider from "@/lib/AuthProvider";
+import ChatWidget from "@/components/chat/ChatWidget";
+import "./globals.css";
 
 const poppins = Poppins({
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["500", "600", "700", "800", "900"],
   variable: "--font-poppins",
 });
 
@@ -20,6 +21,21 @@ const tangerine = Tangerine({
   subsets: ["latin"],
   weight: ["400", "700"],
   variable: "--font-tangerine",
+  display: "swap",
+});
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-montserrat",
+  display: "swap",
+});
+
+const bebasNeue = Bebas_Neue({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-bebas-neue",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -34,11 +50,12 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${poppins.variable} ${inter.variable} ${tangerine.variable}`}
+      className={`${poppins.variable} ${inter.variable} ${tangerine.variable} ${montserrat.variable} ${bebasNeue.variable}`}
     >
       <body suppressHydrationWarning>
         <AuthProvider>
           <SmoothScrollProvider>{children}</SmoothScrollProvider>
+          <ChatWidget />
         </AuthProvider>
       </body>
     </html>

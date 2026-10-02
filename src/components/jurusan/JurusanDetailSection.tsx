@@ -1,87 +1,67 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+/**
+ * Heading outline per section (design-rules.md §3):
+ *   h2: {jurusan.name}
+ *     h3: "Program Unggulan"
+ *       h4: {prog.title}
+ *     h3: "Tahapan Belajar"
+ *       h4: {step.title}
+ *     h3: "Fasilitas & Lab"      ← tabel, lazy-loaded
+ *     h3: "Peluang Karir"        ← list, lazy-loaded
+ *     h3: {highlightProject}     ← showcase
+ */
+
+import React, { useState, useTransition } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import dynamic from "next/dynamic";
 import { motion } from "motion/react";
-
-const DETAIL_TABS = [
-  { id: "aktivitas", label: "Hal yang Akan Dilakukan" },
-  { id: "fasilitas", label: "Fasilitas & Lab Industri" },
-  { id: "karir", label: "Peluang Karir & Alumni" },
-] as const;
-
-type DetailTabId = (typeof DETAIL_TABS)[number]["id"];
 import {
-  Code2,
-  Network,
-  FlaskConical,
-  Award,
-  Clock,
-  Sparkles,
-  ShieldCheck,
-  Activity, 
-  Lock,
-  Zap,
-  Briefcase,
-  CheckCircle2,
-  Search,
-  ArrowRight,
-  Layers,
-  Building2,
-  ExternalLink,
-  BookOpen,
-  MapPin,
-  Target,
-  Cloud,
-  Cpu,
-  Lightbulb,
-  Monitor,
-  Palette,
-  Server,
-  Database,
-  Smartphone,
-  Binary,
-  Scale,
-  Dna,
-  ShieldAlert,
-  Droplets,
-  Pipette,
-  Atom,
+  Code2, Network, FlaskConical, Award, Clock, Sparkles,
+  ShieldCheck, Activity, Lock, Zap, Briefcase, CheckCircle2,
+  Search, ArrowRight, Layers, Wrench, Building2, ExternalLink,
 } from "lucide-react";
 import { JurusanDetail } from "@/data/jurusanData";
+import CompetencyChipList from "@/components/jurusan/CompetencyChipList";
+import { Skeleton, SkeletonText } from "@/components/ui/Skeleton";
 
-// Curriculum subject icon resolver helper
-function CurriculumSubjectIcon({ name, className }: { name: string; className?: string }) {
+// ── Skeleton sederhana untuk tab yang sedang di-load ────────────────────
+function TabSkeleton() {
+  return (
+    <div className="space-y-4" aria-hidden="true">
+      <Skeleton className="h-6 w-48 rounded-lg" />
+      <SkeletonText lines={3} widths={["w-full", "w-5/6", "w-4/6"]} lineHeight="h-4" />
+    </div>
+  );
+}
+
+// ── Tab Fasilitas & Karir di-lazy load ─────────────────────────────────
+// Mencegah JS kedua tab ini masuk bundle awal — hanya di-fetch saat diklik
+const FasilitasTab = dynamic(
+  () => import("@/components/jurusan/tabs/FasilitasTab"),
+  { loading: () => <TabSkeleton />, ssr: false }
+);
+
+const KarirTab = dynamic(
+  () => import("@/components/jurusan/tabs/KarirTab"),
+  { loading: () => <TabSkeleton />, ssr: false }
+);
+
+function ProgramIcon({ name, className }: { name: string; className?: string }) {
   switch (name) {
-    case "BookOpen": return <BookOpen className={className} />;
-    case "MapPin": return <MapPin className={className} />;
-    case "Target": return <Target className={className} />;
-    case "Network": return <Network className={className} />;
-    case "Cloud": return <Cloud className={className} />;
-    case "Cpu": return <Cpu className={className} />;
-    case "Lightbulb": return <Lightbulb className={className} />;
-    case "Monitor": return <Monitor className={className} />;
-    case "Code2": return <Code2 className={className} />;
-    case "Palette": return <Palette className={className} />;
-    case "Server": return <Server className={className} />;
-    case "Database": return <Database className={className} />;
-    case "ShieldCheck": return <ShieldCheck className={className} />;
-    case "Briefcase": return <Briefcase className={className} />;
-    case "Smartphone": return <Smartphone className={className} />;
-    case "Binary": return <Binary className={className} />;
-    case "Layers": return <Layers className={className} />;
-    case "CheckCircle2": return <CheckCircle2 className={className} />;
+    case "Code2":        return <Code2 className={className} />;
+    case "Sparkles":     return <Sparkles className={className} />;
+    case "UsersCheck":
+    case "ShieldCheck":  return <ShieldCheck className={className} />;
+    case "Award":        return <Award className={className} />;
+    case "Activity":     return <Activity className={className} />;
+    case "Lock":         return <Lock className={className} />;
+    case "Zap":          return <Zap className={className} />;
     case "FlaskConical": return <FlaskConical className={className} />;
-    case "Scale": return <Scale className={className} />;
-    case "Activity": return <Activity className={className} />;
-    case "Dna": return <Dna className={className} />;
-    case "ShieldAlert": return <ShieldAlert className={className} />;
-    case "Droplets": return <Droplets className={className} />;
-    case "Award": return <Award className={className} />;
-    case "Pipette": return <Pipette className={className} />;
-    case "Atom": return <Atom className={className} />;
-    default: return <BookOpen className={className} />;
+    case "Briefcase":    return <Briefcase className={className} />;
+    case "CheckCircle2": return <CheckCircle2 className={className} />;
+    case "Search":       return <Search className={className} />;
+    default:             return <Sparkles className={className} />;
   }
 }
 
@@ -92,48 +72,14 @@ export default function JurusanDetailSection({
   jurusan: JurusanDetail;
   index: number;
 }) {
-  const [activeTab, setActiveTab] = useState<DetailTabId>("aktivitas");
-  const directionRef = useRef<1 | -1>(1); // 1 = ke kanan, -1 = ke kiri
-  const isPausedRef = useRef(false);
-
-  // Auto-switch tab setiap 6 detik: bergantian ke kanan lalu ke kiri
-  useEffect(() => {
-    const timer = setInterval(() => {
-      if (isPausedRef.current) return;
-
-      setActiveTab((current) => {
-        const currentIndex = DETAIL_TABS.findIndex((t) => t.id === current);
-        let nextIndex = currentIndex + directionRef.current;
-
-        // Jika sampai di ujung kanan (index 2), putar arah ke kiri (-1)
-        if (nextIndex >= DETAIL_TABS.length) {
-          directionRef.current = -1;
-          nextIndex = DETAIL_TABS.length - 2;
-        }
-        // Jika sampai di ujung kiri (index 0), putar arah ke kanan (1)
-        else if (nextIndex < 0) {
-          directionRef.current = 1;
-          nextIndex = 1;
-        }
-
-        return DETAIL_TABS[nextIndex].id;
-      });
-    }, 6000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  const handleTabClick = (tabId: DetailTabId) => {
-    const newIndex = DETAIL_TABS.findIndex((t) => t.id === tabId);
-    if (newIndex === DETAIL_TABS.length - 1) {
-      directionRef.current = -1;
-    } else if (newIndex === 0) {
-      directionRef.current = 1;
-    }
-    setActiveTab(tabId);
-  };
-
+  const [activeTab, setActiveTab] = useState<"program" | "aktivitas" | "fasilitas" | "karir">("program");
+  // useTransition: ganti tab tanpa blokir UI — skeleton muncul instan
+  const [isPending, startTransition] = useTransition();
   const isEven = index % 2 === 0;
+
+  const handleTabChange = (id: "program" | "aktivitas" | "fasilitas" | "karir") => {
+    startTransition(() => setActiveTab(id));
+  };
 
   return (
     <section
@@ -142,79 +88,118 @@ export default function JurusanDetailSection({
         isEven ? "bg-white" : "bg-[#FAF7F2]/50"
       }`}
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
-        
-        {/* ── 1. Bagian Utama Standalone: "Apa saja yang di pelajari?" ── */}
-        <div id="detail-program" className="space-y-8">
-          <div className="text-center space-y-2">
-            <h3 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold text-zinc-900 tracking-tight">
-              Apa saja yang <span className="text-[#8B1A2F]">di pelajari?</span>
-            </h3>
-            <p className="text-xs sm:text-sm text-zinc-500 max-w-xl mx-auto">
-              Struktur kurikulum mata pelajaran berbasis kompetensi industri dan standar vokasi nasional
-            </p>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+
+        {/* ── 1. Header Jurusan ── */}
+        <div className="space-y-4 max-w-3xl">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="px-3 py-1.5 rounded-full text-xs font-mono font-bold tracking-wider uppercase bg-primary/10 text-primary border border-primary/20">
+              {jurusan.code}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-ink-100 text-ink-700 border border-ink-150">
+              <Clock className="w-3.5 h-3.5 text-ink-600" aria-hidden="true" />
+              {jurusan.duration}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+              <Award className="w-3.5 h-3.5 text-amber-600" aria-hidden="true" />
+              {jurusan.accreditation}
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-4.5">
-            {jurusan.curriculumSubjects?.map((subject, i) => (
-              <div
-                key={i}
-                className={`group rounded-2xl bg-white p-3.5 sm:p-4 flex items-center gap-3.5 transition-all duration-200 border-2 border-dashed ${
-                  subject.highlighted
-                    ? "border-[#8B1A2F] shadow-xs"
-                    : "border-zinc-200/90 hover:border-[#8B1A2F] hover:shadow-xs"
-                }`}
-              >
-                <div className="w-11 h-11 rounded-xl bg-[#8B1A2F] text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200">
-                  <CurriculumSubjectIcon name={subject.iconName} className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xs sm:text-sm font-semibold text-zinc-800 leading-snug">
-                  {subject.name}
-                </span>
-              </div>
-            ))}
+          <h2 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold text-ink tracking-tight">
+            {jurusan.name}
+          </h2>
+
+          <p className="font-medium text-base sm:text-lg text-primary">
+            {jurusan.tagline}
+          </p>
+
+          <p className="text-base text-ink-700 leading-relaxed max-w-[65ch]">
+            {jurusan.description}
+          </p>
+
+          <div className="pt-2">
+            <CompetencyChipList items={jurusan.coreFocus} label="KOMPETENSI UTAMA" />
           </div>
         </div>
 
-        {/* ── 2. Tab Navigation & Modul Pelengkap di Bawahnya ── */}
-        <div
-          onMouseEnter={() => {
-            isPausedRef.current = true;
-          }}
-          onMouseLeave={() => {
-            isPausedRef.current = false;
-          }}
-        >
-          <div className="border-b border-zinc-200 flex flex-wrap gap-2 sm:gap-6">
-            {DETAIL_TABS.map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => handleTabClick(tab.id)}
-                  className={`inline-flex items-center pb-3 px-2 text-xs sm:text-sm font-semibold transition-all relative cursor-pointer ${
-                    isActive
-                      ? "text-[#8B1A2F]"
-                      : "text-zinc-500 hover:text-zinc-800"
-                  }`}
-                >
-                  <span>{tab.label}</span>
-                  {isActive && (
-                    <motion.div
-                      layoutId={`tab-underline-${jurusan.id}`}
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#8B1A2F]"
-                    />
-                  )}
-                </button>
-              );
-            })}
-          </div>
+        {/* ── 2. Tab Navigation ── */}
+        <div className="mt-10 border-b border-zinc-200 flex flex-wrap gap-2 sm:gap-4">
+          {[
+            { id: "program",   label: "Program Unggulan",         icon: <Layers className="w-4 h-4" /> },
+            { id: "aktivitas", label: "Hal yang Akan Dilakukan",  icon: <Wrench className="w-4 h-4" /> },
+            { id: "fasilitas", label: "Fasilitas & Lab Industri", icon: <Building2 className="w-4 h-4" /> },
+            { id: "karir",     label: "Peluang Karir & Alumni",   icon: <Briefcase className="w-4 h-4" /> },
+          ].map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => handleTabChange(tab.id as typeof activeTab)}
+                className={`inline-flex items-center gap-2 pb-3 px-2 text-sm font-semibold transition-all relative cursor-pointer ${
+                  isActive ? "text-primary" : "text-ink-600 hover:text-ink"
+                }`}
+              >
+                <span aria-hidden="true">{tab.icon}</span>
+                <span>{tab.label}</span>
+                {isActive && (
+                  <motion.div
+                    layoutId={`tab-underline-${jurusan.id}`}
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
 
-          {/* ── 3. Konten Dinamis Berdasarkan Tab Aktif ── */}
-          <div className="mt-8 space-y-8">
+        {/* ── 3. Konten Tab — opacity saat pending ── */}
+        <div className={`mt-8 transition-opacity duration-150 ${isPending ? "opacity-60" : "opacity-100"}`}>
 
-          {/* TAB 2: HAL YANG AKAN DILAKUKAN (AKTIVITAS & PEMBELAJARAN) */}
+          {/* TAB 1: PROGRAM UNGGULAN — satu-satunya grid kartu di halaman ini */}
+          {activeTab === "program" && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <h3 className="font-heading text-lg font-semibold text-ink mb-6">
+                Program Unggulan
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {jurusan.programs.map((prog, i) => (
+                  <div
+                    key={i}
+                    className="group relative p-6 rounded-2xl bg-white border border-ink-150 hover:border-primary/40 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                          <ProgramIcon name={prog.iconName} className="w-5 h-5" />
+                        </div>
+                        <span className="px-2.5 py-1 rounded-full text-xs font-mono font-semibold bg-ink-100 text-ink-600 border border-ink-150">
+                          {prog.badge}
+                        </span>
+                      </div>
+                      <h4 className="font-heading text-base sm:text-lg font-bold text-ink group-hover:text-primary transition-colors">
+                        {prog.title}
+                      </h4>
+                      <p className="text-sm text-ink-700 leading-relaxed max-w-[65ch]">
+                        {prog.desc}
+                      </p>
+                    </div>
+                    <div className="pt-4 mt-4 border-t border-ink-150 flex items-center gap-1.5 text-xs font-semibold text-primary">
+                      <span>Standar Pelaksanaan Vokasi SMKN 13</span>
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* TAB 2: AKTIVITAS — fase + dark panel, bukan nested card */}
           {activeTab === "aktivitas" && (
             <motion.div
               initial={{ opacity: 0, y: 12 }}
@@ -222,37 +207,49 @@ export default function JurusanDetailSection({
               transition={{ duration: 0.3 }}
               className="space-y-8"
             >
-              {/* Tahapan Belajar Fase demi Fase */}
-              <div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {jurusan.learningJourney.map((step, i) => (
-                    <div
-                      key={i}
-                      className="p-6 rounded-2xl bg-white border border-zinc-200 shadow-xs relative"
-                    >
-                      <div className="text-[11px] font-mono font-bold text-[#8B1A2F] uppercase mb-1">
-                        {step.phase}
+              <h3 className="font-heading text-lg font-semibold text-ink">
+                Tahapan Belajar & Kurikulum Bertingkat
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {jurusan.learningJourney.map((step, i) => (
+                  <div key={i} className="p-6 rounded-2xl bg-white border border-ink-150 shadow-sm">
+                    <p className="text-xs font-mono font-bold text-primary uppercase tracking-wider mb-1">
+                      {step.phase}
+                    </p>
+                    <h4 className="font-heading font-bold text-sm sm:text-base text-ink mb-2">
+                      {step.title}
+                    </h4>
+                    <p className="text-sm text-ink-700 leading-relaxed mb-4 max-w-[65ch]">
+                      {step.desc}
+                    </p>
+                    <div className="space-y-1.5 pt-3 border-t border-ink-150">
+                      <p className="text-xs font-mono text-ink-600">Kompetensi utama:</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {step.skills.map((skill, si) => (
+                          <span key={si} className="px-2.5 py-1 rounded text-xs bg-ink-100 text-ink-700 font-medium">
+                            {skill}
+                          </span>
+                        ))}
                       </div>
-                      <h5 className="font-heading font-bold text-sm sm:text-base text-zinc-900 mb-2">
-                        {step.title}
-                      </h5>
-                      <p className="text-xs text-zinc-600 leading-relaxed mb-4">
-                        {step.desc}
-                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-                      <div className="space-y-1.5 pt-3 border-t border-zinc-100">
-                        <span className="text-[10px] font-mono uppercase text-zinc-400">Kompetensi:</span>
-                        <div className="flex flex-wrap gap-1.5">
-                          {step.skills.map((skill, si) => (
-                            <span
-                              key={si}
-                              className="px-2 py-0.5 rounded text-[11px] bg-zinc-100 text-zinc-700 font-medium"
-                            >
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
+              <div className="p-6 rounded-2xl bg-ink text-white space-y-4">
+                <div className="flex items-center gap-2">
+                  <Wrench className="w-5 h-5 text-accent" aria-hidden="true" />
+                  <h4 className="font-heading font-bold text-base sm:text-lg">
+                    Praktik lapangan & rutinitas nyata siswa
+                  </h4>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  {jurusan.dailyActivities.map((act, i) => (
+                    <div key={i} className="flex items-start gap-2.5">
+                      <span className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5" aria-hidden="true">
+                        {i + 1}
+                      </span>
+                      <p className="text-sm text-white/80 leading-relaxed">{act}</p>
                     </div>
                   ))}
                 </div>
@@ -260,137 +257,54 @@ export default function JurusanDetailSection({
             </motion.div>
           )}
 
-          {/* TAB 3: FASILITAS & LAB INDUSTRI */}
+          {/* TAB 3: FASILITAS — lazy-loaded (tidak masuk bundle awal) */}
           {activeTab === "fasilitas" && (
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="space-y-6"
             >
-              <div
-                className={`grid grid-cols-1 gap-5 ${
-                  jurusan.facilities.length === 3
-                    ? "sm:grid-cols-2 lg:grid-cols-3"
-                    : "sm:grid-cols-2"
-                }`}
-              >
-                {jurusan.facilities.map((fac, i) => (
-                  <div
-                    key={i}
-                    className="group relative rounded-2xl overflow-hidden h-52 sm:h-60 bg-zinc-900 border border-zinc-200/80 shadow-xs hover:shadow-lg transition-all duration-300 cursor-pointer"
-                  >
-                    {/* Foto Lab Full Card */}
-                    {fac.image ? (
-                      <Image
-                        src={fac.image}
-                        alt={fac.name}
-                        fill
-                        className="object-cover transition-transform duration-300 ease-out group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-zinc-600 bg-zinc-800">
-                        <Building2 className="w-10 h-10 stroke-[1.5]" />
-                      </div>
-                    )}
-
-                    {/* Gradient Overlay agar teks judul terbaca jelas saat default */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-300 group-hover:opacity-0" />
-
-                    {/* Teks Judul Default (Menyatu dengan Foto di Bagian Bawah) */}
-                    <div className="absolute inset-0 p-5 sm:p-6 flex flex-col justify-end transition-opacity duration-300 group-hover:opacity-0">
-                      <h5 className="font-heading font-bold text-base sm:text-lg text-white leading-snug drop-shadow-md">
-                        {fac.name}
-                      </h5>
-                    </div>
-
-                    {/* Gradient Blur Overlay dari Kiri (Gradasi Murni Tanpa Batas Garis Kaku) */}
-                    <div
-                      className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-transparent backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out z-10 pointer-events-none group-hover:pointer-events-auto [mask-image:linear-gradient(to_right,black_0%,black_60%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_right,black_0%,black_60%,transparent_100%)]"
-                    />
-
-                    {/* Teks Keterangan Slide Halus dari Kiri saat Hover */}
-                    <div className="absolute inset-0 p-5 sm:p-6 flex flex-col justify-center max-w-[88%] sm:max-w-[80%] z-20 pointer-events-none group-hover:pointer-events-auto">
-                      <div className="space-y-2.5 -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 ease-out transform-gpu will-change-transform">
-                        <div className="flex items-center gap-2">
-                          <span className="w-1.5 h-4 bg-[#8B1A2F] rounded-full shrink-0" />
-                          <h6 className="font-heading font-bold text-sm sm:text-base text-white leading-snug drop-shadow-md">
-                            {fac.name}
-                          </h6>
-                        </div>
-
-                        <p className="text-xs text-zinc-100 leading-relaxed font-mono bg-black/40 backdrop-blur-xs p-3 rounded-xl border border-white/15 drop-shadow-sm">
-                          {fac.spec}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
+              <FasilitasTab jurusan={jurusan} />
             </motion.div>
           )}
 
-          {/* TAB 4: PELUANG KARIR & PROFIL LULUSAN */}
+          {/* TAB 4: KARIR — lazy-loaded (tidak masuk bundle awal) */}
           {activeTab === "karir" && (
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
             >
-              {jurusan.careers.map((career, i) => (
-                <div
-                  key={i}
-                  className="p-5 rounded-2xl bg-white border border-zinc-200 shadow-xs space-y-3"
-                >
-                  <div className="space-y-2">
-                    <div className="w-8 h-8 rounded-lg bg-[#8B1A2F]/10 flex items-center justify-center shrink-0">
-                      {career.icon ? (
-                        <Image
-                          src={career.icon}
-                          alt={career.role}
-                          width={18}
-                          height={18}
-                          className="w-4.5 h-4.5 object-contain"
-                        />
-                      ) : (
-                        <Briefcase className="w-4 h-4 text-[#8B1A2F]" />
-                      )}
-                    </div>
-                    <h5 className="font-heading font-bold text-sm sm:text-base text-zinc-900">
-                      {career.role}
-                    </h5>
-                    <p className="text-xs text-zinc-600 leading-relaxed">
-                      {career.desc}
-                    </p>
-                  </div>
-                </div>
-              ))}
+              <KarirTab jurusan={jurusan} />
             </motion.div>
           )}
 
-          {/* Rutinitas & Praktik Riil Sehari-hari (Tetap ada di setiap tab) */}
-          <div className="p-6 rounded-2xl bg-zinc-900 text-white space-y-4">
-            <h4 className="font-heading font-bold text-base sm:text-lg">
-              Praktik Lapangan & Rutinitas Nyata Siswa di Jurusan Ini:
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              {jurusan.dailyActivities.map((act, i) => (
-                <div key={i} className="flex items-start gap-2.5">
-                  <span className="w-5 h-5 rounded-full bg-[#8B1A2F] text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
-                    {i + 1}
-                  </span>
-                  <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
-                    {act}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
         </div>
-      </div>
+
+        {/* ── 4. Showcase Karya ── */}
+        <div className="mt-10 p-6 rounded-2xl bg-gradient-to-r from-ink via-zinc-950 to-ink text-white flex flex-col md:flex-row items-center justify-between gap-6 border border-zinc-800 shadow-md">
+          <div className="space-y-1.5 max-w-xl text-left">
+            <div className="inline-flex items-center gap-1.5 text-xs font-mono text-accent">
+              <Sparkles className="w-3.5 h-3.5 text-accent" aria-hidden="true" />
+              <span>KARYA SISWA DI KANDAGA</span>
+            </div>
+            <h3 className="font-heading text-base sm:text-lg font-bold text-white">
+              {jurusan.highlightProject.title}
+            </h3>
+            <p className="text-sm text-white/80 leading-relaxed max-w-[65ch]">
+              {jurusan.highlightProject.desc}
+            </p>
+          </div>
+          <div className="shrink-0 w-full md:w-auto">
+            <Link
+              href={jurusan.highlightProject.link}
+              className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold bg-primary hover:bg-primary-dark text-white transition-all shadow-sm"
+            >
+              Lihat karya terverifikasi
+              <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
+            </Link>
+          </div>
+        </div>
 
       </div>
     </section>
