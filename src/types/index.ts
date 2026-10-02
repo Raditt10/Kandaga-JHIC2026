@@ -119,6 +119,50 @@ export type Benefit = {
 };
 
 // ─────────────────────────────────────────────
+// MITRA / PERUSAHAAN
+// ─────────────────────────────────────────────
+
+export type VerificationStatus = "pending" | "disetujui" | "ditolak";
+
+export type CompanyProfile = {
+  userId:             string;
+  name:               string;          // nama perusahaan
+  field:              string | null;   // bidang usaha
+  documentUrl:        string | null;   // URL dokumen legalitas (mock atau storage)
+  verificationStatus: VerificationStatus;
+  verifiedAt:         string | null;   // ISO timestamp
+};
+
+export type CompanyRegistrationInput = {
+  namaKontak:     string;
+  email:          string;
+  password:       string;
+  namaPerusahaan: string;
+  bidang?:        string;
+  dokumenUrl?:    string;
+};
+
+// Status permintaan kontak — mapping ke tabel permintaan_kontak
+export type ContactRequestStatus =
+  | "terkirim"
+  | "ditinjau"
+  | "klarifikasi"
+  | "diteruskan"
+  | "ditolak";
+
+export type ContactRequest = {
+  id:          string;
+  projectId:   string;
+  projectTitle: string;
+  purpose:     "magang" | "kerja" | "kolaborasi";
+  message:     string;
+  status:      ContactRequestStatus;
+  bkkNotes:    string | null;
+  createdAt:   string;
+  updatedAt:   string;
+};
+
+// ─────────────────────────────────────────────
 // USER (placeholder untuk Fase 2 Auth)
 // ─────────────────────────────────────────────
 
