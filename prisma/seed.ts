@@ -1,12 +1,13 @@
 // prisma/seed.ts
 import { PrismaClient, Role } from '@prisma/client'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
 async function main() {
   console.log('🌱 Start Seeding database...')
 
-  // Clear existing records (urutan penting: hapus tabel dependen dulu)
+  // Clear existing records (urutan penting: dependen dulu)
   await prisma.auditLogs.deleteMany()
   await prisma.notifications.deleteMany()
   await prisma.partnerships.deleteMany()
@@ -26,13 +27,38 @@ async function main() {
 
   console.log('🗑️  Existing data cleared.')
 
-  // ── Users ──
+  // Hash password sekali, dipakai semua demo user
+  // Password: "password123" sesuai login page demo
+  const hashedPassword = await bcrypt.hash('password123', 12)
+
+  // ── Demo Users — username sesuai login page demo accounts ──────────
   const userdata = [
-    { name: "Alice Smith",    email: "alicesmith@gmail.com",   passwordHash: "pass1234", role: "student"  },
-    { name: "Bob Jones",      email: "bobjones@gmail.com",     passwordHash: "pass1234", role: "teacher"  },
-    { name: "Charlie Brown",  email: "charliebrown@gmail.com", passwordHash: "pass1234", role: "company"  },
-    { name: "David Wilson",   email: "davidwilson@gmail.com",  passwordHash: "pass1234", role: "admin"    },
-    { name: "Eve Martinez",   email: "evemartinez@gmail.com",  passwordHash: "pass1234", role: "bkk"      },
+    {
+      name:  'siswa13',
+      email: 'siswa@smkn13bdg.sch.id',
+      role:  'student',
+    },
+    {
+      name:  'admin13',
+      email: 'admin@smkn13bdg.sch.id',
+      role:  'admin',
+    },
+    {
+      name:  'mitra_perusahaan',
+      email: 'hr@mitrainovasi.co.id',
+      role:  'company',
+    },
+    {
+      name:  'guru13',
+      email: 'guru@smkn13bdg.sch.id',
+      role:  'teacher',
+    },
+    {
+      name:  'bkk13',
+      email: 'bkk@smkn13bdg.sch.id',
+      role:  'bkk',
+    },
+
   ]
 
   for (const user of userdata) {
@@ -40,54 +66,54 @@ async function main() {
       data: {
         name:         user.name,
         email:        user.email,
-        passwordHash: user.passwordHash,
+        passwordHash: hashedPassword,   // bcrypt hash dari "password123"
         role:         mapRole(user.role),
+        status:       'aktif',
       },
     })
+    console.log(`  ✓ Created: ${user.name} (${user.role})`)
   }
 
-  // ── Majors ──
+  // ── Majors ─────────────────────────────────────────────────────────
   const majorsdata = [
     {
-      slug: "analis-kimia",
-      name: "Analis Kimia",
-      fullName: "Analis Kimia",
-      image: "/images/hero-kimia.jpg",
-      link: "/majors/chemistry-analyst",
-      description: "Jurusan yang berfokus pada analisis laboratorium, pengujian bahan kimia, dan riset berbasis sains terapan.",
+      name:        'Analis Kimia',
+      fullName:    'Analis Kimia',
+      image:       '/images/hero-kimia.jpg',
+      link:        '/jurusan/analis-kimia',
+      description: 'Jurusan yang berfokus pada analisis laboratorium, pengujian bahan kimia, dan riset berbasis sains terapan.',
     },
     {
-      slug: "tkj",
-      name: "TKJ",
-      fullName: "Teknik Komputer Jaringan",
-      image: "/images/hero-tkj.jpg",
-      link: "/majors/computer-network-engineer",
-      description: "Jurusan yang mempelajari infrastruktur jaringan komputer, keamanan sistem, dan administrasi server.",
+      name:        'TKJ',
+      fullName:    'Teknik Komputer Jaringan',
+      image:       '/images/hero-tkj.jpg',
+      link:        '/jurusan/tkj',
+      description: 'Jurusan yang mempelajari infrastruktur jaringan komputer, keamanan sistem, dan administrasi server.',
     },
     {
-      slug: "rpl",
-      name: "RPL",
-      fullName: "Rekayasa Perangkat Lunak",
-      image: "/images/preview-rpl.jpg",
-      link: "/majors/software-engineer",
-      description: "Jurusan yang fokus pada pengembangan aplikasi web, mobile, dan sistem informasi berbasis kode.",
+      name:        'RPL',
+      fullName:    'Rekayasa Perangkat Lunak',
+      image:       '/images/preview-rpl.jpg',
+      link:        '/jurusan/rpl',
+      description: 'Jurusan yang fokus pada pengembangan aplikasi web, mobile, dan sistem informasi berbasis kode.',
     },
   ]
 
   
   for (const major of majorsdata) {
-    await prisma.major.create({
-      data: {
-        name:        major.name,
-        fullName:    major.fullName,
-        image:       major.image,
-        link:        major.link,
-        description: major.description,
-      },
-    })
+    await prisma.major.create({ data: major })
+    console.log(`  ✓ Major: ${major.name}`)
   }
 
-  console.log('✅ Seeding completed successfully.');
+  console.log('\n✅ Seeding completed!')
+  console.log('─────────────────────────────────')
+  console.log('Demo login credentials:')
+  console.log('  siswa13 / password123      → /student')
+  console.log('  admin13 / password123      → /admin/dashboard')
+  console.log('  mitra_perusahaan / password123 → /company')
+  console.log('  guru13 / password123       → /teacher')
+  console.log('  bkk13 / password123        → /bkk')
+  console.log('─────────────────────────────────')
 }
 
 function mapRole(role: string): Role {
@@ -103,7 +129,7 @@ function mapRole(role: string): Role {
 
 main()
   .catch((e) => {
-    console.error('❌ Error while seeding:', e)
+    console.error('❌ Seeding error:', e)
     process.exit(1)
   })
   .finally(async () => {

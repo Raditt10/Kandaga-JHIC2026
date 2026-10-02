@@ -77,7 +77,7 @@ model Student {
 
 model Teacher {
   userId  String  @id @map("user_id") @db.Uuid
-  majorId String     @map("majors_id")
+  majorId String  @map("majors_id") @db.Uuid
   nip     String? @unique
 
   user             Users      @relation(fields: [userId], references: [id], onDelete: Cascade)
