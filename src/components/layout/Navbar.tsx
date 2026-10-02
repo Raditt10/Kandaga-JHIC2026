@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
@@ -101,6 +101,51 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
     router.push(`/#${id}`);
   };
 
+  useEffect(() => {
+    if (pathname !== "/") return;
+
+    const sections = [
+      { id: "hero", nav: "Beranda" },
+      { id: "galeri-section", nav: "Galeri Karya" },
+      { id: "tentang-section", nav: "Tentang Kami" },
+      { id: "jurusan-section", nav: "Jurusan Kami" },
+      { id: "industri-section", nav: "Mitra Perusahaan" },
+      { id: "footer", nav: "Kontak" },
+    ];
+
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 120
+      ) {
+        setActiveNav("Kontak");
+        return;
+      }
+
+      if (window.scrollY < 300) {
+        setActiveNav("Beranda");
+        return;
+      }
+
+      const scrollPosition = window.scrollY + 220;
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const item = sections[i];
+        const el = document.getElementById(item.id);
+        if (el) {
+          const top = el.offsetTop;
+          if (scrollPosition >= top) {
+            setActiveNav(item.nav);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [pathname]);
+
   const handleCategoryClick = (category: string) => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -143,9 +188,9 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
             </span>
           </Link>
 
-          {/* Desktop Nav Links with Dropdown */}
+          {/* Desktop Nav Links with Dropdown (Ordered by section sequence on landing page) */}
           <nav className="hidden md:flex items-center gap-5 lg:gap-7 text-xs sm:text-sm font-medium text-zinc-600 whitespace-nowrap">
-            {/* 0. Beranda */}
+            {/* 1. Beranda */}
             <button
               type="button"
               onClick={() => {
@@ -157,23 +202,55 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
                 }
               }}
               className={`hover:text-zinc-950 transition cursor-pointer py-1 whitespace-nowrap shrink-0 ${
-                pathname === "/" && activeNav === "Beranda"
-                  ? "text-[#8B1A2F] font-bold"
-                  : ""
+                activeNav === "Beranda" ? "text-[#8B1A2F] font-bold" : ""
               }`}
             >
               Beranda
             </button>
 
-            {/* 1. Jurusan Kami Dropdown (Sitemap) */}
+            {/* 2. Galeri Karya (Section muncul kedua) */}
+            <button
+              type="button"
+              onClick={() => {
+                setActiveNav("Galeri Karya");
+                navigateToSection("galeri-section");
+              }}
+              className={`hover:text-zinc-950 transition cursor-pointer py-1 whitespace-nowrap shrink-0 ${
+                activeNav === "Galeri Karya" ? "text-[#8B1A2F] font-bold" : ""
+              }`}
+            >
+              Galeri Karya
+            </button>
+
+            {/* 3. Tentang Kami (Section muncul ketiga) */}
+            <button
+              type="button"
+              onClick={() => {
+                setActiveNav("Tentang Kami");
+                navigateToSection("tentang-section");
+              }}
+              className={`hover:text-zinc-950 transition cursor-pointer py-1 whitespace-nowrap shrink-0 ${
+                activeNav === "Tentang Kami" ? "text-[#8B1A2F] font-bold" : ""
+              }`}
+            >
+              Tentang Kami
+            </button>
+
+            {/* 4. Jurusan Kami Dropdown (Section muncul keempat) */}
             <div
               className="relative py-1 shrink-0"
               onMouseEnter={handleDropdownEnter}
               onMouseLeave={handleDropdownLeave}
             >
-              <Link
-                href="/jurusan/rpl"
-                className="flex items-center gap-1.5 hover:text-zinc-950 transition cursor-pointer py-1 whitespace-nowrap"
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveNav("Jurusan Kami");
+                  navigateToSection("jurusan-section");
+                }}
+                className={`flex items-center gap-1.5 hover:text-zinc-950 transition cursor-pointer py-1 whitespace-nowrap ${
+                  activeNav === "Jurusan Kami" ? "text-[#8B1A2F] font-bold" : ""
+                }`}
               >
                 <span className="whitespace-nowrap">Jurusan Kami</span>
                 <ChevronDown
@@ -181,7 +258,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
                     openDropdown === "jurusan" ? "rotate-180 text-zinc-800" : ""
                   }`}
                 />
-              </Link>
+              </button>
 
               {openDropdown === "jurusan" && (
                 <div
@@ -238,35 +315,21 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
               )}
             </div>
 
-            {/* 2. Tentang Kami */}
-            <button
-              type="button"
-              onClick={() => navigateToSection("tentang-section")}
-              className="hover:text-zinc-950 transition cursor-pointer py-1 whitespace-nowrap shrink-0"
-            >
-              Tentang Kami
-            </button>
-
-            {/* 3. Galeri Karya */}
-            <Link
-              href="/gallery"
-              className="hover:text-zinc-950 transition cursor-pointer py-1 whitespace-nowrap shrink-0"
-            >
-              Galeri Karya
-            </Link>
-
-            {/* 4. Kontak → scroll ke #footer */}
+            {/* 5. Kontak → scroll ke #footer */}
             <a
               href="#footer"
               onClick={(e) => {
                 e.preventDefault();
+                setActiveNav("Kontak");
                 if (pathname !== "/") {
                   router.push("/#footer");
                   return;
                 }
                 document.getElementById("footer")?.scrollIntoView({ behavior: "smooth" });
               }}
-              className="hover:text-zinc-950 transition cursor-pointer py-1 whitespace-nowrap shrink-0"
+              className={`hover:text-zinc-950 transition cursor-pointer py-1 whitespace-nowrap shrink-0 ${
+                activeNav === "Kontak" ? "text-[#8B1A2F] font-bold" : ""
+              }`}
             >
               Kontak
             </a>
@@ -277,8 +340,15 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
         <div className="flex items-center gap-4 sm:gap-6">
           <button
             type="button"
-            onClick={() => navigateToSection("industri-section")}
-            className="hidden md:inline-block text-xs sm:text-sm font-medium text-zinc-600 hover:text-zinc-950 transition cursor-pointer whitespace-nowrap"
+            onClick={() => {
+              setActiveNav("Mitra Perusahaan");
+              navigateToSection("industri-section");
+            }}
+            className={`hidden md:inline-block text-xs sm:text-sm font-medium hover:text-zinc-950 transition cursor-pointer whitespace-nowrap ${
+              activeNav === "Mitra Perusahaan"
+                ? "text-[#8B1A2F] font-bold"
+                : "text-zinc-600"
+            }`}
           >
             Mitra Perusahaan
           </button>
@@ -379,7 +449,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
       {/* Mobile Dropdown Panel */}
       {isMobileMenuOpen && (
         <div className="md:hidden mt-2 bg-white/95 backdrop-blur-xl border border-zinc-200/80 rounded-3xl p-4 shadow-xl space-y-2 animate-in fade-in duration-200">
-          {["Beranda", "Jurusan Kami", "Tentang Kami", "Galeri Karya", "Kontak"].map(
+          {["Beranda", "Galeri Karya", "Tentang Kami", "Jurusan Kami", "Kontak"].map(
             (item) => (
               <button
                 key={item}
@@ -393,12 +463,16 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
                     } else {
                       router.push("/");
                     }
-                  } else if (item === "Jurusan Kami") {
-                    router.push("/jurusan/rpl");
                   } else if (item === "Galeri Karya") {
-                    router.push("/gallery");
+                    navigateToSection("galeri-section");
                   } else if (item === "Tentang Kami") {
                     navigateToSection("tentang-section");
+                  } else if (item === "Jurusan Kami") {
+                    if (pathname === "/") {
+                      navigateToSection("jurusan-section");
+                    } else {
+                      router.push("/jurusan/rpl");
+                    }
                   } else if (item === "Kontak") {
                     if (pathname !== "/") {
                       router.push("/#footer");
