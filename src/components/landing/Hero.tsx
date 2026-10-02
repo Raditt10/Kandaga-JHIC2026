@@ -102,7 +102,7 @@ export default function Hero() {
               aria-hidden="true"
             />
             <Link
-              href="/galeri-karya"
+              href="/gallery"
               className="relative block rounded-full bg-primary px-7 py-3 text-xs font-semibold tracking-wide text-white transition-colors hover:bg-primary-dark md:text-sm"
             >
               MULAI JELAJAHI

@@ -23,15 +23,14 @@ import {
 } from "lucide-react";
 import { JurusanDetail } from "@/data/jurusanData";
 import CompetencyChipList from "@/components/jurusan/CompetencyChipList";
+import { Skeleton, SkeletonText } from "@/components/ui/Skeleton";
 
 // ── Skeleton sederhana untuk tab yang sedang di-load ────────────────────
 function TabSkeleton() {
   return (
-    <div className="space-y-4 animate-pulse" aria-hidden="true">
-      <div className="h-6 w-48 rounded-lg bg-ink-150" />
-      <div className="h-4 w-full rounded bg-ink-100" />
-      <div className="h-4 w-5/6 rounded bg-ink-100" />
-      <div className="h-4 w-4/6 rounded bg-ink-100" />
+    <div className="space-y-4" aria-hidden="true">
+      <Skeleton className="h-6 w-48 rounded-lg" />
+      <SkeletonText lines={3} widths={["w-full", "w-5/6", "w-4/6"]} lineHeight="h-4" />
     </div>
   );
 }
