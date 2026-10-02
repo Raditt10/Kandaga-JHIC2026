@@ -5,13 +5,10 @@
  * Setelah page.tsx selesai render, skeleton diganti konten asli.
  */
 
+import { Skeleton } from "@/components/ui/Skeleton";
+
 function Pulse({ className }: { className: string }) {
-  return (
-    <div
-      className={`animate-pulse rounded-lg bg-ink-150 ${className}`}
-      aria-hidden="true"
-    />
-  );
+  return <Skeleton className={className} />;
 }
 
 export default function JurusanDetailLoading() {
