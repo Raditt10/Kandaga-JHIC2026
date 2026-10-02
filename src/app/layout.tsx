@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Poppins, Inter, Tangerine, Montserrat, Bebas_Neue } from "next/font/google";
 import SmoothScrollProvider from "@/lib/SmoothScrollProvider";
 import AuthProvider from "@/lib/AuthProvider";
-import ChatWidget from "@/components/chat/ChatWidget";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -55,7 +54,6 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <AuthProvider>
           <SmoothScrollProvider>{children}</SmoothScrollProvider>
-          <ChatWidget />
         </AuthProvider>
       </body>
     </html>
