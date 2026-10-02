@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useState, Suspense } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
@@ -332,32 +331,6 @@ export default function LoginPage() {
       {/* Background Decorative Gradients */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-gradient-to-b from-rose-100/40 via-pink-50/20 to-transparent blur-3xl pointer-events-none" />
 
-      {/* Floating Pill Navigation */}
-      <header className="w-full pt-6 px-4 z-20">
-        <div className="max-w-4xl mx-auto bg-white/90 backdrop-blur-xl border border-zinc-200/80 shadow-[0_10px_35px_-5px_rgba(0,0,0,0.08)] rounded-full px-6 py-3 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-1 group">
-            <div className="w-8 h-8 relative rounded-full overflow-hidden shadow-xs ring-1 ring-zinc-900/5 transition-transform duration-200 group-hover:scale-105 shrink-0">
-              <Image src="/logo.png" alt="Kandaga Logo" fill className="object-contain" priority />
-            </div>
-            <span className="inline-flex items-center select-none -ml-0.5 bg-gradient-to-r from-zinc-950 via-[#4e0e20] to-[#a61743] bg-clip-text text-transparent">
-              <span className="font-tangerine font-bold text-3xl leading-none inline-block -translate-y-[1px]">K</span>
-              <span className="font-extrabold text-[15px] tracking-tight -ml-0.5">andaga</span>
-            </span>
-          </Link>
-
-          <div className="flex items-center gap-4 text-xs font-semibold">
-            <Link href="/" className="text-zinc-600 hover:text-zinc-950 transition">
-              Beranda
-            </Link>
-            <Link
-              href="/auth/register"
-              className="bg-gradient-to-r from-[#891337] to-[#a61743] hover:from-[#76102f] hover:to-[#92143b] text-white px-5 py-2 rounded-full font-bold tracking-wide transition-all shadow-md shadow-[#891337]/25"
-            >
-              Daftar Akun
-            </Link>
-          </div>
-        </div>
-      </header>
 
       {/* Main Login Card Section wrapped in Suspense */}
       <Suspense fallback={

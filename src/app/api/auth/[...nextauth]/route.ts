@@ -2,9 +2,8 @@ import NextAuth, { NextAuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 import GithubProvider from "next-auth/providers/github"
 import CredentialsProvider from "next-auth/providers/credentials"
-import bcrypt from "bcryptjs"
-import prisma from "@/lib/prisma"
 import { getDashboardUrl, normalizeRole } from "@/lib/auth"
+import { usersDatabase } from "@/lib/users"
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET || "kandaga-dev-secret-2026",
@@ -15,7 +14,7 @@ export const authOptions: NextAuthOptions = {
   },
 
   providers: [
-    // ── 1. Credentials (email atau username + password) ──────────────
+    // ── 1. Credentials (Login Langsung / Mock In-Memory tanpa Database) ──
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -23,51 +22,52 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.identifier || !credentials?.password) {
-          throw new Error("Identifier dan password wajib diisi.")
+        if (!credentials?.identifier) {
+          throw new Error("Username atau email wajib diisi.")
         }
 
         const identifier = credentials.identifier.trim()
+        const lowerId = identifier.toLowerCase()
 
-        // Cari user di database — support login via email ATAU name
-        const user = await prisma.users.findFirst({
-          where: {
-            OR: [
-              { email: identifier },
-              { name: identifier },
-            ],
-          },
-        })
-
-        if (!user) {
-          throw new Error("Akun tidak ditemukan.")
-        }
-
-        if (user.status !== "aktif") {
-          throw new Error("Akun tidak aktif. Hubungi administrator.")
-        }
-
-        // Verifikasi password dengan bcrypt
-        const isValid = await bcrypt.compare(
-          credentials.password,
-          user.passwordHash
+        // 1. Cek di daftar akun demo (siswa13, admin13, mitra_perusahaan, guru13, bkk13)
+        const foundUser = usersDatabase.find(
+          (u) =>
+            u.username.toLowerCase() === lowerId ||
+            u.email.toLowerCase() === lowerId
         )
 
-        if (!isValid) {
-          throw new Error("Password salah.")
+        if (foundUser) {
+          return {
+            id: foundUser.id,
+            name: foundUser.username,
+            username: foundUser.username,
+            email: foundUser.email,
+            role: normalizeRole(foundUser.role),
+          }
         }
 
+        // 2. Jika user memasukkan email / username bebas (contoh: alfijar@gmail.com):
+        // Langsung izinkan masuk tanpa database, auto-detect peran
+        let detectedRole = "student"
+        if (lowerId.includes("admin")) detectedRole = "admin"
+        else if (lowerId.includes("guru") || lowerId.includes("teacher")) detectedRole = "teacher"
+        else if (lowerId.includes("mitra") || lowerId.includes("company") || lowerId.includes("perusahaan")) detectedRole = "company"
+        else if (lowerId.includes("bkk")) detectedRole = "bkk"
+
+        const displayName = identifier.includes("@") ? identifier.split("@")[0] : identifier
+        const displayEmail = identifier.includes("@") ? identifier : `${identifier}@smkn13bandung.sch.id`
+
         return {
-          id:    user.id,
-          name:  user.name,
-          email: user.email,
-          role:  normalizeRole(user.role),
+          id: `user-${Date.now()}`,
+          name: displayName,
+          username: displayName,
+          email: displayEmail,
+          role: normalizeRole(detectedRole),
         }
       },
     }),
 
     // ── 2. Google OAuth ───────────────────────────────────────────────
-    // Hanya aktif kalau GOOGLE_CLIENT_ID tersedia
     ...(process.env.GOOGLE_CLIENT_ID
       ? [
           GoogleProvider({
@@ -89,31 +89,32 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
-    // Simpan role ke JWT saat login
+    // Simpan role & username ke JWT saat login
     async jwt({ token, user }) {
       if (user) {
-        token.id    = user.id
-        token.role  = (user as { role?: string }).role ?? "student"
-        token.email = user.email
-        token.name  = user.name
+        token.id       = user.id
+        token.role     = (user as { role?: string }).role ?? "student"
+        token.email    = user.email ?? undefined
+        token.name     = user.name ?? undefined
+        token.username = ((user as { username?: string }).username ?? user.name) ?? undefined
       }
       return token
     },
 
-    // Ekspos role ke session supaya bisa dibaca di client
+    // Ekspos role & username ke session client
     async session({ session, token }) {
       if (session.user) {
-        session.user.id    = token.id    as string
-        session.user.role  = token.role  as string
-        session.user.email = token.email as string
-        session.user.name  = token.name  as string
+        session.user.id       = token.id       as string
+        session.user.role     = token.role     as string
+        session.user.email    = token.email    as string
+        session.user.name     = token.name     as string
+        session.user.username = (token.username as string) || (token.name as string)
       }
       return session
     },
 
     // Redirect otomatis setelah login berdasarkan role
     async redirect({ url, baseUrl }) {
-      // Kalau ada callbackUrl eksplisit dari query string, pakai itu
       if (url.startsWith(baseUrl)) return url
       if (url.startsWith("/")) return `${baseUrl}${url}`
       return baseUrl
