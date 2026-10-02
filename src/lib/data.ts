@@ -221,14 +221,19 @@ export const FEATURES: Feature[] = [
 // ─────────────────────────────────────────────
 // MITRA INDUSTRI
 // ─────────────────────────────────────────────
+// Logo disimpan di public/partners/
+// Simpan file: kimia-farma.png, lskk.png, forit.png, bnet-academy.png,
+//              samsung-tech.png, mepro.png, kalbe.png, medion.png
 
 export const PARTNERS: Partner[] = [
-  { name: "PT Telkom Indonesia",          abbr: "TLK" },
-  { name: "PT Bandung Techno Park",       abbr: "BTP" },
-  { name: "CV Inovasi Digital",           abbr: "IDG" },
-  { name: "PT Aplikasi Karya Anak Bangsa", abbr: "AKAB" },
-  { name: "Dinas Pendidikan Jabar",       abbr: "DIKJ" },
-  { name: "PT Global Teknologi",          abbr: "GTK" },
+  { name: "Kimia Farma",                abbr: "KF",   logoUrl: "/partners/kimia-farma.png" },
+  { name: "LSKK – Langgeng Sejahtera",  abbr: "LSKK", logoUrl: "/partners/lskk.png" },
+  { name: "FORIT – Data Solutions",     abbr: "FORIT",logoUrl: "/partners/forit.png" },
+  { name: "BNET Academy",               abbr: "BNET", logoUrl: "/partners/bnet-academy.png" },
+  { name: "Samsung Tech Institute",     abbr: "STI",  logoUrl: "/partners/samsung-tech.png" },
+  { name: "Mepro",                      abbr: "MPR",  logoUrl: "/partners/mepro.png" },
+  { name: "Kalbe",                      abbr: "KLB",  logoUrl: "/partners/kalbe.png" },
+  { name: "Medion – Bandung Indonesia", abbr: "MDN",  logoUrl: "/partners/medion.png" },
 ];
 
 // ─────────────────────────────────────────────
