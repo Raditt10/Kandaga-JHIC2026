@@ -5,6 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
+import { getDashboardUrl } from "@/lib/auth"
 import {
   ArrowRight,
   Sparkles,

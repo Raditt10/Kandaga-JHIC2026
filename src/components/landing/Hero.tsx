@@ -1,82 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useCallback } from "react";
-import { motion, useScroll, useTransform, useMotionValue, useSpring } from "motion/react";
+import Link from "next/link";
+import { useRef } from "react";
+import { motion, useScroll, useTransform } from "motion/react";
 import { curtainReveal, wordmarkReveal, staggerChildren } from "@/lib/motion";
+import MagneticButton from "@/components/ui/MagneticButton";
 
 const panels = [
   { src: "/images/hero-kimia.jpg", alt: "Aktivitas laboratorium Analis Kimia" },
   { src: "/images/hero-kolaborasi.jpg", alt: "Siswa berkolaborasi mengerjakan proyek" },
   { src: "/images/hero-tkj.jpg", alt: "Aktivitas coding TKJ/RPL di depan layar" },
 ];
-
-// ── CTA dengan magnetic pull + pulse ring ─────────────────────────────────
-function MagneticCTA() {
-  const btnRef = useRef<HTMLDivElement>(null);
-
-  // Motion values untuk magnetic pull (spring, supaya terasa elastis)
-  const rawX = useMotionValue(0);
-  const rawY = useMotionValue(0);
-  const x = useSpring(rawX, { stiffness: 300, damping: 28 });
-  const y = useSpring(rawY, { stiffness: 300, damping: 28 });
-
-  const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    const rect = btnRef.current?.getBoundingClientRect();
-    if (!rect) return;
-
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const dx = e.clientX - centerX;
-    const dy = e.clientY - centerY;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-
-    // Hanya aktif dalam radius 40px dari tepi tombol
-    const radius = 40;
-    const halfW = rect.width / 2;
-    const halfH = rect.height / 2;
-    const edgeDist = Math.max(0, dist - Math.sqrt(halfW * halfW + halfH * halfH));
-
-    if (edgeDist < radius) {
-      // Tarik tombol maks 6px mengikuti kursor, proporsional dengan jarak
-      const pull = 1 - edgeDist / radius;
-      rawX.set((dx / dist) * 6 * pull);
-      rawY.set((dy / dist) * 6 * pull);
-    } else {
-      rawX.set(0);
-      rawY.set(0);
-    }
-  }, [rawX, rawY]);
-
-  const handlePointerLeave = useCallback(() => {
-    rawX.set(0);
-    rawY.set(0);
-  }, [rawX, rawY]);
-
-  return (
-    <motion.div
-      ref={btnRef}
-      className="relative mt-6 inline-flex items-center justify-center"
-      style={{ x, y }}
-      onPointerMove={handlePointerMove}
-      onPointerLeave={handlePointerLeave}
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: 1.05, ease: [0.22, 1, 0.36, 1] }}
-    >
-      {/* Ring berdenyut emas */}
-      <motion.span
-        className="absolute inset-0 rounded-full border border-accent"
-        animate={{ scale: [1, 1.12, 1], opacity: [0.7, 0, 0.7] }}
-        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-        aria-hidden="true"
-      />
-      <button className="relative rounded-full bg-primary px-7 py-3 text-xs font-semibold tracking-wide text-white transition-colors hover:bg-primary-dark md:text-sm">
-        MULAI JELAJAHI
-      </button>
-    </motion.div>
-  );
-}
 
 export default function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -151,8 +86,29 @@ export default function Hero() {
           sekolah, terbuka untuk industri.
         </motion.p>
 
-        {/* CTA magnetic */}
-        <MagneticCTA />
+        {/* CTA magnetic — pakai komponen reusable */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 1.05, ease: [0.22, 1, 0.36, 1] }}
+          className="mt-6"
+        >
+          <MagneticButton radius={40} strength={6} wrapperClassName="relative">
+            {/* Ring berdenyut emas */}
+            <motion.span
+              className="absolute inset-0 rounded-full border border-accent"
+              animate={{ scale: [1, 1.12, 1], opacity: [0.7, 0, 0.7] }}
+              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+              aria-hidden="true"
+            />
+            <Link
+              href="/galeri-karya"
+              className="relative block rounded-full bg-primary px-7 py-3 text-xs font-semibold tracking-wide text-white transition-colors hover:bg-primary-dark md:text-sm"
+            >
+              MULAI JELAJAHI
+            </Link>
+          </MagneticButton>
+        </motion.div>
       </div>
     </section>
   );

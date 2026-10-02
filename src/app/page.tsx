@@ -1,4 +1,3 @@
-"use client"
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Hero from "@/components/landing/Hero";
@@ -8,21 +7,11 @@ import StatsSection from "@/components/landing/StatsSection";
 import WhySection from "@/components/landing/WhySection";
 import JurusanMenu from "@/components/landing/JurusanMenu";
 import IndustrySection from "@/components/landing/IndustrySection";
+import BKKSection from "@/components/landing/BKKSection";
 import TrustBar from "@/components/landing/TrustBar";
 import FAQSection from "@/components/landing/FAQSection";
-import { useEffect, useState } from "react";
 
 export default function Home() {
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   return (
     <>
       <Navbar />
@@ -30,8 +19,7 @@ export default function Home() {
         {/* 1. Hero: curtain reveal 3 panel + magnetic CTA */}
         <Hero />
 
-        {/* 2. ScrollExpandHero: jendela kecil → penuh layar
-               KANDAGA hilang → slogan muncul */}
+        {/* 2. ScrollExpandHero: jendela kecil → penuh layar, KANDAGA → slogan */}
         <ScrollExpandHero />
 
         {/* 3. Galeri karya: card deck interaktif + auto-advance 7 detik */}
@@ -48,6 +36,9 @@ export default function Home() {
 
         {/* 7. Untuk Industri & Mitra: blueprint layout + tooltip hotspot */}
         <IndustrySection />
+
+        {/* 7b. Cara kerja BKK — anchor #cara-kerja-bkk */}
+        <BKKSection />
 
         {/* 8. Trust bar: logo mitra */}
         <TrustBar />

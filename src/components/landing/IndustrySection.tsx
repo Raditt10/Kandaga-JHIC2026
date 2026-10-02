@@ -1,41 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence, useInView } from "motion/react";
 import { useRef, useState } from "react";
 import { staggerChildren, revealUp } from "@/lib/motion";
 import { BENEFITS } from "@/lib/data";
 import type { Benefit } from "@/types";
 
-// ── Garis ukur ala blueprint teknik ──────────────────────────────────────
-function DimensionLine({ width = 120 }: { width?: number }) {
-  const ref = useRef<SVGSVGElement>(null);
-  const isInView = useInView(ref, { once: true });
-  const len = width + 16;
-
-  return (
-    <svg
-      ref={ref}
-      width={len}
-      height="16"
-      viewBox={`0 0 ${len} 16`}
-      className="text-ink-300"
-      aria-hidden="true"
-    >
-      <motion.line
-        x1="8" y1="8" x2={len - 8} y2="8"
-        stroke="currentColor" strokeWidth="1"
-        strokeDasharray={width} strokeDashoffset={width}
-        animate={isInView ? { strokeDashoffset: 0 } : {}}
-        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-      />
-      <motion.line x1="8" y1="3" x2="8" y2="13" stroke="currentColor" strokeWidth="1"
-        initial={{ opacity: 0 }} animate={isInView ? { opacity: 1 } : {}} transition={{ delay: 0.9 }} />
-      <motion.line x1={len - 8} y1="3" x2={len - 8} y2="13" stroke="currentColor" strokeWidth="1"
-        initial={{ opacity: 0 }} animate={isInView ? { opacity: 1 } : {}} transition={{ delay: 1.0 }} />
-    </svg>
-  );
-}
 
 // ── Grid blueprint tipis ──────────────────────────────────────────────────
 function BlueprintGrid() {
@@ -199,17 +171,8 @@ export default function IndustrySection() {
               whileInView="show"
               viewport={{ once: true, margin: "-80px" }}
             >
-              <motion.div variants={revealUp} className="mb-1">
-                <span className="text-xs font-semibold tracking-[0.3em] text-ink-600">
-                  UNTUK INDUSTRI &amp; MITRA
-                </span>
-                <div className="mt-1.5">
-                  <DimensionLine width={160} />
-                </div>
-              </motion.div>
-
               <motion.h2 variants={revealUp}
-                className="mt-4 font-heading text-3xl font-semibold leading-tight text-ink md:text-4xl">
+                className="font-heading text-3xl font-semibold leading-tight text-ink md:text-4xl">
                 Rekrut talenta yang sudah teruji,{" "}
                 <span className="text-primary">bukan tebakan.</span>
               </motion.h2>
@@ -246,9 +209,18 @@ export default function IndustrySection() {
                 className="rounded-full bg-primary px-7 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-dark">
                 Daftar Sebagai Mitra Industri
               </Link>
-              <Link href="/faq#bkk"
-                className="text-sm font-medium text-ink-700 hover:text-primary">
-                Pelajari cara kerja BKK →
+              <Link
+                href="#cara-kerja-bkk"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-700 hover:text-primary group"
+              >
+                <span>Pelajari cara kerja BKK</span>
+                <Image
+                  src="/icons/arrowright.svg"
+                  alt="Arrow"
+                  width={14}
+                  height={14}
+                  className="w-3.5 h-3.5 object-contain transition-transform group-hover:translate-x-1"
+                />
               </Link>
               <p className="text-xs text-ink-300">
                 Akun perusahaan diverifikasi oleh Koordinator BKK sebelum dapat mengakses katalog.

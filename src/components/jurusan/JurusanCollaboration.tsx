@@ -1,140 +1,143 @@
 "use client";
 
+/**
+ * Heading outline (design-rules.md §3):
+ *   h2: "Kolaborasi antar jurusan..."
+ *     h3: "Analis Kimia"
+ *     h3: "Teknik Komputer & Jaringan"
+ *     h3: "Rekayasa Perangkat Lunak"
+ *       h4: judul karya kolaboratif
+ *
+ * Design-rules fixes applied:
+ * §2 — text-xs minimum (tidak ada text-[10px]/[11px])
+ * §4 — max-w-[65ch] pada semua paragraf body
+ * §5 — all-caps hanya ≤4 kata (sentence case untuk kalimat panjang)
+ * §6 — 3 kartu pilar → 3 kolom teks dengan divide-x (tanpa card/border/shadow)
+ * §7 — zinc-400 → ink-600/700 (WCAG AA)
+ */
+
 import React from "react";
-import { FlaskConical, Network, Code2, ArrowRight, CheckCircle2 } from "lucide-react";
+import { FlaskConical, Network, Code2, CheckCircle2 } from "lucide-react";
+
+const pillars = [
+  {
+    icon: <FlaskConical className="w-5 h-5 text-primary" aria-hidden="true" />,
+    label: "Pilar 1",
+    name: "Analis Kimia",
+    description:
+      "Menyediakan kalibrasi sensor kimiawi, pengujian parameter air limbah (BOD/COD), preparasi reagen uji, serta validasi data analisis sesuai ISO 17025.",
+    tag: "Sensor Calibration & Lab QA",
+    connector: "Transmisi IoT",
+  },
+  {
+    icon: <Network className="w-5 h-5 text-[#1A365D]" aria-hidden="true" />,
+    label: "Pilar 2",
+    name: "Teknik Komputer & Jaringan",
+    description:
+      "Membangun arsitektur jaringan sensor nirkabel (LoRa/WiFi), gateway IoT, routing aman berenkripsi, administrasi server Linux, serta pengamanan transmisi data.",
+    tag: "IoT Gateway & Secure Pipeline",
+    connector: "Data streaming",
+  },
+  {
+    icon: <Code2 className="w-5 h-5 text-primary" aria-hidden="true" />,
+    label: "Pilar 3",
+    name: "Rekayasa Perangkat Lunak",
+    description:
+      "Mengembangkan dashboard web real-time (Next.js), sistem alert notifikasi ke ponsel, database time-series, serta visualisasi data analitik yang intuitif bagi operator.",
+    tag: "Web Dashboard & Mobile Alert",
+    connector: null,
+  },
+];
 
 export default function JurusanCollaboration() {
   return (
-    <section className="py-20 bg-white border-b border-zinc-200 relative overflow-hidden">
-      {/* Decorative subtle grid */}
+    <section className="py-20 bg-white border-b border-ink-150 relative overflow-hidden">
+      {/* Blueprint grid — sangat halus */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#1A1A1A_1px,transparent_1px),linear-gradient(to_bottom,#1A1A1A_1px,transparent_1px)] bg-[size:32px_32px]"
         aria-hidden="true"
       />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
-        
-        {/* Header Section */}
-        <div className="text-center max-w-3xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono font-bold tracking-wider uppercase bg-[#8B1A2F]/10 text-[#8B1A2F] border border-[#8B1A2F]/20">
-            <span>SINERGI INTERDISIPLINER • KANDAGA ECOSYSTEM</span>
+
+        {/* Header */}
+        <div className="max-w-2xl space-y-3 mb-14">
+          {/* label pendek — sentence case */}
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-semibold tracking-wider bg-primary/10 text-primary border border-primary/20">
+            Sinergi interdisipliner
           </div>
 
-          <h2 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold text-zinc-900 tracking-tight">
-            Kolaborasi Antar Jurusan, Menghasilkan Solusi Utuh
+          {/* h2 — font-heading wajib */}
+          <h2 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold text-ink tracking-tight">
+            Kolaborasi antar jurusan, menghasilkan solusi utuh
           </h2>
 
-          <p className="text-sm sm:text-base text-zinc-600 leading-relaxed">
-            Di SMKN 13 Bandung, ketiga jurusan tidak berjalan sendiri-sendiri. Siswa
-            terbiasa berkolaborasi lintas keilmuan untuk memecahkan problem industri
-            kompleks yang memerlukan sinergi kimia, jaringan, dan perangkat lunak.
+          {/* body text: text-base, max-w-[65ch], ink-700 */}
+          <p className="text-base text-ink-700 leading-relaxed max-w-[65ch]">
+            Di SMKN 13 Bandung, ketiga jurusan tidak berjalan sendiri-sendiri.
+            Siswa terbiasa berkolaborasi lintas keilmuan untuk memecahkan problem
+            industri kompleks yang memerlukan sinergi kimia, jaringan, dan
+            perangkat lunak.
           </p>
         </div>
 
-        {/* Interactive Synergy Diagram Card */}
-        <div className="mt-12 p-6 sm:p-10 rounded-3xl bg-[#F5F0E8]/50 border border-zinc-200/90 shadow-sm">
-          
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
-            
-            {/* Box 1: Analis Kimia */}
-            <div className="w-full lg:w-1/3 bg-white p-6 rounded-2xl border border-zinc-200 shadow-xs space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-[#4E0E20]/10 text-[#4E0E20] flex items-center justify-center">
-                <FlaskConical className="w-5 h-5 text-[#8B1A2F]" />
-              </div>
-              <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 block">
-                Pilar 1: Presisi Ilmiah
-              </span>
-              <h3 className="font-heading font-bold text-base text-zinc-900">
-                Analis Kimia
-              </h3>
-              <p className="text-xs text-zinc-600 leading-relaxed">
-                Menyediakan kalibrasi sensor kimiawi, pengujian parameter air limbah
-                (BOD/COD), preparasi reagen uji, serta validasi data analisis sesuai ISO 17025.
+        {/* 3 pilar: kolom teks dengan divide-x — tanpa card/border/shadow */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-ink-150">
+          {pillars.map((pilar) => (
+            <div key={pilar.label} className="px-0 lg:px-10 py-8 lg:py-0 first:pl-0 last:pr-0 space-y-4">
+              {/* label: text-xs, 2 kata, all-caps OK */}
+              <p className="text-xs font-mono font-semibold tracking-[0.2em] text-ink-600 uppercase">
+                {pilar.label}
               </p>
-              <div className="pt-2 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Sensor Calibration & Lab QA</span>
-              </div>
-            </div>
 
-            {/* Connector Arrow 1 */}
-            <div className="hidden lg:flex flex-col items-center justify-center text-zinc-400">
-              <span className="text-[10px] font-mono text-zinc-400 mb-1">TRANSMISI IOT</span>
-              <div className="w-12 h-0.5 bg-zinc-300 relative">
-                <ArrowRight className="w-4 h-4 text-zinc-500 absolute -right-2 -top-1.5" />
+              {/* ikon + h3 */}
+              <div className="flex items-center gap-3">
+                {pilar.icon}
+                <h3 className="font-heading font-bold text-base sm:text-lg text-ink">
+                  {pilar.name}
+                </h3>
               </div>
-            </div>
 
-            {/* Box 2: TKJ */}
-            <div className="w-full lg:w-1/3 bg-white p-6 rounded-2xl border border-zinc-200 shadow-xs space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-[#1A365D]/10 text-[#1A365D] flex items-center justify-center">
-                <Network className="w-5 h-5 text-[#1A365D]" />
-              </div>
-              <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 block">
-                Pilar 2: Konektivitas & Jaringan
-              </span>
-              <h3 className="font-heading font-bold text-base text-zinc-900">
-                Teknik Komputer & Jaringan
-              </h3>
-              <p className="text-xs text-zinc-600 leading-relaxed">
-                Membangun arsitektur jaringan sensor nirkabel (LoRa/WiFi), gateway IoT,
-                routing aman berenkripsi, administrasi server Linux, serta pengamanan transmisi data.
+              {/* deskripsi: text-base, max-w-[65ch], ink-700 */}
+              <p className="text-base text-ink-700 leading-relaxed max-w-[65ch]">
+                {pilar.description}
               </p>
-              <div className="pt-2 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                <span>IoT Gateway & Secure Pipeline</span>
-              </div>
-            </div>
 
-            {/* Connector Arrow 2 */}
-            <div className="hidden lg:flex flex-col items-center justify-center text-zinc-400">
-              <span className="text-[10px] font-mono text-zinc-400 mb-1">DATA STREAMING</span>
-              <div className="w-12 h-0.5 bg-zinc-300 relative">
-                <ArrowRight className="w-4 h-4 text-zinc-500 absolute -right-2 -top-1.5" />
+              {/* tag peran */}
+              <div className="flex items-center gap-1.5 text-sm font-semibold text-emerald-700">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" aria-hidden="true" />
+                <span>{pilar.tag}</span>
               </div>
-            </div>
 
-            {/* Box 3: RPL */}
-            <div className="w-full lg:w-1/3 bg-white p-6 rounded-2xl border border-zinc-200 shadow-xs space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-[#8B1A2F]/10 text-[#8B1A2F] flex items-center justify-center">
-                <Code2 className="w-5 h-5 text-[#8B1A2F]" />
-              </div>
-              <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 block">
-                Pilar 3: Aplikasi & UI/UX
-              </span>
-              <h3 className="font-heading font-bold text-base text-zinc-900">
-                Rekayasa Perangkat Lunak
-              </h3>
-              <p className="text-xs text-zinc-600 leading-relaxed">
-                Mengembangkan dashboard web real-time (Next.js), sistem alert notifikasi
-                ke ponsel, database time-series, serta visualisasi data analitik yang intuitif bagi operator.
-              </p>
-              <div className="pt-2 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Web Dashboard & Mobile Alert</span>
-              </div>
+              {/* konektor — hanya di mobile */}
+              {pilar.connector && (
+                <p className="text-xs text-ink-300 font-mono lg:hidden">
+                  → {pilar.connector}
+                </p>
+              )}
             </div>
+          ))}
+        </div>
 
+        {/* Showcase karya kolaboratif */}
+        <div className="mt-14 pt-8 border-t border-ink-150 flex flex-col sm:flex-row sm:items-start justify-between gap-6">
+          <div className="space-y-2 max-w-xl">
+            {/* label sentence case — bukan all-caps kalimat panjang */}
+            <p className="text-xs font-mono font-semibold text-primary">
+              Contoh karya nyata kolaboratif:
+            </p>
+            {/* h4 — di bawah h3 pilar RPL */}
+            <h4 className="font-heading text-base sm:text-lg font-bold text-ink">
+              Smart Automated Environmental Lab Chamber &amp; Water Safety Monitoring
+            </h4>
+            <p className="text-sm text-ink-700 leading-relaxed max-w-[65ch]">
+              Dihasilkan melalui kerja tim siswa gabungan tingkat akhir dan
+              dipamerkan langsung di etalase Kandaga.
+            </p>
           </div>
-
-          {/* Example Collaboration Case Study Banner */}
-          <div className="mt-8 p-4 sm:p-5 rounded-xl bg-white border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-[#8B1A2F] font-bold">
-                Contoh Karya Nyata Kolaboratif di SMKN 13:
-              </span>
-              <h4 className="font-heading text-sm sm:text-base font-bold text-zinc-900">
-                "Smart Automated Environmental Lab Chamber & Water Safety Monitoring"
-              </h4>
-              <p className="text-xs text-zinc-500">
-                Dihasilkan melalui kerja tim siswa gabungan tingkat akhir dan dipamerkan langsung di etalase Kandaga.
-              </p>
-            </div>
-            <span className="shrink-0 inline-flex items-center px-3 py-1.5 rounded-lg bg-zinc-100 text-zinc-700 text-xs font-mono font-medium">
-              3 Jurusan • 1 Solusi Terpadu
-            </span>
-          </div>
-
+          <span className="shrink-0 self-start inline-flex items-center px-3 py-1.5 rounded-full bg-ink-100 text-ink-700 text-xs font-mono font-medium border border-ink-150">
+            3 jurusan &bull; 1 solusi terpadu
+          </span>
         </div>
 
       </div>

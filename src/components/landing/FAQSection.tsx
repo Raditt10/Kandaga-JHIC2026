@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import { staggerChildren, revealUp } from "@/lib/motion";
 import { FAQS } from "@/lib/data";
@@ -83,12 +84,8 @@ export default function FAQSection() {
           whileInView="show"
           viewport={{ once: true, margin: "-80px" }}
         >
-          <motion.span variants={revealUp}
-            className="text-xs font-semibold tracking-[0.3em] text-ink-600">
-            FAQ
-          </motion.span>
           <motion.h2 variants={revealUp}
-            className="mt-2 font-heading text-3xl font-semibold text-ink md:text-4xl">
+            className="font-heading text-3xl font-semibold text-ink md:text-4xl">
             Pertanyaan yang sering muncul.
           </motion.h2>
           <motion.p variants={revealUp}
@@ -96,10 +93,19 @@ export default function FAQSection() {
             Tidak menemukan jawaban yang kamu cari? Hubungi kami langsung
             melalui BKK SMKN 13 Bandung.
           </motion.p>
-          <motion.a variants={revealUp}
+          <motion.a
+            variants={revealUp}
             href="mailto:bkk@smkn13bandung.sch.id"
-            className="mt-4 inline-block text-sm font-semibold text-primary hover:text-primary-dark">
-            Hubungi BKK →
+            className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dark group"
+          >
+            <span>Hubungi BKK</span>
+            <Image
+              src="/icons/arrowright.svg"
+              alt="Arrow"
+              width={14}
+              height={14}
+              className="w-3.5 h-3.5 object-contain transition-transform group-hover:translate-x-1"
+            />
           </motion.a>
         </motion.div>
 

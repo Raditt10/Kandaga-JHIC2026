@@ -16,12 +16,20 @@ export interface FasilitasLab {
   name: string;
   spec: string;
   features: string[];
+  image: string;
 }
 
 export interface ProspekKarir {
   role: string;
   desc: string;
   demand: string;
+  icon?: string;
+}
+
+export interface MataPelajaran {
+  name: string;
+  iconName: string;
+  highlighted?: boolean;
 }
 
 export interface JurusanDetail {
@@ -36,6 +44,7 @@ export interface JurusanDetail {
   secondaryColor: string;
   description: string;
   coreFocus: string[];
+  curriculumSubjects: MataPelajaran[];
   programs: ProgramUnggulan[];
   learningJourney: TahapanBelajar[];
   dailyActivities: string[];
@@ -70,6 +79,22 @@ export const JURUSAN_DATA: JurusanDetail[] = [
       "Database & Cloud Infrastructure (PostgreSQL, Supabase, GCP)",
       "Software Quality Assurance & Clean Code Architecture",
     ],
+    curriculumSubjects: [
+      { name: "Kelompok Mata Pelajaran Nasional", iconName: "BookOpen" },
+      { name: "Kelompok Mata Pelajaran Kewilayahan", iconName: "MapPin" },
+      { name: "Kelompok Mata Pelajaran Peminatan", iconName: "Target" },
+      { name: "Pemrograman Web & Mobile", iconName: "Smartphone", highlighted: true },
+      { name: "Pemrograman Berorientasi Objek (PBO)", iconName: "Code2" },
+      { name: "Basis Data & Cloud Database", iconName: "Database" },
+      { name: "Produk Kreatif dan Kewirausahaan", iconName: "Lightbulb" },
+      { name: "UI/UX Design & User Research", iconName: "Palette" },
+      { name: "Pemrograman Dasar & Algoritma", iconName: "Binary" },
+      { name: "Pemodelan Perangkat Lunak (UML)", iconName: "Layers" },
+      { name: "Software Quality Assurance & Testing", iconName: "CheckCircle2" },
+      { name: "Keamanan Aplikasi & Web Security", iconName: "ShieldCheck" },
+      { name: "Platform Cloud & CI/CD Deployment", iconName: "Cloud" },
+      { name: "Materi sinkronisasi dengan industri", iconName: "Briefcase" },
+    ],
     programs: [
       {
         title: "Student Software House (Teaching Factory)",
@@ -98,19 +123,19 @@ export const JURUSAN_DATA: JurusanDetail[] = [
     ],
     learningJourney: [
       {
-        phase: "Fase 1 (Tingkat X)",
+        phase: "Kelas 10",
         title: "Fondasi Logika Pemrograman & Antarmuka Dasar",
         desc: "Penguasaan dasar algoritma, struktur data, computational thinking, HTML5/CSS3 semantik, JavaScript modern, serta dasar desain UI/UX di Figma.",
         skills: ["Algoritma Pemrograman", "Responsive Web Design", "Git & GitHub", "Figma Prototyping"],
       },
       {
-        phase: "Fase 2 (Tingkat XI)",
+        phase: "Kelas 11",
         title: "Full-Stack Development & Arsitektur Database",
         desc: "Membangun aplikasi dinamis dengan frontend framework modern, arsitektur RESTful API, database relasional (SQL) dan non-relasional, serta state management.",
         skills: ["Next.js / React", "Node.js & Express", "PostgreSQL & Prisma", "API Integration"],
       },
       {
-        phase: "Fase 3 (Tingkat XII)",
+        phase: "Kelas 12",
         title: "Software Production, QA, dan Deployment Cloud",
         desc: "Eksekusi proyek akhir berskala enterprise, implementasi automated testing, continuous integration/continuous deployment (CI/CD), dan publikasi aplikasi ke publik.",
         skills: ["Unit & E2E Testing", "Docker & Cloud Deployment", "Agile/Scrum Workflow", "Sertifikasi BNSP"],
@@ -128,11 +153,13 @@ export const JURUSAN_DATA: JurusanDetail[] = [
         name: "Lab Software Engineering & Mac Workstation",
         spec: "PC Core i7/i9 32GB RAM + GPU RTX Series, Dual-Monitor Setup, macOS workstation untuk build iOS.",
         features: ["High-speed Dedicated Internet", "Ergonomic Chairs", "Interactive Agile Board"],
+        image: "/images/preview-rpl.jpg",
       },
       {
         name: "Server & Cloud Simulation Lab",
         spec: "Private server mini-rack untuk simulasi deployment lokal, staging environment, dan Docker cluster.",
         features: ["Local Staging Server", "Backup Power UPS", "Firewall Protection"],
+        image: "/images/hero-kolaborasi.jpg",
       },
     ],
     careers: [
@@ -140,21 +167,25 @@ export const JURUSAN_DATA: JurusanDetail[] = [
         role: "Frontend / Web Developer",
         desc: "Membangun tampilan web interaktif, performan tinggi, dan responsif menggunakan framework modern.",
         demand: "Tinggi — Permintaan industri digital berkelanjutan",
+        icon: "/icons/frontend.svg",
       },
       {
         role: "Backend / API Engineer",
         desc: "Mengelola arsitektur server, basis data, keamanan logika bisnis, dan integrasi microservice.",
         demand: "Tinggi — Sangat dibutuhkan startup dan korporasi",
+        icon: "/icons/backend.svg",
       },
       {
         role: "Mobile Application Developer",
         desc: "Membuat aplikasi smartphone Android dan iOS multi-platform dengan standar native-performance.",
         demand: "Tinggi — Ekosistem mobile yang terus berekspansi",
+        icon: "/icons/mobile.svg",
       },
       {
         role: "Quality Assurance (QA) & Tester",
         desc: "Menguji keandalan fungsional, performa beban, dan keamanan aplikasi sebelum rilis resmi.",
         demand: "Stabil — Kunci keandalan rilis produk software",
+        icon: "/icons/QA.svg",
       },
     ],
     toolsTech: ["TypeScript", "Next.js", "React", "Node.js", "Python", "Tailwind CSS", "PostgreSQL", "Docker", "Git", "Figma"],
@@ -184,6 +215,22 @@ export const JURUSAN_DATA: JurusanDetail[] = [
       "Fiber Optic Cabling, FTTH, & Fusion Splicing",
       "Internet of Things (IoT) Hardware & Sensor Integration",
     ],
+    curriculumSubjects: [
+      { name: "Kelompok Mata Pelajaran Nasional", iconName: "BookOpen" },
+      { name: "Kelompok Mata Pelajaran Kewilayahan", iconName: "MapPin" },
+      { name: "Kelompok Mata Pelajaran Peminatan", iconName: "Target" },
+      { name: "Komputer dan Jaringan Dasar", iconName: "Network" },
+      { name: "Platform Komputasi Awan", iconName: "Cloud" },
+      { name: "Sistem Internet of Things (SIoT)", iconName: "Cpu" },
+      { name: "Produk Kreatif dan Kewirausahaan", iconName: "Lightbulb" },
+      { name: "Sistem Komputer", iconName: "Monitor", highlighted: true },
+      { name: "Pemrograman Dasar", iconName: "Code2" },
+      { name: "Dasar Desain Grafis", iconName: "Palette" },
+      { name: "Infrastruktur Komputasi Awan", iconName: "Server" },
+      { name: "Layanan Komputasi Awan", iconName: "Database" },
+      { name: "Sistem Keamanan Jaringan", iconName: "ShieldCheck" },
+      { name: "Materi sinkronisasi dengan industri", iconName: "Briefcase" },
+    ],
     programs: [
       {
         title: "Cisco & Mikrotik Academy Certification Center",
@@ -212,19 +259,19 @@ export const JURUSAN_DATA: JurusanDetail[] = [
     ],
     learningJourney: [
       {
-        phase: "Fase 1 (Tingkat X)",
+        phase: "Kelas 10",
         title: "Perakitan Komputer, Sistem Operasi, & Jaringan Dasar",
         desc: "Pemahaman arsitektur perangkat keras komputer, instalasi OS open-source Linux, subnetting IP address (IPv4 & IPv6), serta pembuatan kabel UTP standar TIA/EIA.",
         skills: ["Hardware Architecture", "Linux CLI Essentials", "IPv4/IPv6 Subnetting", "LAN Cabling & Testing"],
       },
       {
-        phase: "Fase 2 (Tingkat XI)",
+        phase: "Kelas 11",
         title: "Routing Switching Enterprise & Server Administration",
         desc: "Konfigurasi protokol routing dinamis (OSPF, BGP), VLAN, Spanning Tree, manajemen bandwidth Mikrotik, setup DNS/Web/Mail Server di Linux Server.",
         skills: ["Cisco IOS Configuration", "Mikrotik RouterOS", "Linux Server (Debian/Ubuntu)", "VLAN & Inter-VLAN Routing"],
       },
       {
-        phase: "Fase 3 (Tingkat XII)",
+        phase: "Kelas 12",
         title: "Cybersecurity, Fiber Optik, & Cloud Computing",
         desc: "Penyambungan core fiber optik FTTH, pengujian OTDR, konfigurasi VPN & Firewall IDS/IPS, manajemen container Docker, dan persiapan sertifikasi industri.",
         skills: ["Fiber Splicing & OTDR", "Firewall & IDS/IPS", "Docker & Virtualization", "Sertifikasi CCNA/MTCNA"],
@@ -242,11 +289,13 @@ export const JURUSAN_DATA: JurusanDetail[] = [
         name: "Laboratorium Cisco & MikroTik Enterprise Rack",
         spec: "Rak server 42U dengan Router Cisco 2900 series, Catalyst Switch layer 2/3, MikroTik Cloud Router Switch.",
         features: ["Dedicated Patch Panels", "Console Terminal Hubs", "Power Distribution Units (PDU)"],
+        image: "/images/hero-tkj.jpg",
       },
       {
         name: "Workshop Fiber Optic & FTTH Telecommunication",
         spec: "Mesin Fusion Splicer presisi, Optical Time Domain Reflectometer (OTDR), OPM & VFL laser pen.",
         features: ["Distribusi Kabel Indoor/Outdoor", "OTB Wall Mount", "Safety Handling Kit"],
+        image: "/images/preview-iot.jpg",
       },
     ],
     careers: [
@@ -254,21 +303,25 @@ export const JURUSAN_DATA: JurusanDetail[] = [
         role: "Network Engineer / Administrator",
         desc: "Merancang, menginstalasi, dan menjaga kelancaran operasional lalu lintas jaringan komputer perusahaan.",
         demand: "Sangat Tinggi — Dibutuhkan setiap institusi modern",
+        icon: "/icons/enterprise.svg",
       },
       {
         role: "Cybersecurity & SOC Analyst",
         desc: "Menjaga pertahanan sistem jaringan dari ancaman kebocoran data, malware, dan serangan siber.",
         demand: "Lompatan Tertinggi — Kebutuhan siber nasional meningkat",
+        icon: "/icons/verified.svg",
       },
       {
         role: "System & Cloud Administrator",
         desc: "Mengelola server fisik maupun virtual di platform komputasi awan (AWS, Google Cloud, Azure).",
         demand: "Tinggi — Transformasi digital korporat ke cloud",
+        icon: "/icons/task.svg",
       },
       {
         role: "Fiber Optic Specialist / Field Technician",
         desc: "Teknisi instalasi, penyambungan, dan maintenance jalur pita lebar broadband telekomunikasi.",
         demand: "Stabil — Proyek ekspansi internet kecepatan tinggi",
+        icon: "/icons/assignment.svg",
       },
     ],
     toolsTech: ["Cisco IOS", "MikroTik RouterOS", "Linux Debian/Ubuntu", "Wireshark", "Docker", "GNS3", "Fusion Splicer", "OTDR", "Proxmox VE"],
@@ -298,6 +351,22 @@ export const JURUSAN_DATA: JurusanDetail[] = [
       "Analisis Kualitas Lingkungan (Uji Air Limbah BOD/COD, Udara, & Tanah)",
       "Penerapan Good Laboratory Practice (GLP) & Akreditasi Lab ISO/IEC 17025",
     ],
+    curriculumSubjects: [
+      { name: "Kelompok Mata Pelajaran Nasional", iconName: "BookOpen" },
+      { name: "Kelompok Mata Pelajaran Kewilayahan", iconName: "MapPin" },
+      { name: "Kelompok Mata Pelajaran Peminatan", iconName: "Target" },
+      { name: "Analisis Kimia Kuantitatif (Volumetri)", iconName: "FlaskConical", highlighted: true },
+      { name: "Analisis Kimia Kualitatif & Gravimetri", iconName: "Scale" },
+      { name: "Kimia Instrumen Modern (AAS, GC, UV-Vis)", iconName: "Activity" },
+      { name: "Produk Kreatif dan Kewirausahaan", iconName: "Lightbulb" },
+      { name: "Mikrobiologi Terapan & Uji Mutu", iconName: "Dna" },
+      { name: "Keselamatan Kerja & K3LH Laboratorium", iconName: "ShieldAlert" },
+      { name: "Analisis Parameter Lingkungan (BOD/COD)", iconName: "Droplets" },
+      { name: "Standar Manajemen Mutu ISO/IEC 17025", iconName: "Award" },
+      { name: "Preparasi Sampel & Good Laboratory Practice", iconName: "Pipette" },
+      { name: "Kimia Organik & Bioproses Industri", iconName: "Atom" },
+      { name: "Materi sinkronisasi dengan industri", iconName: "Briefcase" },
+    ],
     programs: [
       {
         title: "Laboratorium Pengujian Terakreditasi Berstandar Industri",
@@ -326,28 +395,22 @@ export const JURUSAN_DATA: JurusanDetail[] = [
     ],
     learningJourney: [
       {
-        phase: "Fase 1 (Tingkat X)",
+        phase: "Kelas 10",
         title: "Dasar Operasi Laboratorium & Kimia Analisis Dasar",
         desc: "Keselamatan kerja (K3LH), teknik penimbangan teliti di neraca analitik, pembuatan larutan baku, standardisasi, serta analisis kation-anion kualitatif.",
         skills: ["K3LH Laboratorium", "Neraca Analitik Presisi", "Pembuatan Larutan Baku", "Analisis Kualitatif Anorganik"],
       },
       {
-        phase: "Fase 2 (Tingkat XI)",
+        phase: "Kelas 11",
         title: "Analisis Volumetri, Gravimetri, & Mikrobiologi Dasar",
         desc: "Titrasi asam-basa, kompleksometri, permanganometri, iodometri, penetapan kadar gravimetri, teknik sterilisasi, isolasi mikroba, dan uji ALT/MPN.",
         skills: ["Titrimetri Lengkap", "Gravimetri Termogravimetri", "Teknik Aseptik & Sterilisasi", "Kultur Mikroorganisme"],
       },
       {
-        phase: "Fase 3 (Tingkat XII)",
-        title: "Kimia Instrumen Canggih & Analisis Lingkungan",
-        desc: "Operasional Spektrofotometer UV-Vis, AAS untuk analisis logam berat (Pb, Cu, Fe), Kromatografi Gas/Cair (GC/HPLC), serta pengujian parameter limbah air.",
-        skills: ["Spektrofotometri UV-Vis & AAS", "Kromatografi GC / HPLC", "Uji BOD, COD, DO Air Limbah", "Validasi Metode Uji"],
-      },
-      {
-        phase: "Fase 4 (Tingkat XIII)",
-        title: "Praktik Kerja Industri Penuh & Uji Kelulusan Vokasi 4 Tahun",
-        desc: "Penempatan kerja intensif di industri mitra (Quality Control / Research & Development), penyusunan tugas akhir riset, dan uji kompetensi akhir berlisensi.",
-        skills: ["Industrial QC/QA Workflow", "ISO 17025 Audit Compliance", "Tugas Akhir Riset Industri", "Uji Sertifikasi BNSP"],
+        phase: "Kelas 12",
+        title: "Kimia Instrumen Canggih & Praktik Industri",
+        desc: "Operasional Spektrofotometer UV-Vis, AAS, Kromatografi GC/HPLC, pengujian parameter limbah air, penempatan kerja industri QC/QA, dan uji sertifikasi BNSP.",
+        skills: ["Spektrofotometri UV-Vis & AAS", "Kromatografi GC / HPLC", "Industrial QC/QA Workflow", "Uji Sertifikasi BNSP"],
       },
     ],
     dailyActivities: [
@@ -362,16 +425,19 @@ export const JURUSAN_DATA: JurusanDetail[] = [
         name: "Laboratorium Kimia Instrumen Modern",
         spec: "Atomic Absorption Spectrophotometer (AAS), UV-Vis Double Beam Spectrophotometer, Flame Photometer, Digital Polarimeter.",
         features: ["Ruang Ber-AC Suhu Konstan", "Fume Hood / Lemari Asam Otomatis", "Gas Regulator Safety System"],
+        image: "/images/hero-kimia.jpg",
       },
       {
         name: "Laboratorium Mikrobiologi & Bioproses Steril",
         spec: "Laminar Air Flow (LAF) Cabinet, Autoclave digital bertekanan, Inkubator bakteri/jamur, Colony Counter digital.",
         features: ["HEPA Filtration Room", "UV Sterilization Lamp", "Mikroskop Binokuler Digital"],
+        image: "/images/preview-kimia.jpg",
       },
       {
         name: "Laboratorium Analisis Konvensional & Volumetri",
         spec: "Meja uji keramik tahan asam, buret otomatis, desikator vakum, furnace pemijar hingga 1000°C.",
         features: ["Shower Keselamatan Darurat (Eyewash)", "Sistem Pembuangan Limbah B3", "Wastafel Netralisasi"],
+        image: "/images/hero-kolaborasi.jpg",
       },
     ],
     careers: [
@@ -379,21 +445,25 @@ export const JURUSAN_DATA: JurusanDetail[] = [
         role: "Quality Control (QC) Analyst",
         desc: "Memastikan bahan baku dan produk jadi pabrik farmasi, makanan, atau kosmetik memenuhi spesifikasi mutu ketat.",
         demand: "Sangat Tinggi — Dibutuhkan setiap industri manufaktur",
+        icon: "/icons/verified.svg",
       },
       {
         role: "Quality Assurance (QA) Staff",
         desc: "Mengaudit kepatuhan sistem mutu laboratorium, validasi dokumen, dan kepatuhan standar ISO/BPOM.",
         demand: "Tinggi — Regulasi industri kesehatan & pangan semakin ketat",
+        icon: "/icons/QA.svg",
       },
       {
         role: "Research & Development (R&D) Technician",
         desc: "Membantu formulator dan saintis dalam uji stabilitas produk baru dan inovasi bahan kimia alternatif.",
         demand: "Tinggi — Sektor riset material dan kosmetik bertumbuh",
+        icon: "/icons/assignment.svg",
       },
       {
         role: "Environmental Laboratory Analyst",
         desc: "Menguji baku mutu limbah cair, emisi udara, dan air tanah di laboratorium lingkungan dan instansi pemerintah.",
         demand: "Stabil — Tuntutan regulasi hijau ESG perusahaan",
+        icon: "/icons/enterprise.svg",
       },
     ],
     toolsTech: ["AAS Spectrophotometer", "UV-Vis Spectrophotometer", "HPLC / Gas Chromatography", "Autoclave & LAF", "pH Meter Digital", "Analytical Balance (0.0001g)", "Muffle Furnace", "K3LH Safety Protocol"],
