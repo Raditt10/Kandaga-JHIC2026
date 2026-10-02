@@ -52,8 +52,8 @@ export default async function JurusanDetailPage({
       <Navbar />
 
       <main className="flex-1">
-        {/* Section 1: Hero Section */}
-        <JurusanHero />
+        {/* Section 1: Hero Section Spesifik Jurusan dengan Slot Model 3D */}
+        <JurusanHero currentMajor={jurusan} />
 
         {/* Section 2: Penjelasan Detail Mendalam Jurusan Ini */}
         <div id="detail-program" className="scroll-mt-24">
