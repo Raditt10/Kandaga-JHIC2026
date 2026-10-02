@@ -1,136 +1,161 @@
-"use client"
+"use client";
 
-import React from "react"
-import DashboardLayout from "@/components/DashboardLayout"
-import { useSession } from "next-auth/react"
+/**
+ * /company — Dashboard utama mitra perusahaan.
+ *
+ * Heading outline:
+ *   h1: "Selamat Datang, {nama}!"
+ *     h2: "Mulai dari Sini" (panel aksi cepat)
+ */
+
+import Link from "next/link";
+import { useSession } from "next-auth/react";
+import CompanyLayout from "@/components/company/CompanyLayout";
 import {
-  Building2,
-  Search,
-  UserCheck,
-  Briefcase,
-} from "lucide-react"
+  Search, Bookmark, ClipboardList, User,
+  ArrowRight, Clock,
+} from "lucide-react";
+
+const QUICK_ACTIONS = [
+  {
+    href:    "/company/katalog",
+    icon:    Search,
+    label:   "Jelajahi Katalog Karya",
+    desc:    "Temukan portofolio siswa terverifikasi dari 3 jurusan.",
+    color:   "bg-blue-50 text-blue-700",
+    primary: true,
+  },
+  {
+    href:    "/company/tersimpan",
+    icon:    Bookmark,
+    label:   "Talenta Tersimpan",
+    desc:    "Lihat karya yang sudah Anda bookmark.",
+    color:   "bg-violet-50 text-violet-700",
+    primary: false,
+  },
+  {
+    href:    "/company/riwayat",
+    icon:    ClipboardList,
+    label:   "Riwayat Permintaan",
+    desc:    "Pantau status ajuan minat rekrutmen & magang.",
+    color:   "bg-amber-50 text-amber-700",
+    primary: false,
+  },
+  {
+    href:    "/company/profil",
+    icon:    User,
+    label:   "Lengkapi Profil",
+    desc:    "Perbarui data perusahaan dan dokumen legalitas.",
+    color:   "bg-emerald-50 text-emerald-700",
+    primary: false,
+  },
+] as const;
 
 export default function CompanyDashboardPage() {
-  const { data: session } = useSession()
+  const { data: session } = useSession();
+  const companyName = session?.user?.name ?? "Mitra Industri";
 
   return (
-    <DashboardLayout
-      roleTitle="Company / Mitra Portal"
-      roleSlug="company"
-      badgeColor="from-blue-600 to-indigo-700"
-      icon={Building2}
-    >
-      {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl mb-8 relative overflow-hidden">
+    <CompanyLayout>
+
+      {/* ── Welcome banner ── */}
+      <div className="mb-8 rounded-3xl bg-gradient-to-br from-ink via-zinc-900 to-[#3b0818] text-white p-6 sm:p-8 relative overflow-hidden">
+        <div className="pointer-events-none absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/5 blur-3xl" aria-hidden="true" />
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-blue-200 text-xs font-bold mb-3">
-            <Building2 className="w-3.5 h-3.5" />
-            <span>Portal Mitra Perusahaan & Rekrutmen Talenta</span>
-          </div>
-
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
-            Selamat Datang, {session?.user?.username || "Mitra Industri"}! 🏢
+          <p className="text-xs font-mono text-white/50 mb-1 uppercase tracking-widest">
+            Portal Mitra Industri
+          </p>
+          {/* h1 — satu-satunya di halaman ini */}
+          <h1 className="font-heading text-2xl sm:text-3xl font-extrabold tracking-tight">
+            Selamat Datang, {companyName}!
           </h1>
-          <p className="text-blue-100 text-xs sm:text-sm max-w-2xl mt-2 leading-relaxed">
-            Sebagai Perusahaan/Mitra Industri, Anda memiliki akses eksklusif untuk mengevaluasi karya siswa SMKN 13 Bandung, merekrut kandidat magang, dan memberikan sertifikasi kompetensi.
+          <p className="mt-2 text-sm text-white/70 leading-relaxed max-w-[60ch]">
+            Anda memiliki akses ke katalog portofolio siswa SMKN 13 Bandung yang
+            terverifikasi. Ajukan minat rekrutmen atau magang melalui jalur resmi BKK.
           </p>
 
-          {/* User Session Detail */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6 pt-6 border-t border-white/15 text-xs">
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-              <span className="text-blue-200 block text-[11px] font-medium">Perusahaan ID</span>
-              <span className="font-mono font-bold text-white text-sm">{session?.user?.username || "-"}</span>
+          {/* Info singkat */}
+          <div className="mt-5 flex flex-wrap gap-4">
+            <div className="flex items-center gap-2 text-xs text-white/60">
+              <Clock className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Layanan BKK: Senin–Jumat 08.00–15.00 WIB</span>
             </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-              <span className="text-blue-200 block text-[11px] font-medium">Email Terverifikasi</span>
-              <span className="font-mono font-bold text-white text-sm">{session?.user?.email || "-"}</span>
-            </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-              <span className="text-blue-200 block text-[11px] font-medium">Status Mitra</span>
-              <span className="font-mono font-bold text-emerald-400 text-sm uppercase">VERIFIED INDUSTRY PARTNER</span>
+            <div className="flex items-center gap-2 text-xs text-white/60">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" aria-hidden="true" />
+              <span>Akun terverifikasi</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Talent Search & Internship Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-3xl p-6 border border-zinc-200 shadow-sm hover:shadow-md transition">
-          <div className="w-10 h-10 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center mb-4">
-            <Search className="w-5 h-5" />
-          </div>
-          <h3 className="text-base font-extrabold text-zinc-900">Eksplorasi Talenta Siswa</h3>
-          <p className="text-xs text-zinc-500 mt-1 leading-relaxed">
-            Jelajahi lebih dari 120+ karya siswa dari jurusan RPL, TKJ, dan Analis Kimia yang terverifikasi sekolah.
-          </p>
-          <button className="mt-4 px-4 py-2 bg-blue-700 text-white rounded-xl text-xs font-bold hover:bg-blue-800 transition cursor-pointer">
-            Cari Kandagawan
-          </button>
-        </div>
+      {/* ── Quick actions ── */}
+      <div className="mb-2">
+        <h2 className="font-heading text-lg font-semibold text-ink mb-5">
+          Mulai dari Sini
+        </h2>
 
-        <div className="bg-white rounded-3xl p-6 border border-zinc-200 shadow-sm hover:shadow-md transition">
-          <div className="w-10 h-10 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center mb-4">
-            <Briefcase className="w-5 h-5" />
-          </div>
-          <h3 className="text-base font-extrabold text-zinc-900">Lowongan Magang Industri</h3>
-          <p className="text-xs text-zinc-500 mt-1 leading-relaxed">
-            Buka posisi Praktik Kerja Lapangan (PKL) baru khusus untuk siswa SMKN 13 Bandung.
-          </p>
-          <span className="inline-block mt-4 text-xs font-bold text-purple-600 bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
-            3 Posisi Aktif
-          </span>
-        </div>
-
-        <div className="bg-white rounded-3xl p-6 border border-zinc-200 shadow-sm hover:shadow-md transition">
-          <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center mb-4">
-            <UserCheck className="w-5 h-5" />
-          </div>
-          <h3 className="text-base font-extrabold text-zinc-900">Kandidat Terpilih</h3>
-          <p className="text-xs text-zinc-500 mt-1 leading-relaxed">
-            8 Siswa telah diundang mengikuti proses wawancara magang teknis.
-          </p>
-          <span className="inline-block mt-4 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-            8 Pelamar Dalam Proses
-          </span>
-        </div>
-      </div>
-
-      {/* Featured Student Talent Profiles for Companies */}
-      <div className="bg-white rounded-3xl p-6 border border-zinc-200 shadow-sm">
-        <h3 className="text-lg font-extrabold text-zinc-900 mb-4">Rekomendasi Talenta Siap Magang</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[
-            {
-              name: "Tim Riset Analis Kimia XIII",
-              skill: "Titrasi ISO & Spektrofotometri",
-              major: "Analis Kimia",
-              highlight: "Formulasi Indikator Asam Basa Alami (Akurasi 99.2%)",
-            },
-            {
-              name: "Creative RPL Developers",
-              skill: "Next.js, TypeScript, NextAuth, Tailwind",
-              major: "Rekayasa Perangkat Lunak",
-              highlight: "Sistem Manajemen Academic EduClass",
-            },
-          ].map((t, idx) => (
-            <div key={idx} className="p-5 rounded-2xl border border-zinc-200 bg-zinc-50/50 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200">
-                  {t.major}
-                </span>
-                <span className="text-xs text-zinc-400 font-medium">Disetujui Guru Pembimbing</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {QUICK_ACTIONS.map(({ href, icon: Icon, label, desc, color, primary }) => (
+            <Link
+              key={href}
+              href={href}
+              className={`group flex flex-col gap-3 rounded-2xl border p-5 transition-all hover:shadow-md ${
+                primary
+                  ? "border-primary/30 bg-primary/5 hover:border-primary/50"
+                  : "border-ink-150 bg-white hover:border-ink-300"
+              }`}
+            >
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>
+                <Icon className="w-5 h-5" aria-hidden="true" />
               </div>
-              <h4 className="text-base font-extrabold text-zinc-900">{t.name}</h4>
-              <p className="text-xs text-zinc-600 font-mono">Skillset: {t.skill}</p>
-              <p className="text-xs font-semibold text-[#90133b]">Highlight: {t.highlight}</p>
-              <button className="w-full py-2 bg-zinc-900 hover:bg-black text-white text-xs font-bold rounded-xl transition cursor-pointer">
-                Undang Wawancara Magang
-              </button>
-            </div>
+              <div className="flex-1">
+                <p className="font-heading text-sm font-semibold text-ink leading-snug">
+                  {label}
+                </p>
+                <p className="mt-1 text-xs text-ink-600 leading-relaxed">
+                  {desc}
+                </p>
+              </div>
+              <div className={`flex items-center gap-1 text-xs font-semibold transition-transform group-hover:translate-x-0.5 ${
+                primary ? "text-primary" : "text-ink-600"
+              }`}>
+                <span>Buka</span>
+                <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+              </div>
+            </Link>
           ))}
         </div>
       </div>
-    </DashboardLayout>
-  )
+
+      {/* ── Info alur BKK ── */}
+      <div className="mt-8 rounded-2xl border border-ink-150 bg-white p-5">
+        <p className="text-sm font-semibold text-ink mb-2">
+          Cara mengajukan minat rekrutmen
+        </p>
+        <ol className="space-y-1.5">
+          {[
+            "Jelajahi katalog karya siswa di menu 'Jelajahi Katalog'.",
+            "Bookmark karya yang menarik perhatian Anda.",
+            "Klik 'Ajukan Minat via BKK' pada karya pilihan.",
+            "BKK akan meninjau dan meneruskan minat Anda ke siswa & guru.",
+          ].map((step, i) => (
+            <li key={i} className="flex items-start gap-2.5 text-sm text-ink-700">
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">
+                {i + 1}
+              </span>
+              {step}
+            </li>
+          ))}
+        </ol>
+        <Link
+          href="#cara-kerja-bkk"
+          className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary-dark transition-colors"
+        >
+          Pelajari lebih lanjut cara kerja BKK
+          <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+        </Link>
+      </div>
+
+    </CompanyLayout>
+  );
 }
