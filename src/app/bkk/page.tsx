@@ -1,131 +1,147 @@
-"use client"
+"use client";
 
-import React from "react"
-import DashboardLayout from "@/components/DashboardLayout"
-import { useSession } from "next-auth/react"
-import {
-  Briefcase,
-} from "lucide-react"
+/**
+ * /bkk — Dashboard utama Koordinator BKK.
+ *
+ * Heading outline:
+ *   h1: "Dashboard BKK"
+ *     h2: judul tiap widget
+ *
+ * Fase 1: hanya 1 widget angka "X akun menunggu verifikasi" + info ringkas.
+ * Halaman antrian (list) dikerjakan di Fase 2.
+ */
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import BKKLayout from "@/components/bkk/BKKLayout";
+import { useSession } from "next-auth/react";
+import { ShieldCheck, MessageSquare, Building2, ArrowRight, Loader2 } from "lucide-react";
 
 export default function BKKDashboardPage() {
-  const { data: session } = useSession()
+  const { data: session } = useSession();
+  const [menunggu, setMenunggu]   = useState<number | null>(null);
+  const [loading, setLoading]     = useState(true);
+
+  useEffect(() => {
+    fetch("/api/bkk/verifikasi?count=true")
+      .then((r) => r.json())
+      .then((d) => { setMenunggu(d.count ?? 0); setLoading(false); })
+      .catch(() => { setMenunggu(0); setLoading(false); });
+  }, []);
 
   return (
-    <DashboardLayout
-      roleTitle="BKK / Bursa Kerja Khusus Portal"
-      roleSlug="bkk"
-      badgeColor="from-emerald-600 to-teal-700"
-      icon={Briefcase}
-    >
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-emerald-950 via-teal-950 to-emerald-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl mb-8 relative overflow-hidden">
+    <BKKLayout>
+      {/* Welcome */}
+      <div className="mb-8 rounded-3xl bg-gradient-to-br from-ink via-zinc-900 to-[#0f2518] text-white p-6 sm:p-8 relative overflow-hidden">
+        <div className="pointer-events-none absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/5 blur-3xl" aria-hidden="true" />
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-teal-200 text-xs font-bold mb-3">
-            <Briefcase className="w-3.5 h-3.5" />
-            <span>Pusat Penyebab & Bursa Kerja Khusus SMKN 13 Bandung</span>
-          </div>
-
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
-            Portal BKK (Bursa Kerja Khusus) 💼
+          <p className="text-xs font-mono text-white/50 mb-1 uppercase tracking-widest">Koordinator BKK</p>
+          <h1 className="font-heading text-2xl sm:text-3xl font-extrabold tracking-tight">
+            Dashboard BKK, {session?.user?.name ?? "Koordinator"}
           </h1>
-          <p className="text-teal-100 text-xs sm:text-sm max-w-2xl mt-2 leading-relaxed">
-            Sebagai Pengelola BKK, Anda memfasilitasi penyaluran kerja alumni, menjembatani kerjasama Job Fair dengan industri, serta memantau statistik Tracer Study lulusan SMKN 13 Bandung.
+          <p className="mt-2 text-sm text-white/70 leading-relaxed max-w-[60ch]">
+            Pantau dan proses pengajuan akun mitra perusahaan, serta tinjau permintaan
+            kontak yang masuk dari perusahaan ke siswa.
           </p>
+        </div>
+      </div>
 
-          {/* User Session Detail */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6 pt-6 border-t border-white/15 text-xs">
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-              <span className="text-teal-200 block text-[11px] font-medium">BKK Account Username</span>
-              <span className="font-mono font-bold text-white text-sm">{session?.user?.username || "-"}</span>
-            </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-              <span className="text-teal-200 block text-[11px] font-medium">Email BKK Resmi</span>
-              <span className="font-mono font-bold text-white text-sm">{session?.user?.email || "-"}</span>
-            </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-              <span className="text-teal-200 block text-[11px] font-medium">Fungsi Utama</span>
-              <span className="font-mono font-bold text-emerald-300 text-sm uppercase">PENYALURAN KERJA & ALUMNI</span>
-            </div>
+      {/* Widget grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+
+        {/* Widget utama: akun menunggu verifikasi */}
+        <div className="sm:col-span-1 rounded-2xl border border-amber-200 bg-amber-50 p-6 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <h2 className="font-heading text-sm font-semibold text-amber-800">
+              Menunggu Verifikasi
+            </h2>
+            <ShieldCheck className="w-5 h-5 text-amber-600" aria-hidden="true" />
           </div>
+          {loading ? (
+            <Loader2 className="w-8 h-8 text-amber-400 animate-spin" aria-hidden="true" />
+          ) : (
+            <p className="font-heading text-4xl font-extrabold text-amber-700">
+              {menunggu}
+            </p>
+          )}
+          <p className="text-xs text-amber-700">
+            {menunggu === 0
+              ? "Tidak ada pengajuan baru."
+              : `${menunggu} perusahaan perlu ditinjau.`}
+          </p>
+          <Link
+            href="/bkk/verifikasi"
+            className="mt-auto inline-flex items-center gap-1 text-xs font-bold text-amber-700 hover:text-amber-900 transition-colors"
+          >
+            Buka Antrian
+            <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+          </Link>
+        </div>
+
+        {/* Antrian Kontak — placeholder Fase 5 alurMitra */}
+        <div className="rounded-2xl border border-ink-150 bg-white p-6 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <h2 className="font-heading text-sm font-semibold text-ink">
+              Antrian Kontak
+            </h2>
+            <MessageSquare className="w-5 h-5 text-ink-300" aria-hidden="true" />
+          </div>
+          <p className="font-heading text-4xl font-extrabold text-ink-300">—</p>
+          <p className="text-xs text-ink-600">
+            Permintaan minat rekrutmen dari perusahaan ke siswa.
+          </p>
+          <Link
+            href="/bkk/kontak"
+            className="mt-auto inline-flex items-center gap-1 text-xs font-bold text-ink-600 hover:text-primary transition-colors"
+          >
+            Lihat Antrian
+            <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+          </Link>
+        </div>
+
+        {/* Manajemen Mitra — placeholder Fase 4 */}
+        <div className="rounded-2xl border border-ink-150 bg-white p-6 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <h2 className="font-heading text-sm font-semibold text-ink">
+              Mitra Terdaftar
+            </h2>
+            <Building2 className="w-5 h-5 text-ink-300" aria-hidden="true" />
+          </div>
+          <p className="font-heading text-4xl font-extrabold text-ink-300">—</p>
+          <p className="text-xs text-ink-600">
+            Seluruh perusahaan yang sudah pernah mendaftar.
+          </p>
+          <Link
+            href="/bkk/mitra"
+            className="mt-auto inline-flex items-center gap-1 text-xs font-bold text-ink-600 hover:text-primary transition-colors"
+          >
+            Lihat Semua
+            <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+          </Link>
         </div>
       </div>
 
-      {/* BKK Placement Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-3xl p-5 border border-zinc-200 shadow-sm">
-          <span className="text-xs font-bold text-zinc-500 uppercase block">Tingkat Penyerapan Kerja</span>
-          <p className="text-2xl font-extrabold text-emerald-600 mt-1">94.2%</p>
-          <span className="text-[11px] text-zinc-500 mt-1 block">Lulusan SMKN 13 Bandung</span>
-        </div>
-
-        <div className="bg-white rounded-3xl p-5 border border-zinc-200 shadow-sm">
-          <span className="text-xs font-bold text-zinc-500 uppercase block">Mitra Industri MoU</span>
-          <p className="text-2xl font-extrabold text-blue-600 mt-1">45 Perusahaan</p>
-          <span className="text-[11px] text-zinc-500 mt-1 block">RPL, TKJ & Analis Kimia</span>
-        </div>
-
-        <div className="bg-white rounded-3xl p-5 border border-zinc-200 shadow-sm">
-          <span className="text-xs font-bold text-zinc-500 uppercase block">Lowongan Kerja Aktif</span>
-          <p className="text-2xl font-extrabold text-teal-600 mt-1">14 Posisi</p>
-          <span className="text-[11px] text-zinc-500 mt-1 block">Terbuka untuk Alumni</span>
-        </div>
-
-        <div className="bg-white rounded-3xl p-5 border border-zinc-200 shadow-sm">
-          <span className="text-xs font-bold text-zinc-500 uppercase block">Job Fair Mendatang</span>
-          <p className="text-2xl font-extrabold text-purple-600 mt-1">Kandaga Fair 2026</p>
-          <span className="text-[11px] text-zinc-500 mt-1 block">15 - 18 Oktober 2026</span>
-        </div>
-      </div>
-
-      {/* Career Center Job Openings */}
-      <div className="bg-white rounded-3xl p-6 border border-zinc-200 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-extrabold text-zinc-900">Lowongan Kerja Khusus BKK SMKN 13</h3>
-          <button className="px-4 py-2 bg-emerald-600 text-white font-bold text-xs rounded-xl hover:bg-emerald-700 transition cursor-pointer">
-            + Tambah Info Lowongan
-          </button>
-        </div>
-
-        <div className="space-y-3">
+      {/* Info alur */}
+      <div className="rounded-2xl border border-ink-150 bg-white p-5">
+        <h2 className="font-heading text-sm font-semibold text-ink mb-3">
+          Alur Kerja BKK
+        </h2>
+        <ol className="space-y-2">
           {[
-            {
-              company: "PT Kimia Farma Industri Tbk",
-              title: "Junior Laboratory Analyst",
-              target: "Alumni Analis Kimia",
-              type: "Full-Time",
-            },
-            {
-              company: "Telkom Indonesia (Digital Service)",
-              title: "Network Infrastructure Support",
-              target: "Alumni TKJ",
-              type: "Full-Time / PKL",
-            },
-            {
-              company: "BukaStudio Software House",
-              title: "Frontend Developer (React/Next.js)",
-              target: "Alumni RPL",
-              type: "Full-Time",
-            },
-          ].map((job, idx) => (
-            <div key={idx} className="p-4 rounded-2xl border border-zinc-100 bg-zinc-50/60 flex items-center justify-between">
-              <div>
-                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                  {job.target}
-                </span>
-                <h4 className="text-base font-extrabold text-zinc-900 mt-1">{job.title}</h4>
-                <p className="text-xs text-zinc-500 font-medium">{job.company}</p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-mono font-bold text-zinc-600">{job.type}</span>
-                <button className="px-4 py-2 bg-zinc-900 text-white rounded-xl text-xs font-bold hover:bg-black transition cursor-pointer">
-                  Detail Rekrutmen
-                </button>
-              </div>
-            </div>
+            "Perusahaan mendaftar → masuk antrian Verifikasi Akun.",
+            "BKK tinjau dan setujui atau tolak (wajib sertakan catatan jika menolak).",
+            "Perusahaan yang disetujui dapat mengajukan minat kontak ke karya siswa.",
+            "BKK tinjau permintaan kontak → teruskan ke siswa atau tolak.",
+          ].map((step, i) => (
+            <li key={i} className="flex items-start gap-2.5 text-sm text-ink-700">
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">
+                {i + 1}
+              </span>
+              {step}
+            </li>
           ))}
-        </div>
+        </ol>
       </div>
-    </DashboardLayout>
-  )
+    </BKKLayout>
+  );
 }
