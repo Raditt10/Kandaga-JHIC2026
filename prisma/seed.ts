@@ -28,11 +28,11 @@ async function main() {
 
   // ── Users ──
   const userdata = [
-    { name: "Alice Smith",    email: "alicesmith@gmail.com",   passwordHash: "pass1234", role: "student"  },
-    { name: "Bob Jones",      email: "bobjones@gmail.com",     passwordHash: "pass1234", role: "teacher"  },
-    { name: "Charlie Brown",  email: "charliebrown@gmail.com", passwordHash: "pass1234", role: "company"  },
-    { name: "David Wilson",   email: "davidwilson@gmail.com",  passwordHash: "pass1234", role: "admin"    },
-    { name: "Eve Martinez",   email: "evemartinez@gmail.com",  passwordHash: "pass1234", role: "bkk"      },
+    { name: "Alice Smith",    email: "alicesmith@gmail.com",   passwordHash: "password123", role: "student"  },
+    { name: "Bob Jones",      email: "bobjones@gmail.com",     passwordHash: "password123", role: "teacher"  },
+    { name: "Charlie Brown",  email: "charliebrown@gmail.com", passwordHash: "password123", role: "company"  },
+    { name: "David Wilson",   email: "davidwilson@gmail.com",  passwordHash: "password123", role: "admin"    },
+    { name: "Eve Martinez",   email: "evemartinez@gmail.com",  passwordHash: "password123", role: "bkk"      },
   ]
 
   for (const user of userdata) {

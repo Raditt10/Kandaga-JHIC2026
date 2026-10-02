@@ -16,7 +16,8 @@ import {
   Building2,
   BookOpen,
   Briefcase,
-  ArrowRight
+  ArrowRight,
+  Sparkles,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 
@@ -320,13 +321,35 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
                   </div>
 
                   <Link
-                    href={`/${normalizedRole}/dashboard`}
+                    href={`/${normalizedRole}`}
                     onClick={() => setIsProfileOpen(false)}
                     className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-zinc-800 hover:bg-[#891337]/10 hover:text-[#891337] transition cursor-pointer"
                   >
                     <LayoutDashboard className="w-4 h-4 text-[#891337]" />
                     <span>Portal Dashboard</span>
                   </Link>
+
+                  {normalizedRole === "student" && (
+                    <>
+                      <Link
+                        href="/student/my-projects"
+                        onClick={() => setIsProfileOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-zinc-800 hover:bg-[#891337]/10 hover:text-[#891337] transition cursor-pointer"
+                      >
+                        <GraduationCap className="w-4 h-4 text-[#891337]" />
+                        <span>Karya Saya</span>
+                      </Link>
+
+                      <Link
+                        href="/student/post-project"
+                        onClick={() => setIsProfileOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-zinc-800 hover:bg-[#891337]/10 hover:text-[#891337] transition cursor-pointer"
+                      >
+                        <Sparkles className="w-4 h-4 text-[#891337]" />
+                        <span>Unggah Karya Baru</span>
+                      </Link>
+                    </>
+                  )}
 
                   <div className="my-1 border-t border-zinc-100" />
 

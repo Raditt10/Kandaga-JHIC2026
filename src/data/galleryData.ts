@@ -38,7 +38,7 @@ export interface GalleryProjectItem {
   year: number;
   coverImage: string;
   galleryImages: string[];
-  status: "verified" | "featured";
+  status: "verified" | "featured" | "draft" | "pending";
   badgeTier?: "gold" | "silver" | "bronze";
   badgeLabel?: string;
   tools: string[];
@@ -47,7 +47,10 @@ export interface GalleryProjectItem {
   studentAvatar: string;
   studentClass: string;
   isStudentPrivate: boolean;
-  advisor: {
+  isPrivate?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  advisor?: {
     name: string;
     role: string;
     reviewNotes: string;

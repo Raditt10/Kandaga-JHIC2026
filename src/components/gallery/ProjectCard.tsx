@@ -20,7 +20,7 @@ export interface ProjectCardProps {
     year: number;
     coverImage: string;
     galleryImages?: string[];
-    status?: "verified" | "featured";
+    status?: "verified" | "featured" | "draft" | "pending";
     badgeTier?: "gold" | "silver" | "bronze";
     badgeLabel?: string;
     tools: string[];

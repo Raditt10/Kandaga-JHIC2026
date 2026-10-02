@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import Link from "next/link"
 import DashboardLayout from "@/components/DashboardLayout"
 import { useSession } from "next-auth/react"
 import {
@@ -12,6 +13,8 @@ import {
   FileCode,
   FlaskConical,
   Wifi,
+  ArrowRight,
+  FolderOpen,
 } from "lucide-react"
 
 export default function StudentDashboardPage() {
@@ -69,9 +72,12 @@ export default function StudentDashboardPage() {
           <p className="text-xs text-zinc-500 mt-1 leading-relaxed">
             Kirimkan tautan GitHub, repositori aplikasi, atau modul riset laboratorium Analis Kimia Anda.
           </p>
-          <button className="mt-4 px-4 py-2 bg-[#90133b] text-white rounded-xl text-xs font-bold hover:bg-[#76102f] transition cursor-pointer">
+          <Link
+            href="/student/post-project"
+            className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 bg-[#8B1A2F] text-white rounded-xl text-xs font-bold hover:bg-[#6B1424] transition cursor-pointer shadow-xs"
+          >
             + Tambah Karya
-          </button>
+          </Link>
         </div>
 
         <div className="bg-white rounded-3xl p-6 border border-zinc-200 shadow-sm hover:shadow-md transition">
@@ -103,7 +109,16 @@ export default function StudentDashboardPage() {
 
       {/* Submitted Projects Table / List */}
       <div className="bg-white rounded-3xl p-6 border border-zinc-200 shadow-sm">
-        <h3 className="text-lg font-extrabold text-zinc-900 mb-4">Portofolio Dipublikasikan</h3>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <h3 className="text-lg font-extrabold text-zinc-900">Portofolio Dipublikasikan</h3>
+          <Link
+            href="/student/my-projects"
+            className="text-xs font-bold text-[#8B1A2F] hover:underline flex items-center gap-1"
+          >
+            <span>Kelola & Lihat Seluruh Karya Saya</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
         
         <div className="space-y-3">
           {[
