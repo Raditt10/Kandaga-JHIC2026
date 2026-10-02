@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { ChevronDown, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export interface NavbarProps {
@@ -13,7 +13,6 @@ export interface NavbarProps {
 export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
   const [activeNav, setActiveNav] = useState("Beranda");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const router = useRouter();
 
   const scrollToSection = (id: string) => {
@@ -21,15 +20,6 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
     }
-  };
-
-  const handleCategoryClick = (category: string) => {
-    if (onSelectCategory) {
-      onSelectCategory(category);
-    }
-    scrollToSection("galeri-section");
-    setOpenDropdown(null);
-    setIsMobileMenuOpen(false);
   };
 
   return (
@@ -58,51 +48,9 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
             </span>
           </a>
 
-          {/* Desktop Nav Links with Dropdown */}
+          {/* Desktop Nav Links */}
           <nav className="hidden md:flex items-center gap-6 text-xs sm:text-sm font-medium text-zinc-600">
-            {/* 1. Jurusan Kami Dropdown (Sitemap) */}
-            <div
-              className="relative"
-              onMouseEnter={() => setOpenDropdown("jurusan")}
-              onMouseLeave={() => setOpenDropdown(null)}
-            >
-              <button
-                type="button"
-                onClick={() => scrollToSection("galeri-section")}
-                className="flex items-center gap-1.5 hover:text-zinc-950 transition cursor-pointer py-1"
-              >
-                <span>Jurusan Kami</span>
-                <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
-              </button>
-
-              {openDropdown === "jurusan" && (
-                <div className="absolute top-full left-0 mt-2 w-56 bg-white/95 backdrop-blur-xl border border-zinc-100 rounded-2xl shadow-xl p-2 animate-in fade-in slide-in-from-top-2 duration-150">
-                  <button
-                    type="button"
-                    onClick={() => handleCategoryClick("RPL")}
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-[#90133b] transition cursor-pointer"
-                  >
-                    Rekayasa Perangkat Lunak
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleCategoryClick("TKJ")}
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-[#90133b] transition cursor-pointer"
-                  >
-                    Teknik Komputer Jaringan
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleCategoryClick("Analis Kimia")}
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-[#90133b] transition cursor-pointer"
-                  >
-                    Analis Kimia
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* 2. Tentang Kami */}
+            {/* 1. Tentang Kami */}
             <button
               type="button"
               onClick={() => scrollToSection("tentang-section")}
@@ -111,7 +59,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
               Tentang Kami
             </button>
 
-            {/* 3. Galeri Karya */}
+            {/* 2. Galeri Karya */}
             <button
               type="button"
               onClick={() => router.push("/gallery")}
@@ -120,7 +68,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
               Galeri Karya
             </button>
 
-            {/* 4. Kontak */}
+            {/* 3. Kontak */}
             <button
               type="button"
               onClick={() => scrollToSection("kontak-section")}
@@ -167,7 +115,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
       {/* Mobile Dropdown Panel */}
       {isMobileMenuOpen && (
         <div className="md:hidden mt-2 bg-white/95 backdrop-blur-xl border border-zinc-200/80 rounded-3xl p-4 shadow-xl space-y-2 animate-in fade-in duration-200">
-          {["Jurusan Kami", "Tentang Kami", "Galeri Karya", "Kontak"].map(
+          {["Tentang Kami", "Galeri Karya", "Kontak"].map(
             (item) => (
               <button
                 key={item}
@@ -175,9 +123,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
                 onClick={() => {
                   setActiveNav(item);
                   setIsMobileMenuOpen(false);
-                  if (item === "Jurusan Kami") {
-                    scrollToSection("galeri-section");
-                  } else if (item === "Galeri Karya") {
+                  if (item === "Galeri Karya") {
                     router.push("/gallery");
                   } else if (item === "Tentang Kami") {
                     scrollToSection("tentang-section");

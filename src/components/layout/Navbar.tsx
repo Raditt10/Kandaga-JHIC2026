@@ -29,7 +29,6 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
   const { data: session, status } = useSession();
   const [activeNav, setActiveNav] = useState("Beranda");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const rawRole = (session?.user?.role || "student").toLowerCase();
@@ -69,26 +68,8 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
 
   const currentRoleMeta = roleMeta[normalizedRole] || roleMeta.student;
   const RoleIcon = currentRoleMeta.icon;
-  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
   const pathname = usePathname();
-
-  const handleDropdownEnter = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-    setOpenDropdown("jurusan");
-  };
-
-  const handleDropdownLeave = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    timeoutRef.current = setTimeout(() => {
-      setOpenDropdown(null);
-    }, 180);
-  };
 
   const navigateToSection = (id: string) => {
     if (pathname === "/") {
@@ -106,9 +87,8 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
 
     const sections = [
       { id: "hero", nav: "Beranda" },
-      { id: "galeri-section", nav: "Galeri Karya" },
+      { id: "galeri-section", nav: "Karya Kami" },
       { id: "tentang-section", nav: "Tentang Kami" },
-      { id: "jurusan-section", nav: "Jurusan Kami" },
       { id: "industri-section", nav: "Mitra Perusahaan" },
       { id: "footer", nav: "Kontak" },
     ];
@@ -145,27 +125,6 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, [pathname]);
-
-  const handleCategoryClick = (category: string) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-    if (onSelectCategory) {
-      onSelectCategory(category);
-      navigateToSection("galeri-section");
-    } else {
-      const slugMap: Record<string, string> = {
-        RPL: "rpl",
-        TKJ: "tkj",
-        "Analis Kimia": "analis-kimia",
-      };
-      const slug = slugMap[category] || "rpl";
-      router.push(`/jurusan/${slug}`);
-    }
-    setOpenDropdown(null);
-    setIsMobileMenuOpen(false);
-  };
 
   return (
     <header className="fixed top-5 left-0 right-0 mx-auto z-50 w-[96%] max-w-5xl lg:max-w-6xl transform-gpu will-change-transform">
@@ -212,14 +171,14 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
             <button
               type="button"
               onClick={() => {
-                setActiveNav("Galeri Karya");
+                setActiveNav("Karya Kami");
                 navigateToSection("galeri-section");
               }}
               className={`hover:text-zinc-950 transition cursor-pointer py-1 whitespace-nowrap shrink-0 ${
-                activeNav === "Galeri Karya" ? "text-[#8B1A2F] font-bold" : ""
+                activeNav === "Karya Kami" ? "text-[#8B1A2F] font-bold" : ""
               }`}
             >
-              Galeri Karya
+              Karya Kami
             </button>
 
             {/* 3. Tentang Kami (Section muncul ketiga) */}
@@ -236,86 +195,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
               Tentang Kami
             </button>
 
-            {/* 4. Jurusan Kami Dropdown (Section muncul keempat) */}
-            <div
-              className="relative py-1 shrink-0"
-              onMouseEnter={handleDropdownEnter}
-              onMouseLeave={handleDropdownLeave}
-            >
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveNav("Jurusan Kami");
-                  navigateToSection("jurusan-section");
-                }}
-                className={`flex items-center gap-1.5 hover:text-zinc-950 transition cursor-pointer py-1 whitespace-nowrap ${
-                  activeNav === "Jurusan Kami" ? "text-[#8B1A2F] font-bold" : ""
-                }`}
-              >
-                <span className="whitespace-nowrap">Jurusan Kami</span>
-                <ChevronDown
-                  className={`w-3.5 h-3.5 text-zinc-400 transition-transform duration-200 shrink-0 ${
-                    openDropdown === "jurusan" ? "rotate-180 text-zinc-800" : ""
-                  }`}
-                />
-              </button>
-
-              {openDropdown === "jurusan" && (
-                <div
-                  className="absolute top-full left-0 pt-2 w-64 z-50 animate-in fade-in slide-in-from-top-1 duration-150"
-                  onMouseEnter={handleDropdownEnter}
-                  onMouseLeave={handleDropdownLeave}
-                >
-                  {/* Dropdown Card with hover bridge before pseudo-element */}
-                  <div className="bg-white/98 backdrop-blur-xl border border-zinc-200/90 rounded-2xl shadow-xl p-2 relative before:absolute before:-top-3 before:left-0 before:right-0 before:h-3 before:content-[''] space-y-1">
-                    <Link
-                      href="/jurusan/rpl"
-                      onClick={() => setOpenDropdown(null)}
-                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-[#8B1A2F]/5 hover:text-[#8B1A2F] transition cursor-pointer group"
-                    >
-                      <span>Rekayasa Perangkat Lunak (RPL)</span>
-                      <Image
-                        src="/icons/arrowright.svg"
-                        alt="Arrow"
-                        width={14}
-                        height={14}
-                        className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all object-contain"
-                      />
-                    </Link>
-                    <Link
-                      href="/jurusan/tkj"
-                      onClick={() => setOpenDropdown(null)}
-                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-[#8B1A2F]/5 hover:text-[#8B1A2F] transition cursor-pointer group"
-                    >
-                      <span>Teknik Komputer Jaringan (TKJ)</span>
-                      <Image
-                        src="/icons/arrowright.svg"
-                        alt="Arrow"
-                        width={14}
-                        height={14}
-                        className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all object-contain"
-                      />
-                    </Link>
-                    <Link
-                      href="/jurusan/analis-kimia"
-                      onClick={() => setOpenDropdown(null)}
-                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-[#8B1A2F]/5 hover:text-[#8B1A2F] transition cursor-pointer group"
-                    >
-                      <span>Analis Kimia (4 Tahun)</span>
-                      <Image
-                        src="/icons/arrowright.svg"
-                        alt="Arrow"
-                        width={14}
-                        height={14}
-                        className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all object-contain"
-                      />
-                    </Link>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 5. Kontak → scroll ke #footer */}
+            {/* 4. Kontak → scroll ke #footer */}
             <a
               href="#footer"
               onClick={(e) => {
@@ -449,7 +329,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
       {/* Mobile Dropdown Panel */}
       {isMobileMenuOpen && (
         <div className="md:hidden mt-2 bg-white/95 backdrop-blur-xl border border-zinc-200/80 rounded-3xl p-4 shadow-xl space-y-2 animate-in fade-in duration-200">
-          {["Beranda", "Galeri Karya", "Tentang Kami", "Jurusan Kami", "Kontak"].map(
+          {["Beranda", "Karya Kami", "Tentang Kami", "Kontak"].map(
             (item) => (
               <button
                 key={item}
@@ -463,16 +343,10 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
                     } else {
                       router.push("/");
                     }
-                  } else if (item === "Galeri Karya") {
+                  } else if (item === "Karya Kami") {
                     navigateToSection("galeri-section");
                   } else if (item === "Tentang Kami") {
                     navigateToSection("tentang-section");
-                  } else if (item === "Jurusan Kami") {
-                    if (pathname === "/") {
-                      navigateToSection("jurusan-section");
-                    } else {
-                      router.push("/jurusan/rpl");
-                    }
                   } else if (item === "Kontak") {
                     if (pathname !== "/") {
                       router.push("/#footer");

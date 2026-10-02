@@ -5,21 +5,30 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
 import { getDashboardUrl } from "@/lib/auth"
-import {
-  ArrowRight,
-  Sparkles,
-  Lock,
-  User,
-  Eye,
-  EyeOff,
-  AlertCircle,
-  GraduationCap,
-  ShieldCheck,
-  Building2,
-  BookOpen,
-  Briefcase,
-  CheckCircle2,
-} from "lucide-react"
+import { Eye, EyeOff, AlertCircle, ArrowLeft } from "lucide-react"
+
+function GoogleIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24">
+      <path
+        fill="#4285F4"
+        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+      />
+    </svg>
+  )
+}
 
 function LoginFormContent() {
   const router = useRouter()
@@ -32,55 +41,6 @@ function LoginFormContent() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
-  // Demo accounts for instant testing of all 5 roles
-  const demoAccounts = [
-    {
-      roleName: "Students",
-      icon: GraduationCap,
-      color: "from-rose-500 to-pink-600",
-      username: "siswa13",
-      email: "siswa@smkn13bdg.sch.id",
-      role: "student",
-    },
-    {
-      roleName: "Admin",
-      icon: ShieldCheck,
-      color: "from-[#891337] to-[#a61743]",
-      username: "admin13",
-      email: "admin@smkn13bdg.sch.id",
-      role: "admin",
-    },
-    {
-      roleName: "Company",
-      icon: Building2,
-      color: "from-blue-600 to-indigo-700",
-      username: "mitra_perusahaan",
-      email: "hr@mitrainovasi.co.id",
-      role: "company",
-    },
-    {
-      roleName: "Teacher",
-      icon: BookOpen,
-      color: "from-amber-600 to-orange-600",
-      username: "guru13",
-      email: "guru@smkn13bdg.sch.id",
-      role: "teacher",
-    },
-    {
-      roleName: "BKK",
-      icon: Briefcase,
-      color: "from-emerald-600 to-teal-700",
-      username: "bkk13",
-      email: "bkk@smkn13bdg.sch.id",
-      role: "bkk",
-    },
-  ]
-
-  const handleSelectDemo = (username: string) => {
-    setIdentifier(username)
-    setPassword("password123")
-    setError("")
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -95,7 +55,7 @@ function LoginFormContent() {
       })
 
       if (res?.error) {
-        setError("Kredensial tidak valid. Silakan periksa username/email dan password Anda.")
+        setError("Kredensial tidak valid. Silakan periksa email/username dan password Anda.")
         setLoading(false)
         return
       }
@@ -105,7 +65,8 @@ function LoginFormContent() {
       const sessionData = await sessionRes.json()
 
       const userRole = sessionData?.user?.role || "student"
-      const normalizedRole = userRole.toLowerCase() === "students" ? "student" : userRole.toLowerCase()
+      const normalizedRole =
+        userRole.toLowerCase() === "students" ? "student" : userRole.toLowerCase()
       const verificationStatus = sessionData?.user?.verificationStatus as string | null
 
       // Khusus company: cek status verifikasi sebelum redirect ke dashboard
@@ -118,11 +79,11 @@ function LoginFormContent() {
           router.push("/mitra/ditolak")
           return
         }
-        // verificationStatus === "disetujui" → lanjut ke dashboard
       }
 
-      // Redirect ke dashboard sesuai role
-      router.push(`/${normalizedRole}`)
+      // Redirect ke dashboard sesuai role atau callbackUrl
+      const dest = callbackUrl || getDashboardUrl(normalizedRole)
+      router.push(dest)
       router.refresh()
     } catch (err) {
       setError("Terjadi kesalahan saat masuk. Silakan coba lagi.")
@@ -131,238 +92,198 @@ function LoginFormContent() {
   }
 
   return (
-    <main className="flex-1 flex items-center justify-center p-4 sm:p-6 my-8 z-10">
-      <div className="bg-white/95 backdrop-blur-xl rounded-3xl border border-zinc-200/90 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.09)] max-w-4xl w-full grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
+    <div
+      suppressHydrationWarning
+      className="relative min-h-screen w-full bg-[#a61743] flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans selection:bg-[#a61743] selection:text-white overflow-hidden"
+    >
+      {/* Background Graphic Design: Diagonal rounded pills matching reference in white & maroon theme */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
+        <svg
+          className="absolute inset-0 w-full h-full"
+          viewBox="0 0 1440 900"
+          preserveAspectRatio="xMidYMid slice"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <linearGradient id="whitePillBright" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.55" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.28" />
+            </linearGradient>
+            <linearGradient id="whitePillMedium" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.42" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.18" />
+            </linearGradient>
+            <linearGradient id="whitePillSoft" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.32" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.12" />
+            </linearGradient>
+          </defs>
+
+          {/* Top-Left Diagonal Rounded Pills (Crisp White) */}
+          <g transform="rotate(-35 250 200)">
+            <rect x="-180" y="-140" width="130" height="640" rx="65" fill="url(#whitePillMedium)" />
+            <rect x="0" y="-180" width="160" height="740" rx="80" fill="url(#whitePillBright)" />
+            <rect x="210" y="-100" width="110" height="520" rx="55" fill="url(#whitePillMedium)" />
+            <rect x="360" y="-50" width="75" height="380" rx="37.5" fill="url(#whitePillSoft)" />
+          </g>
+
+          {/* Bottom-Right Diagonal Rounded Pills (Crisp White) */}
+          <g transform="rotate(-35 1200 700)">
+            <rect x="960" y="440" width="80" height="460" rx="40" fill="url(#whitePillSoft)" />
+            <rect x="1080" y="340" width="130" height="620" rx="65" fill="url(#whitePillMedium)" />
+            <rect x="1250" y="260" width="165" height="760" rx="82.5" fill="url(#whitePillBright)" />
+            <rect x="1460" y="320" width="140" height="660" rx="70" fill="url(#whitePillMedium)" />
+          </g>
+        </svg>
+      </div>
+
+      {/* Main Floating Card */}
+      <div className="relative z-10 w-full max-w-5xl xl:max-w-6xl bg-white rounded-3xl lg:rounded-[32px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] border border-white/40 p-6 sm:p-8 lg:p-10 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
         
-        {/* Left Column: Form Section */}
-        <div className="lg:col-span-7 p-6 sm:p-10 flex flex-col justify-center">
-          <div className="mb-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 border border-rose-100 text-[#90133b] text-xs font-bold mb-3">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Portal Masuk Multi-Role</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight">
-              Selamat Datang Kembali
-            </h1>
-            <p className="text-xs sm:text-sm text-zinc-600 mt-1">
-              Akses dashboard khusus sesuai dengan peran Anda di Kandaga SMKN 13 Bandung.
-            </p>
+        {/* Left Column: Login Form */}
+        <div className="w-full flex flex-col justify-between py-2 sm:py-4">
+          {/* Top Header: Back Link */}
+          <div className="flex items-center mb-6">
+            <Link
+              href="/"
+              aria-label="Kembali"
+              className="w-8 h-8 rounded-md bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center text-zinc-600 hover:text-zinc-900 transition shadow-2xs"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Link>
           </div>
 
-          {/* Error Message Banner */}
-          {error && (
-            <div className="mb-5 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2.5 animate-in fade-in">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
+          {/* Form Content */}
+          <div className="w-full max-w-[380px] mx-auto">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">
+              Selamat Datang Kembali
+            </h1>
+            <p className="text-sm text-zinc-500 mt-2 mb-6">
+              Masuk untuk mengakses portofolio dan dashboard Anda.
+            </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider mb-1.5">
-                Username / Email
-              </label>
-              <div className="relative">
-                <User className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            {/* Error Alert */}
+            {error && (
+              <div className="mb-5 p-3 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-center gap-2 animate-in fade-in">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {/* Google OAuth Button */}
+            <button
+              type="button"
+              onClick={() => signIn("google", { callbackUrl: callbackUrl || "/student" })}
+              className="w-full py-2.5 px-4 rounded-md border border-zinc-200/90 hover:bg-zinc-50 hover:border-zinc-300 font-medium text-sm text-zinc-700 flex items-center justify-center gap-2.5 transition shadow-xs cursor-pointer"
+            >
+              <GoogleIcon className="w-4 h-4" />
+              <span>Lanjutkan dengan Google</span>
+            </button>
+
+            {/* Divider */}
+            <div className="relative my-5 text-center">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-zinc-200" />
+              </div>
+              <span className="relative bg-white px-3 text-xs text-zinc-400 font-normal">
+                atau dengan email
+              </span>
+            </div>
+
+            {/* Login Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-zinc-700 mb-1.5">
+                  Email / Username
+                </label>
                 <input
                   type="text"
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder="Masukkan username atau email"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#90133b] transition bg-zinc-50/50"
+                  placeholder="nama@email.com atau username"
+                  className="w-full px-3.5 py-2.5 rounded-md border border-zinc-200 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#a61743]/15 focus:border-[#a61743] transition bg-white"
                   required
                 />
               </div>
-            </div>
 
-            <div>
-              <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider mb-1.5">
-                Kata Sandi
-              </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pl-10 pr-10 py-3 rounded-xl border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#90133b] transition bg-zinc-50/50"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700"
+              <div>
+                <label className="block text-xs font-semibold text-zinc-700 mb-1.5">
+                  Kata Sandi
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Masukkan kata sandi"
+                    className="w-full px-3.5 py-2.5 pr-10 rounded-md border border-zinc-200 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#a61743]/15 focus:border-[#a61743] transition bg-white"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition cursor-pointer"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#242c4b] hover:bg-[#1a2038] text-white py-3 rounded-md text-sm font-semibold transition-colors duration-150 flex items-center justify-center gap-2 disabled:opacity-70 cursor-pointer mt-1 shadow-xs"
+              >
+                {loading ? "Memproses..." : "Masuk"}
+              </button>
+            </form>
+
+            {/* Account Registration Links */}
+            <div className="text-center text-xs text-zinc-500 mt-5 space-y-1.5">
+              <p>
+                Belum punya akun?{" "}
+                <Link
+                  href="/auth/register"
+                  className="font-semibold text-[#a61743] underline underline-offset-2 hover:text-[#8B1A2F] transition"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
+                  Daftar sekarang
+                </Link>
+              </p>
+              <p className="text-[11px] text-zinc-400">
+                Mitra perusahaan?{" "}
+                <Link href="/mitra/daftar" className="text-[#a61743] hover:underline font-medium transition">
+                  Daftar sebagai mitra
+                </Link>
+              </p>
             </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-[#891337] to-[#a61743] hover:from-[#76102f] hover:to-[#92143b] text-white py-3.5 rounded-xl text-sm font-bold tracking-wide transition-all shadow-md shadow-[#891337]/30 cursor-pointer active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70"
-            >
-              {loading ? (
-                <span>Memproses...</span>
-              ) : (
-                <>
-                  <span>Masuk Ke Dashboard</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* OAuth Login Divider */}
-          <div className="relative my-6 text-center">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-zinc-200" />
-            </div>
-            <span className="relative bg-white px-3 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-              Atau Masuk Dengan
-            </span>
           </div>
-
-          {/* OAuth Buttons (Google, GitHub, Facebook, LinkedIn) */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <button
-              type="button"
-              onClick={() => signIn("google", { callbackUrl: "/student" })}
-              className="py-2.5 px-3 border border-zinc-200 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 transition flex items-center justify-center gap-1.5"
-            >
-              <span>Google</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => signIn("github", { callbackUrl: "/student" })}
-              className="py-2.5 px-3 border border-zinc-200 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 transition flex items-center justify-center gap-1.5"
-            >
-              <span>GitHub</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => signIn("facebook", { callbackUrl: "/student" })}
-              className="py-2.5 px-3 border border-zinc-200 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 transition flex items-center justify-center gap-1.5"
-            >
-              <span>Facebook</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => signIn("linkedin", { callbackUrl: "/student" })}
-              className="py-2.5 px-3 border border-zinc-200 rounded-xl text-xs font-semibold text-zinc-700 hover:bg-zinc-50 transition flex items-center justify-center gap-1.5"
-            >
-              <span>LinkedIn</span>
-            </button>
-          </div>
-
-          <p className="text-center text-xs text-zinc-500 mt-6">
-            Belum memiliki akun Kandaga?{" "}
-            <Link href="/auth/register" className="font-bold text-[#90133b] hover:underline">
-              Daftar sekarang
-            </Link>
-            {" · "}
-            <Link href="/mitra/daftar" className="font-bold text-blue-700 hover:underline">
-              Daftar sebagai Mitra
-            </Link>
-          </p>
         </div>
 
-        {/* Right Column: Role Quick Select Shortcuts Panel */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-zinc-900 via-zinc-950 to-[#3b0818] p-6 sm:p-8 text-white flex flex-col justify-between border-t lg:border-t-0 lg:border-l border-zinc-800">
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-full bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-300">
-                <ShieldCheck className="w-4 h-4" />
-              </div>
-              <span className="text-xs font-extrabold uppercase tracking-widest text-rose-300">
-                Uji Coba 5 Peran (Roles)
-              </span>
-            </div>
-
-            <h2 className="text-xl font-bold tracking-tight mb-2">
-              Uji Akses Cepat Per-Role
-            </h2>
-            <p className="text-xs text-zinc-400 leading-relaxed mb-6">
-              Klik salah satu role di bawah untuk mengisi kredensial secara otomatis dan menguji halaman khusus role tersebut:
-            </p>
-
-            <div className="space-y-2.5">
-              {demoAccounts.map((acc) => {
-                const Icon = acc.icon
-                const isSelected = identifier === acc.username
-                return (
-                  <button
-                    key={acc.role}
-                    type="button"
-                    onClick={() => handleSelectDemo(acc.username)}
-                    className={`w-full text-left p-3 rounded-2xl border transition flex items-center justify-between cursor-pointer ${
-                      isSelected
-                        ? "bg-rose-950/60 border-rose-500 text-white shadow-lg"
-                        : "bg-white/5 border-white/10 text-zinc-300 hover:bg-white/10 hover:border-white/20"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-xl bg-gradient-to-r ${acc.color} flex items-center justify-center text-white shrink-0 shadow-sm`}>
-                        <Icon className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-white">{acc.roleName}</span>
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-zinc-300 font-mono">
-                            {acc.role}
-                          </span>
-                        </div>
-                        <span className="text-[11px] text-zinc-400 font-mono block">
-                          {acc.username}
-                        </span>
-                      </div>
-                    </div>
-                    {isSelected ? (
-                      <CheckCircle2 className="w-4 h-4 text-rose-400" />
-                    ) : (
-                      <span className="text-[11px] font-medium text-rose-400 opacity-80">
-                        Pilih
-                      </span>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          <div className="mt-8 pt-4 border-t border-white/10 text-[11px] text-zinc-400 flex items-center justify-between">
-            <span>Password Demo: <code className="text-rose-300 font-mono">password123</code></span>
-            <span className="text-zinc-500">Kandaga v2.6</span>
+        {/* Right Column: Reserved empty card container for custom design */}
+        <div className="hidden lg:flex w-full h-full min-h-[560px] rounded-2xl lg:rounded-[28px] bg-[#9c153e] relative overflow-hidden items-center justify-center p-8 text-white">
+          {/* Empty area reserved for user's design */}
+          <div className="relative z-10 w-full h-full flex items-center justify-center">
+            {/* Bagian kanan dikosongkan untuk ditaruh design */}
           </div>
         </div>
 
       </div>
-    </main>
+    </div>
   )
 }
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-[#fafafc] text-zinc-900 font-sans selection:bg-[#90133b] selection:text-white flex flex-col justify-between relative overflow-hidden">
-      {/* Background Decorative Gradients */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-gradient-to-b from-rose-100/40 via-pink-50/20 to-transparent blur-3xl pointer-events-none" />
-
-
-      {/* Main Login Card Section wrapped in Suspense */}
-      <Suspense fallback={
-        <main className="flex-1 flex items-center justify-center p-4 sm:p-6 my-8 z-10">
-          <div className="text-center py-12 text-zinc-500 text-sm">Memuat portal login...</div>
-        </main>
-      }>
-        <LoginFormContent />
-      </Suspense>
-
-      {/* Footer */}
-      <footer className="py-4 text-center text-xs text-zinc-500 border-t border-zinc-200/60">
-        © {new Date().getFullYear()} SMKN 13 Bandung • Major Gallery & Industrial Portal
-      </footer>
-    </div>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#a61743] text-white text-sm">
+          Memuat...
+        </div>
+      }
+    >
+      <LoginFormContent />
+    </Suspense>
   )
 }
