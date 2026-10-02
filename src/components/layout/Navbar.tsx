@@ -19,6 +19,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
+import { getDashboardUrl } from "@/lib/auth";
 
 export interface NavbarProps {
   onOpenLogin?: () => void;
@@ -271,7 +272,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
                   </div>
 
                   <Link
-                    href={`/${normalizedRole}/dashboard`}
+                    href={getDashboardUrl(normalizedRole)}
                     onClick={() => setIsProfileOpen(false)}
                     className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-zinc-800 hover:bg-[#891337]/10 hover:text-[#891337] transition cursor-pointer"
                   >
@@ -378,7 +379,7 @@ export default function Navbar({ onOpenLogin, onSelectCategory }: NavbarProps) {
             </button>
             {status === "authenticated" && session?.user ? (
               <Link
-                href={`/${normalizedRole}/dashboard`}
+                href={getDashboardUrl(normalizedRole)}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="bg-[#90133b] text-white px-5 py-1.5 rounded-full text-xs font-bold cursor-pointer"
               >
