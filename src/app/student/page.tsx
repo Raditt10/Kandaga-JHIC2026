@@ -2,6 +2,7 @@
 
 import React, { useState } from "react"
 import DashboardLayout, { DashboardTab } from "@/components/DashboardLayout"
+import AccountSettings from "@/components/settings/AccountSettings"
 import { useSession } from "next-auth/react"
 import {
   GraduationCap,
@@ -27,7 +28,8 @@ import {
   AlertCircle,
   Building2,
   ChevronRight,
-  BookOpen
+  BookOpen,
+  Settings
 } from "lucide-react"
 
 export interface StudentProject {
@@ -232,6 +234,11 @@ export default function StudentDashboardPage() {
       id: "profil",
       label: "Profil Siswa",
       icon: User,
+    },
+    {
+      id: "pengaturan",
+      label: "Pengaturan",
+      icon: Settings,
     },
   ]
 
@@ -841,6 +848,8 @@ export default function StudentDashboardPage() {
           </div>
         </div>
       )}
+      {/* ──────────────── TAB 5: PENGATURAN AKUN ──────────────── */}
+      {activeTab === "pengaturan" && <AccountSettings />}
     </DashboardLayout>
   )
 }

@@ -24,6 +24,7 @@ import {
   Building2,
   LayoutDashboard,
   MessageSquare,
+  Settings,
   ShieldCheck,
 } from "lucide-react"
 import DashboardShell, {
@@ -70,6 +71,14 @@ export default function BKKLayout({
   return (
     <DashboardShell
       navItems={NAV_ITEMS}
+      settingsItems={[
+        {
+          key: "pengaturan",
+          label: "Pengaturan",
+          href: "/bkk/pengaturan",
+          icon: Settings,
+        },
+      ]}
       roleLabel="Koordinator BKK"
       roleIcon={Briefcase}
       searchPlaceholder="Cari perusahaan, permintaan kontak, atau siswa..."

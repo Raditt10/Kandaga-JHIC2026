@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import DashboardLayout, { DashboardTab } from "@/components/DashboardLayout"
+import AccountSettings from "@/components/settings/AccountSettings"
 import { useSession } from "next-auth/react"
 import {
   BookOpen,
@@ -21,7 +22,8 @@ import {
   FlaskConical,
   Wifi,
   Filter,
-  X
+  X,
+  Settings
 } from "lucide-react"
 
 // ── Tipe data dari /api/teacher/projects ────────────────────────────────
@@ -259,6 +261,11 @@ export default function TeacherDashboardPage() {
       label: "Riwayat Kurasi",
       icon: History,
       badge: `${verifiedHistory.length}`,
+    },
+    {
+      id: "pengaturan",
+      label: "Pengaturan",
+      icon: Settings,
     },
   ]
 
@@ -727,6 +734,8 @@ export default function TeacherDashboardPage() {
           </div>
         </div>
       )}
+      {/* ──────────────── TAB 5: PENGATURAN AKUN ──────────────── */}
+      {activeTab === "pengaturan" && <AccountSettings />}
     </DashboardLayout>
   )
 }

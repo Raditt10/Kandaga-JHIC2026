@@ -23,6 +23,7 @@ import {
   ClipboardList,
   LayoutDashboard,
   Search,
+  Settings,
   User,
 } from "lucide-react"
 import DashboardShell, {
@@ -79,6 +80,14 @@ export default function CompanyLayout({
   return (
     <DashboardShell
       navItems={NAV_ITEMS}
+      settingsItems={[
+        {
+          key: "pengaturan",
+          label: "Pengaturan",
+          href: "/company/pengaturan",
+          icon: Settings,
+        },
+      ]}
       roleLabel="Mitra Perusahaan"
       roleIcon={Building2}
       searchPlaceholder="Cari karya siswa atau talenta tersimpan..."
