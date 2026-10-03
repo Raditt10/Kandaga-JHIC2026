@@ -29,11 +29,17 @@ export interface DashboardTab {
 interface DashboardLayoutProps {
   roleTitle: string
   roleSlug: "student" | "admin" | "company" | "teacher" | "bkk"
-  badgeColor: string
+  /** Gradien aksen chip ikon peran. Opsional — default aksen Kandaga. */
+  badgeColor?: string
   icon: React.ElementType
   tabs?: DashboardTab[]
   activeTab?: string
   onTabChange?: (tabId: string) => void
+  /**
+   * Judul halaman untuk breadcrumb. Dipakai halaman yang berdiri sendiri
+   * (mis. /student/create-project) — bukan halaman bertab.
+   */
+  pageTitle?: string
   children: React.ReactNode
 }
 
@@ -45,6 +51,7 @@ export default function DashboardLayout({
   tabs = [],
   activeTab,
   onTabChange,
+  pageTitle,
   children,
 }: DashboardLayoutProps) {
   const navItems: ShellNavItem[] = tabs.map((tab) => ({
@@ -69,6 +76,8 @@ export default function DashboardLayout({
       roleAccent={badgeColor}
       navSectionLabel="Menu Navigasi"
       searchPlaceholder={searchPlaceholder}
+      pageTitle={pageTitle}
+      breadcrumbHref={`/${roleSlug}`}
     >
       {children}
     </DashboardShell>
