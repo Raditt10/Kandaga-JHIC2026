@@ -92,7 +92,7 @@ type TNotif = {
   createdAt: string
 }
 
-const DEFAULT_ACCENT = "from-[#891337] to-[#a61743]"
+const DEFAULT_ACCENT = "from-primary to-primary-dark"
 
 export default function DashboardShell({
   navItems,
@@ -168,12 +168,12 @@ export default function DashboardShell({
   }
 
   return (
-    <div className="min-h-screen w-full bg-white flex flex-col xl:flex-row font-sans antialiased text-slate-800">
+    <div className="min-h-screen w-full bg-white flex flex-col xl:flex-row font-sans antialiased text-ink">
       {/* ──────────────── 1. SIDEBAR ──────────────── */}
       <aside
         className={`w-full ${
           isSidebarCollapsed ? "xl:w-20 px-3 py-6" : "xl:w-64 2xl:w-72 p-6"
-        } shrink-0 border-b xl:border-b-0 xl:border-r border-slate-100 flex flex-col justify-between bg-white transition-all duration-300 ease-in-out xl:sticky xl:top-0 xl:h-screen xl:self-start xl:overflow-y-auto`}
+        } shrink-0 border-b xl:border-b-0 xl:border-r border-ink-150 flex flex-col justify-between bg-white transition-all duration-300 ease-in-out xl:sticky xl:top-0 xl:h-screen xl:self-start xl:overflow-y-auto`}
       >
         <div>
           {/* Brand + tombol lipat sidebar */}
@@ -189,7 +189,7 @@ export default function DashboardShell({
               aria-label="Beranda Kandaga"
               className="flex items-center gap-2 group shrink-0"
             >
-              <div className="w-8 h-8 relative rounded-full overflow-hidden shadow-xs ring-1 ring-zinc-900/5 transition-transform duration-200 group-hover:scale-105 shrink-0">
+              <div className="w-8 h-8 relative rounded-full overflow-hidden shadow-xs ring-1 ring-ink/5 transition-transform duration-200 group-hover:scale-105 shrink-0">
                 <Image
                   src="/logo.png"
                   alt="Kandaga Logo"
@@ -199,7 +199,7 @@ export default function DashboardShell({
                 />
               </div>
               {!isSidebarCollapsed && (
-                <span className="select-none font-bold text-base sm:text-lg tracking-tight bg-gradient-to-r from-zinc-950 via-[#4e0e20] to-[#a61743] bg-clip-text text-transparent group-hover:from-zinc-900 group-hover:to-[#b81d4a] transition-all duration-300 whitespace-nowrap">
+                <span className="select-none font-bold text-base sm:text-lg tracking-tight bg-gradient-to-r from-ink via-[#4e0e20] to-primary-dark bg-clip-text text-transparent group-hover:from-ink-700 group-hover:to-[#b81d4a] transition-all duration-300 whitespace-nowrap">
                   KANDAGA
                 </span>
               )}
@@ -208,14 +208,14 @@ export default function DashboardShell({
             <button
               type="button"
               onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              className="hidden xl:block p-1.5 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer shrink-0"
+              className="hidden xl:block p-1.5 rounded-xl text-ink-600 hover:text-ink hover:bg-ink-100 transition cursor-pointer shrink-0"
               title={isSidebarCollapsed ? "Perbesar Sidebar" : "Perkecil Sidebar"}
               aria-label={isSidebarCollapsed ? "Perbesar Sidebar" : "Perkecil Sidebar"}
             >
               {isSidebarCollapsed ? (
-                <PanelLeftOpen className="w-5 h-5 text-slate-600" />
+                <PanelLeftOpen className="w-5 h-5 text-ink-600" />
               ) : (
-                <PanelLeftClose className="w-5 h-5 text-slate-600" />
+                <PanelLeftClose className="w-5 h-5 text-ink-600" />
               )}
             </button>
           </div>
@@ -223,7 +223,7 @@ export default function DashboardShell({
           {/* Navigasi utama */}
           <div className="mb-7">
             {!isSidebarCollapsed && (
-              <span className="block text-[11px] font-bold text-slate-400 tracking-wider uppercase mb-3 px-3">
+              <span className="block text-[11px] font-bold text-ink-600 tracking-wider uppercase mb-3 px-3">
                 {navSectionLabel}
               </span>
             )}
@@ -238,8 +238,8 @@ export default function DashboardShell({
                     : "justify-between px-3.5 py-2.5"
                 } rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   isActive
-                    ? "bg-slate-100 text-[#891337] font-bold shadow-2xs"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    ? "bg-ink-100 text-primary font-bold shadow-2xs"
+                    : "text-ink-600 hover:bg-ink-100 hover:text-ink"
                 }`
 
                 const content = (
@@ -251,7 +251,7 @@ export default function DashboardShell({
                     >
                       <Icon
                         className={`w-4 h-4 shrink-0 ${
-                          isActive ? "text-[#891337]" : "text-slate-400"
+                          isActive ? "text-primary" : "text-ink-600"
                         }`}
                         aria-hidden="true"
                       />
@@ -263,15 +263,15 @@ export default function DashboardShell({
                       <span
                         className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
                           isActive
-                            ? "bg-[#891337]/10 text-[#891337]"
-                            : "bg-slate-100 text-slate-500"
+                            ? "bg-primary/10 text-primary"
+                            : "bg-ink-100 text-ink-600"
                         }`}
                       >
                         {item.badge}
                       </span>
                     )}
                     {isSidebarCollapsed && item.badge && (
-                      <span className="hidden xl:block absolute top-2 right-2 w-2 h-2 rounded-full bg-[#891337]" />
+                      <span className="hidden xl:block absolute top-2 right-2 w-2 h-2 rounded-full bg-primary" />
                     )}
                   </>
                 )
@@ -308,9 +308,9 @@ export default function DashboardShell({
         </div>
 
         {/* Bagian bawah: akses web + keluar */}
-        <div className="pt-4 border-t border-slate-100 space-y-1">
+        <div className="pt-4 border-t border-ink-150 space-y-1">
           {!isSidebarCollapsed && (
-            <span className="block text-[11px] font-bold text-slate-400 tracking-wider uppercase mb-2 px-3">
+            <span className="block text-[11px] font-bold text-ink-600 tracking-wider uppercase mb-2 px-3">
               SETTINGS
             </span>
           )}
@@ -335,13 +335,13 @@ export default function DashboardShell({
                     : "gap-3 px-3.5 py-2"
                 } rounded-xl text-xs font-semibold transition ${
                   active
-                    ? "bg-slate-100 text-[#891337] font-bold shadow-2xs"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    ? "bg-ink-100 text-primary font-bold shadow-2xs"
+                    : "text-ink-600 hover:bg-ink-100 hover:text-ink"
                 }`}
               >
                 <Icon
                   className={`w-4 h-4 shrink-0 ${
-                    active ? "text-[#891337]" : "text-slate-400"
+                    active ? "text-primary" : "text-ink-600"
                   }`}
                   aria-hidden="true"
                 />
@@ -359,9 +359,9 @@ export default function DashboardShell({
               isSidebarCollapsed
                 ? "xl:justify-center px-3 py-2.5"
                 : "gap-3 px-3.5 py-2"
-            } rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition`}
+            } rounded-xl text-xs font-semibold text-ink-600 hover:bg-ink-100 hover:text-ink transition`}
           >
-            <Settings className="w-4 h-4 text-slate-400 shrink-0" aria-hidden="true" />
+            <Settings className="w-4 h-4 text-ink-600 shrink-0" aria-hidden="true" />
             {!isSidebarCollapsed && (
               <span className="whitespace-nowrap">{settingsLabel}</span>
             )}
@@ -390,7 +390,7 @@ export default function DashboardShell({
         <div className="flex items-center justify-between gap-4">
           <form onSubmit={kirimPencarian} className="flex-1 relative max-w-lg">
             <Search
-              className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2"
+              className="w-4 h-4 text-ink-600 absolute left-4 top-1/2 -translate-y-1/2"
               aria-hidden="true"
             />
             <label className="sr-only" htmlFor="dashboard-search">
@@ -402,7 +402,7 @@ export default function DashboardShell({
               placeholder={searchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#891337]/15 focus:border-[#891337] transition"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-ink-100 border border-ink-150 text-xs text-ink placeholder:text-ink-600 focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-[#891337] transition"
             />
           </form>
 
@@ -420,34 +420,34 @@ export default function DashboardShell({
                   setNotifOpen((v) => !v)
                   if (!notifOpen) muatNotifikasi()
                 }}
-                className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-500 hover:text-slate-800 transition relative cursor-pointer"
+                className="w-9 h-9 rounded-xl bg-ink-100 hover:bg-ink-100 border border-ink-150 flex items-center justify-center text-ink-600 hover:text-ink transition relative cursor-pointer"
               >
                 <Bell className="w-4 h-4" aria-hidden="true" />
                 {unread > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-[#891337] text-white text-[9px] font-bold flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-primary text-white text-[9px] font-bold flex items-center justify-center">
                     {unread > 9 ? "9+" : unread}
                   </span>
                 )}
               </button>
 
               {notifOpen && (
-                <div className="absolute right-0 mt-2 w-80 max-w-[85vw] bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-                    <span className="text-xs font-bold text-slate-800">Notifikasi</span>
+                <div className="absolute right-0 mt-2 w-80 max-w-[85vw] bg-white border border-ink-150 rounded-2xl shadow-xl z-50 overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-ink-150">
+                    <span className="text-xs font-bold text-ink">Notifikasi</span>
                     {unread > 0 && (
                       <button
                         type="button"
                         onClick={() => tandaiDibaca()}
-                        className="text-[11px] font-semibold text-[#891337] hover:underline cursor-pointer"
+                        className="text-[11px] font-semibold text-primary hover:underline cursor-pointer"
                       >
                         Tandai semua dibaca
                       </button>
                     )}
                   </div>
 
-                  <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
+                  <div className="max-h-80 overflow-y-auto divide-y divide-ink-150">
                     {notifs.length === 0 ? (
-                      <p className="px-4 py-6 text-center text-xs text-slate-400">
+                      <p className="px-4 py-6 text-center text-xs text-ink-600">
                         Belum ada notifikasi.
                       </p>
                     ) : (
@@ -456,17 +456,17 @@ export default function DashboardShell({
                           key={n.id}
                           type="button"
                           onClick={() => !n.isRead && tandaiDibaca(n.id)}
-                          className={`w-full text-left px-4 py-3 hover:bg-slate-50 transition cursor-pointer ${
+                          className={`w-full text-left px-4 py-3 hover:bg-ink-100 transition cursor-pointer ${
                             n.isRead ? "" : "bg-rose-50/40"
                           }`}
                         >
-                          <span className="block text-xs font-bold text-slate-800">
+                          <span className="block text-xs font-bold text-ink">
                             {n.title}
                           </span>
-                          <span className="block text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                          <span className="block text-[11px] text-ink-600 mt-0.5 leading-relaxed">
                             {n.content}
                           </span>
-                          <span className="block text-[10px] text-slate-400 mt-1">
+                          <span className="block text-[10px] text-ink-600 mt-1">
                             {new Date(n.createdAt).toLocaleString("id-ID", {
                               day: "numeric",
                               month: "short",
@@ -492,14 +492,14 @@ export default function DashboardShell({
             )}
 
             <div className="flex items-center gap-2.5 pl-1">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#891337] to-[#a61743] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-primary-dark text-white flex items-center justify-center font-bold text-xs shadow-xs">
                 {userName.slice(0, 2).toUpperCase()}
               </div>
               <div className="hidden sm:block text-left">
-                <span className="block text-xs font-bold text-slate-900 leading-tight">
+                <span className="block text-xs font-bold text-ink leading-tight">
                   {userName}
                 </span>
-                <span className="block text-[10px] text-slate-400 font-medium">
+                <span className="block text-[10px] text-ink-600 font-medium">
                   {roleLabel}
                 </span>
               </div>
@@ -512,14 +512,14 @@ export default function DashboardShell({
           <div className="flex items-center gap-2 text-xs">
             <Link
               href={breadcrumbHref}
-              className="font-semibold text-slate-400 hover:text-slate-700 transition"
+              className="font-semibold text-ink-600 hover:text-ink-700 transition"
             >
               Dashboard
             </Link>
-            <span className="text-slate-300" aria-hidden="true">
+            <span className="text-ink-300" aria-hidden="true">
               /
             </span>
-            <span className="font-bold text-[#891337] bg-rose-50 px-2.5 py-1 rounded-lg">
+            <span className="font-bold text-primary bg-rose-50 px-2.5 py-1 rounded-lg">
               {pageTitle}
             </span>
           </div>

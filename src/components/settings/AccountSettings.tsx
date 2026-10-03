@@ -126,14 +126,14 @@ export default function AccountSettings() {
     }
   }
 
-  const kartu = "p-6 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-4"
-  const label = "block text-xs font-semibold text-slate-700 mb-1.5"
+  const kartu = "p-6 rounded-2xl bg-white border border-ink-150 shadow-xs space-y-4"
+  const label = "block text-xs font-semibold text-ink-700 mb-1.5"
   const input =
-    "w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#891337]/15 focus:border-[#891337] transition"
+    "w-full rounded-xl border border-ink-150 px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-600 focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-[#891337] transition"
 
   if (loading) {
     return (
-      <div className="p-6 rounded-2xl bg-white border border-slate-200/80 text-xs font-semibold text-slate-500 flex items-center gap-2 max-w-4xl">
+      <div className="p-6 rounded-2xl bg-white border border-ink-150 text-xs font-semibold text-ink-600 flex items-center gap-2 max-w-4xl">
         <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
         Memuat data akun…
       </div>
@@ -151,49 +151,49 @@ export default function AccountSettings() {
   return (
     <div className="space-y-6 max-w-4xl">
       {/* Header */}
-      <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
-        <h1 className="font-heading text-lg font-bold text-slate-900 flex items-center gap-2">
-          <Settings className="w-5 h-5 text-[#891337]" aria-hidden="true" />
+      <div className="p-5 rounded-2xl bg-white border border-ink-150 shadow-xs">
+        <h1 className="font-heading text-lg font-bold text-ink flex items-center gap-2">
+          <Settings className="w-5 h-5 text-primary" aria-hidden="true" />
           Pengaturan Akun
         </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-ink-600 mt-0.5">
           Data akun, nama tampilan, dan kata sandi Anda.
         </p>
       </div>
 
       {/* Ringkasan akun */}
       <div className={kartu}>
-        <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-          <UserCog className="w-4 h-4 text-slate-400" aria-hidden="true" />
+        <h2 className="text-sm font-bold text-ink flex items-center gap-2 border-b border-ink-150 pb-3">
+          <UserCog className="w-4 h-4 text-ink-600" aria-hidden="true" />
           Informasi Akun
         </h2>
 
         <dl className="grid gap-4 sm:grid-cols-2">
           <div>
-            <dt className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            <dt className="text-[11px] font-bold text-ink-600 uppercase tracking-wider">
               Nama Akun
             </dt>
-            <dd className="text-sm font-semibold text-slate-800 mt-1">{akun?.nama}</dd>
+            <dd className="text-sm font-semibold text-ink mt-1">{akun?.nama}</dd>
           </div>
           <div>
-            <dt className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            <dt className="text-[11px] font-bold text-ink-600 uppercase tracking-wider">
               Email
             </dt>
-            <dd className="text-sm font-semibold text-slate-800 mt-1">{akun?.email}</dd>
+            <dd className="text-sm font-semibold text-ink mt-1">{akun?.email}</dd>
           </div>
           <div>
-            <dt className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            <dt className="text-[11px] font-bold text-ink-600 uppercase tracking-wider">
               Peran
             </dt>
-            <dd className="text-sm font-semibold text-slate-800 mt-1">
+            <dd className="text-sm font-semibold text-ink mt-1">
               {ROLE_LABEL[akun?.role ?? ""] ?? akun?.role}
             </dd>
           </div>
           <div>
-            <dt className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            <dt className="text-[11px] font-bold text-ink-600 uppercase tracking-wider">
               Status
             </dt>
-            <dd className="text-sm font-semibold text-slate-800 mt-1 flex items-center gap-1.5">
+            <dd className="text-sm font-semibold text-ink mt-1 flex items-center gap-1.5">
               <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" aria-hidden="true" />
               {akun?.status === "aktif" ? "Aktif" : akun?.status}
             </dd>
@@ -201,10 +201,10 @@ export default function AccountSettings() {
 
           {detail.map((d) => (
             <div key={d.label}>
-              <dt className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              <dt className="text-[11px] font-bold text-ink-600 uppercase tracking-wider">
                 {d.label}
               </dt>
-              <dd className="text-sm font-semibold text-slate-800 mt-1">{d.value}</dd>
+              <dd className="text-sm font-semibold text-ink mt-1">{d.value}</dd>
             </div>
           ))}
         </dl>
@@ -212,7 +212,7 @@ export default function AccountSettings() {
 
       {/* Ubah nama */}
       <form onSubmit={ubahNama} className={kartu}>
-        <h2 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-3">
+        <h2 className="text-sm font-bold text-ink border-b border-ink-150 pb-3">
           Ubah Nama Akun
         </h2>
 
@@ -228,7 +228,7 @@ export default function AccountSettings() {
             className={input}
             placeholder="mis. siswa13"
           />
-          <p className="text-[11px] text-slate-500 mt-1.5">
+          <p className="text-[11px] text-ink-600 mt-1.5">
             Nama ini juga dipakai untuk login, jadi gunakan nama baru saat masuk berikutnya.
           </p>
         </div>
@@ -249,7 +249,7 @@ export default function AccountSettings() {
           <button
             type="submit"
             disabled={simpanNama}
-            className="px-5 py-2.5 rounded-xl bg-[#891337] hover:bg-[#6d0e2b] text-white text-xs font-bold transition cursor-pointer disabled:opacity-60 inline-flex items-center gap-2"
+            className="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs font-bold transition cursor-pointer disabled:opacity-60 inline-flex items-center gap-2"
           >
             {simpanNama ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
@@ -263,8 +263,8 @@ export default function AccountSettings() {
 
       {/* Ubah kata sandi */}
       <form onSubmit={ubahPassword} className={kartu}>
-        <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-          <KeyRound className="w-4 h-4 text-slate-400" aria-hidden="true" />
+        <h2 className="text-sm font-bold text-ink flex items-center gap-2 border-b border-ink-150 pb-3">
+          <KeyRound className="w-4 h-4 text-ink-600" aria-hidden="true" />
           Ubah Kata Sandi
         </h2>
 
@@ -310,7 +310,7 @@ export default function AccountSettings() {
           </div>
         </div>
 
-        <p className="text-[11px] text-slate-500">
+        <p className="text-[11px] text-ink-600">
           Minimal 8 karakter. Kata sandi lama diperlukan sebagai konfirmasi.
         </p>
 
@@ -330,7 +330,7 @@ export default function AccountSettings() {
           <button
             type="submit"
             disabled={simpanPassword}
-            className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition cursor-pointer disabled:opacity-60 inline-flex items-center gap-2"
+            className="px-5 py-2.5 rounded-xl bg-ink hover:bg-ink text-white text-xs font-bold transition cursor-pointer disabled:opacity-60 inline-flex items-center gap-2"
           >
             {simpanPassword ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
