@@ -1,6 +1,7 @@
 // prisma/seed.ts
 import { PrismaClient, Role, ProjectType } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import { seedDemoTambahan } from './seed-demo'
 
 const prisma = new PrismaClient()
 
@@ -299,6 +300,9 @@ async function main() {
     })
   }
   console.log(`  ✓ ${contactSeed.length} permintaan kontak (2 aktif, 2 riwayat)`)
+
+  // Isi tabel yang selama ini hanya dihapus tanpa pernah diisi (lihat seed-demo.ts)
+  await seedDemoTambahan(prisma)
 
   console.log('\n✅ Seeding completed!')
   console.log('─────────────────────────────────')
