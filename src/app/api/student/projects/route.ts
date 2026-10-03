@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { authOptions } from "@/lib/auth-options";
-import { getServerSession } from "next-auth/next";
+import { requireStudent } from "@/lib/api-auth";
 import type { ProjectType } from "@prisma/client";
 
 function mapMajorToProjectType(major: string): ProjectType {
@@ -106,12 +105,13 @@ function mapDatabaseProject(p: any) {
 }
 
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return NextResponse.json({ error: "Sesi login diperlukan" }, { status: 401 });
-  }
+  // Wajib role siswa. Tanpa cek ini, akun perusahaan/admin yang login bisa
+  // memanggil endpoint ini dan ensureStudentProfile() akan membuat baris
+  // `students` palsu untuk mereka.
+  const auth = await requireStudent();
+  if (auth.error) return auth.error;
 
-  const studentId = session.user.id;
+  const studentId = auth.userId;
 
   try {
     // Pastikan profil siswa sudah ada di tabel students
@@ -159,10 +159,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user?.id) {
-      return NextResponse.json({ error: "Sesi login diperlukan" }, { status: 401 });
-    }
+    const auth = await requireStudent();
+    if (auth.error) return auth.error;
 
     const body = await req.json();
 
@@ -170,7 +168,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Judul karya wajib diisi" }, { status: 400 });
     }
 
-    const studentId = session.user.id;
+    const studentId = auth.userId;
     const majorSlug = body.major || "rpl";
     const projectType = mapMajorToProjectType(majorSlug);
 

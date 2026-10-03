@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { authOptions } from "@/lib/auth-options";
-import { getServerSession } from "next-auth";
+import { requireStudent } from "@/lib/api-auth";
 import type { ProjectType } from "@prisma/client";
 
 function mapMajorToProjectType(major: string): ProjectType {
@@ -64,6 +63,11 @@ function mapDatabaseProject(p: any) {
 
 export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
+    // Sebelumnya endpoint ini terbuka tanpa login sama sekali — karya berstatus
+    // pending/privat bisa dibaca siapa pun yang menebak URL-nya.
+    const auth = await requireStudent();
+    if (auth.error) return auth.error;
+
     const { id } = await context.params;
     const project = await prisma.projects.findUnique({
       where: { id },
@@ -98,6 +102,10 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
       return NextResponse.json({ error: "Proyek tidak ditemukan" }, { status: 404 });
     }
 
+    if (project.studentId !== auth.userId) {
+      return NextResponse.json({ error: "Karya ini bukan milik Anda" }, { status: 403 });
+    }
+
     const mapped = mapDatabaseProject(project);
     return NextResponse.json({ success: true, project: mapped }, { status: 200 });
   } catch (error) {
@@ -108,10 +116,8 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
 
 export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user?.id) {
-      return NextResponse.json({ error: "Sesi login diperlukan" }, { status: 401 });
-    }
+    const auth = await requireStudent();
+    if (auth.error) return auth.error;
 
     const { id } = await context.params;
     const body = await req.json().catch(() => ({}));
@@ -122,6 +128,12 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
 
     if (!existing) {
       return NextResponse.json({ error: "Proyek tidak ditemukan" }, { status: 404 });
+    }
+
+    // Kepemilikan wajib dicek: sebelumnya siapa pun yang login bisa mengubah
+    // status privasi karya milik siswa lain.
+    if (existing.studentId !== auth.userId) {
+      return NextResponse.json({ error: "Karya ini bukan milik Anda" }, { status: 403 });
     }
 
     // Toggle atau gunakan nilai eksplisit
@@ -153,10 +165,8 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
 
 export async function PUT(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user?.id) {
-      return NextResponse.json({ error: "Sesi login diperlukan" }, { status: 401 });
-    }
+    const auth = await requireStudent();
+    if (auth.error) return auth.error;
 
     const { id } = await context.params;
     const body = await req.json();
@@ -167,6 +177,10 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
 
     if (!existing) {
       return NextResponse.json({ error: "Proyek tidak ditemukan" }, { status: 404 });
+    }
+
+    if (existing.studentId !== auth.userId) {
+      return NextResponse.json({ error: "Karya ini bukan milik Anda" }, { status: 403 });
     }
 
     const updateData: any = {};
@@ -249,10 +263,8 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
 
 export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user?.id) {
-      return NextResponse.json({ error: "Sesi login diperlukan" }, { status: 401 });
-    }
+    const auth = await requireStudent();
+    if (auth.error) return auth.error;
 
     const { id } = await context.params;
 
@@ -262,6 +274,12 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
 
     if (!existing) {
       return NextResponse.json({ error: "Proyek tidak ditemukan" }, { status: 404 });
+    }
+
+    // Tanpa cek ini, siapa pun yang punya sesi login bisa menghapus karya
+    // milik siswa lain hanya dengan menebak id-nya.
+    if (existing.studentId !== auth.userId) {
+      return NextResponse.json({ error: "Karya ini bukan milik Anda" }, { status: 403 });
     }
 
     await prisma.projects.delete({
