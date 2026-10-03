@@ -117,16 +117,16 @@ export const authOptions:NextAuthOptions = {
 
 
 /**
- * Normalisasi role string ke bentuk yang konsisten (lowercase singular).
- * Dipakai untuk menyamakan nilai dari DB dan dari token JWT.
+ * Normalisasi role string ke lowercase singular.
+ * Handle PascalCase dari Prisma enum (Student/Teacher/BKK/Company/Admin).
  */
 export function normalizeRole(role: string): string {
   const r = role.trim().toLowerCase()
   if (r === "students" || r === "student") return "student"
   if (r === "teachers" || r === "teacher") return "teacher"
-  if (r === "admin" || r === "administrator") return "admin"
-  if (r === "bkk") return "bkk"
-  if (r === "company" || r === "perusahaan") return "company"
+  if (r === "admin"    || r === "administrator") return "admin"
+  if (r === "bkk")     return "bkk"
+  if (r === "company"  || r === "perusahaan") return "company"
   return "student"
 }
 

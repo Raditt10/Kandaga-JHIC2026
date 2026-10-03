@@ -232,6 +232,8 @@ export default function KatalogPage() {
     });
   };
 
+  
+
   // ── Handle bookmark toggle ─────────────────────────────────────────
   const handleBookmarkToggle = async (projectId: string, current: boolean) => {
     const method = current ? "DELETE" : "POST";

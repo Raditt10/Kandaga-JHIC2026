@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { requireStudent } from "@/lib/api-auth";
 
 export async function POST(req: NextRequest) {
   try {
+    // Sebelumnya endpoint ini tidak memeriksa apa pun: siapa pun di internet
+    // bisa menulis berkas ke public/assets/uploads tanpa login.
+    const auth = await requireStudent();
+    if (auth.error) return auth.error;
+
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 

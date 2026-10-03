@@ -161,6 +161,8 @@ model Projects {
   publishedAt  DateTime?                @map("published_at") @db.Timestamptz
   viewCount    Int                      @default(0) @map("view_count")
   stars        Int                      @default(0)
+  /// Nilai kurasi dari guru pembimbing (0-100). Null = belum dinilai.
+  score        Int?
   deletedAt    DateTime?                @map("deleted_at") @db.Timestamptz
   createdAt    DateTime                 @default(now()) @map("created_at") @db.Timestamptz
   updatedAt    DateTime                 @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
@@ -183,11 +185,14 @@ model Projects {
   @@map("projects")
 }
 
+/**
+ * Fitur utama sebuah karya. Dipakai halaman pengajuan karya siswa
+ * (/student/create-project, /student/my-projects) — diambil dari den_gallery.
+ */
 model ProjectsMainFeatures {
   id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   projectId String @map("project_id") @db.Uuid
   feature   String
-  
   project Projects @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, feature])
@@ -210,6 +215,7 @@ model ProjectsMedia {
 model ProjectsTool {
   projectId String @map("project_id") @db.Uuid
   toolId    Int    @map("tool_id") @db.SmallInt
+  // Nama alat bebas yang diketik siswa, terpisah dari master SkillTool.
   name      String @map("tool_name")
 
   project Projects  @relation(fields: [projectId], references: [id], onDelete: Cascade)

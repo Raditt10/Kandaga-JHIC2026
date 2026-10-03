@@ -18,26 +18,31 @@ export async function GET(
             tool: true,
           },
         },
-        badges: {
-          include: {
-            badge: true,
-          },
-        },
         student: {
-          include: {
+          include:{
             user: true,
-            major: true,
-          },
+            major: true
+          }
         },
         advisor: {
-          include: {
-            user: true,
-          },
-        },
-      },
+          include:{
+            user: true
+          }
+        }
+      }
     });
 
-    if (dbProject) {
+    // Karya yang belum diverifikasi guru (atau sudah dihapus) tidak boleh
+    // dibuka lewat URL publik. Dikembalikan 404 — sengaja TIDAK jatuh ke
+    // data statis, supaya status verifikasi tidak bisa dilewati lewat link.
+    if (dbProject && (dbProject.status !== "approved" || dbProject.deletedAt)) {
+      return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+
+    if (!dbProject) {
+      return NextResponse.json({})
+    }
+
       const typeSlug = dbProject.type === "KA" ? "analis-kimia" : dbProject.type === "TKJ" ? "tkj" : "rpl";
       const typeLabel = dbProject.type === "KA" ? "Analis Kimia" : dbProject.type === "TKJ" ? "TKJ" : "RPL";
       const mediaUrls = (dbProject.media || []).map((m: any) => m.url);
@@ -80,14 +85,6 @@ export async function GET(
 
       return NextResponse.json({ project: mappedProject }, { status: 200 });
     }
-
-    // Fallback ke dataset mock terpusat
-    const staticProject = getProjectById(id);
-    if (staticProject) {
-      return NextResponse.json({ project: staticProject }, { status: 200 });
-    }
-
-    return NextResponse.json({ error: "Proyek tidak ditemukan" }, { status: 404 });
   } catch (error) {
     console.error("Error fetching project detail:", error);
     return NextResponse.json({ error: "Failed to fetch gallery project" }, { status: 500 });

@@ -1,33 +1,105 @@
-"use client";
+"use client"
 
-import React from "react";
-import AdminSidebar from "@/components/admin/AdminSidebar";
-import AdminHeader from "@/components/admin/AdminHeader";
-import { AdminNotificationProvider } from "@/context/AdminNotificationContext";
-import AdminNotificationModal from "@/components/admin/AdminNotificationModal";
-import AdminNotificationToast from "@/components/admin/AdminNotificationToast";
+/**
+ * AdminLayout — chrome dashboard Administrator.
+ *
+ * Seluruh struktur visual admin (sidebar terang yang bisa dilipat, header
+ * pencarian, kartu identitas pengguna, palet `slate` + aksen #891337) ada di
+ * `DashboardShell` supaya dipakai bersama dashboard Siswa, Guru, Perusahaan,
+ * dan BKK. File ini hanya mendefinisikan DAFTAR MENU khas administrator.
+ *
+ * Daftar menu diselaraskan dengan hasil merge branch `admin-section`:
+ * halaman Audit Log dihapus di sana dan digantikan halaman Pengaturan,
+ * ditambah Trend Karya, BLUD, dan Pendaftaran Mitra.
+ */
+
+import React from "react"
+import {
+  Briefcase,
+  FileCheck2,
+  Landmark,
+  LayoutDashboard,
+  Settings,
+  ShieldCheck,
+  TrendingUp,
+  UserPlus,
+  Users,
+} from "lucide-react"
+import DashboardShell, {
+  type ShellNavItem,
+} from "@/components/dashboard/DashboardShell"
+import { usersDatabase } from "@/lib/users"
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const navItems: ShellNavItem[] = [
+    {
+      key: "dashboard",
+      label: "Dashboard",
+      href: "/admin/dashboard",
+      icon: LayoutDashboard,
+      exact: true,
+    },
+    {
+      key: "pengguna",
+      label: "Kelola Pengguna",
+      href: "/admin/pengguna",
+      icon: Users,
+      badge: `${usersDatabase.length}`,
+    },
+    {
+      key: "moderasi",
+      label: "Kurasi Karya",
+      href: "/admin/moderasi",
+      icon: FileCheck2,
+    },
+    {
+      key: "trend-karya",
+      label: "Trend Karya",
+      href: "/admin/trend-karya",
+      icon: TrendingUp,
+    },
+    {
+      key: "blud",
+      label: "BLUD",
+      href: "/admin/blud",
+      icon: Landmark,
+    },
+    {
+      key: "bkk",
+      label: "BKK & Mitra",
+      href: "/admin/bkk",
+      icon: Briefcase,
+    },
+    {
+      key: "pendaftaran-mitra",
+      label: "Pendaftaran Mitra",
+      href: "/admin/pendaftaran-mitra",
+      icon: UserPlus,
+    },
+  ]
+
+  const settingsItems: ShellNavItem[] = [
+    {
+      key: "pengaturan",
+      label: "Pengaturan",
+      href: "/admin/pengaturan",
+      icon: Settings,
+    },
+  ]
+
   return (
-    <AdminNotificationProvider>
-      <div className="min-h-screen w-full bg-white flex flex-col xl:flex-row font-sans antialiased text-slate-800">
-        {/* ──────────────── 1. LEFT SIDEBAR ──────────────── */}
-        <AdminSidebar />
-
-        {/* ──────────────── 2. MAIN CONTENT AREA ──────────────── */}
-        <main className="flex-1 p-6 sm:p-8 space-y-7 bg-white min-w-0">
-          <AdminHeader />
-          {children}
-        </main>
-
-        {/* ──────────────── 3. REAL-TIME NOTIFICATION OVERLAYS ──────────────── */}
-        <AdminNotificationModal />
-        <AdminNotificationToast />
-      </div>
-    </AdminNotificationProvider>
-  );
+    <DashboardShell
+      navItems={navItems}
+      settingsItems={settingsItems}
+      roleLabel="Administrator"
+      roleIcon={ShieldCheck}
+      searchPlaceholder="Cari karya siswa, pengguna, atau audit log..."
+    >
+      {children}
+    </DashboardShell>
+  )
 }

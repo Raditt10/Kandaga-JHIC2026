@@ -223,12 +223,14 @@ export const FEATURES: Feature[] = [
 // ─────────────────────────────────────────────
 
 export const PARTNERS: Partner[] = [
-  { name: "PT Telkom Indonesia",          abbr: "TLK" },
-  { name: "PT Bandung Techno Park",       abbr: "BTP" },
-  { name: "CV Inovasi Digital",           abbr: "IDG" },
-  { name: "PT Aplikasi Karya Anak Bangsa", abbr: "AKAB" },
-  { name: "Dinas Pendidikan Jabar",       abbr: "DIKJ" },
-  { name: "PT Global Teknologi",          abbr: "GTK" },
+  { name: "Kimia Farma",                abbr: "KF",   logoUrl: "/partners/kimiaFarma.webp" },
+  { name: "LSKK – Langgeng Sejahtera",  abbr: "LSKK", logoUrl: "/partners/lskk.png" },
+  { name: "FORIT – Data Solutions",     abbr: "FORIT",logoUrl: "/partners/Forit.jpg" },
+  { name: "BNET Academy",               abbr: "BNET", logoUrl: "/partners/Bnet.jpg" },
+  { name: "Samsung Tech Institute",     abbr: "STI",  logoUrl: "/partners/Samsung.jpg" },
+  { name: "Mepro",                      abbr: "MPR",  logoUrl: "/partners/Mepro.jpg" },
+  { name: "Kalbe",                      abbr: "KLB",  logoUrl: "/partners/Kalbe.jpg" },
+  { name: "Medion – Bandung Indonesia", abbr: "MDN",  logoUrl: "/partners/Medion.webp" },
 ];
 
 // ─────────────────────────────────────────────
