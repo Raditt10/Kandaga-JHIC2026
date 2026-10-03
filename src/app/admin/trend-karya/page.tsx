@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import {
   TrendingUp,
   Sparkles,
@@ -11,13 +11,25 @@ import {
   Flame,
 } from "lucide-react"
 import AdminLayout from "@/components/admin/AdminLayout"
-import { projectShowcases } from "@/lib/adminData"
+import type { ProjectShowcase } from "@/types"
 
 export default function AdminTrendKaryaPage() {
+  const [projects, setProjects] = useState<ProjectShowcase[]>([])
   const [selectedJurusan, setSelectedJurusan] = useState("all")
 
   // Interaksi grafik pertumbuhan bulanan
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+
+  useEffect(() => {
+    fetch("/api/admin/projects")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.projects)) {
+          setProjects(data.projects)
+        }
+      })
+      .catch((e) => console.error("Gagal memuat karya:", e))
+  }, [])
 
   const jurusanTrends = [
     {
@@ -150,7 +162,7 @@ export default function AdminTrendKaryaPage() {
             </div>
 
             <div className="space-y-3">
-              {projectShowcases.slice(0, 3).map((proj, idx) => (
+              {projects.slice(0, 3).map((proj, idx) => (
                 <div
                   key={proj.id}
                   className="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 hover:border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition"

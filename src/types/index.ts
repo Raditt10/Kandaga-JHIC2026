@@ -181,3 +181,125 @@ export type User = {
   jurusan?: JurusanSlug;  // hanya untuk role siswa/guru
   avatar?: string;
 };
+
+// ─────────────────────────────────────────────
+// GALLERY & PROJECT DETAIL TYPES
+// ─────────────────────────────────────────────
+
+export interface StudentProfileData {
+  id: string;
+  name: string;
+  username: string;
+  nis: string;
+  class: string;
+  major: JurusanSlug;
+  majorName: string;
+  generation: number;
+  avatar: string;
+  bio: string;
+  currentCareer?: string;
+  status: "aktif" | "alumni";
+  isPrivate: boolean;
+  privacyReason?: string;
+  skills: string[];
+  socialLinks?: {
+    github?: string;
+    linkedin?: string;
+    website?: string;
+    instagram?: string;
+  };
+  contactEmail?: string;
+}
+
+export interface GalleryProjectItem {
+  id: string;
+  title: string;
+  tagline: string;
+  description: string;
+  solutionHighlights: string[];
+  major: JurusanSlug;
+  majorLabel: string;
+  jurusan?: JurusanSlug;
+  jurusanLabel?: string;
+  year: number;
+  coverImage: string;
+  galleryImages: string[];
+  status: "verified" | "featured" | "draft" | "pending";
+  badgeTier?: "gold" | "silver" | "bronze";
+  badgeLabel?: string;
+  tools: string[];
+  studentId: string;
+  studentName: string;
+  studentAvatar: string;
+  studentClass: string;
+  isStudentPrivate: boolean;
+  isPrivate?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  advisor: {
+    name: string;
+    role: string;
+    reviewNotes: string;
+  };
+  metrics: {
+    views: number;
+    likes: number;
+  };
+  links?: {
+    demoUrl?: string;
+    githubUrl?: string;
+    docUrl?: string;
+  };
+}
+
+export interface ProjectShowcase {
+  id: string;
+  title: string;
+  category: string;
+  image: string;
+  author: string;
+  authorRole: string;
+  likes: number;
+  description: string;
+  uploadOrder?: number;
+  uploadedAt?: string;
+  status?: string;
+}
+
+export type Role = "student" | "admin" | "company" | "teacher" | "bkk";
+
+export interface UserAccount {
+  id: string;
+  username: string;
+  email: string;
+  password?: string;
+  role: Role;
+  status?: string;
+  createdAt?: string;
+}
+
+export type ProjectDocumentType = "pdf" | "image" | "link" | "video";
+
+export interface ProjectDocument {
+  id: string;
+  name: string;
+  type: ProjectDocumentType;
+  url: string | null;
+  meta?: string;
+  required?: boolean;
+}
+
+export interface CreatorProfile {
+  name: string;
+  className: string;
+  major: string;
+  email: string;
+  advisor: string;
+  joinedAt: string;
+  verifiedWorks: number;
+  avatar: string;
+  bio?: string;
+  role?: string;
+  nis?: string;
+}
+

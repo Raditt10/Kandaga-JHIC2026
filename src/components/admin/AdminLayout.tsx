@@ -13,7 +13,7 @@
  * ditambah Trend Karya, BLUD, dan Pendaftaran Mitra.
  */
 
-import React from "react"
+import React, { useState, useEffect } from "react"
 import {
   Briefcase,
   FileCheck2,
@@ -28,13 +28,23 @@ import {
 import DashboardShell, {
   type ShellNavItem,
 } from "@/components/dashboard/DashboardShell"
-import { usersDatabase } from "@/lib/users"
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [userCount, setUserCount] = useState<number | null>(null)
+
+  useEffect(() => {
+    fetch("/api/admin/pengguna?countOnly=true")
+      .then((res) => res.json())
+      .then((data) => {
+        if (typeof data.count === "number") setUserCount(data.count)
+      })
+      .catch(() => {})
+  }, [])
+
   const navItems: ShellNavItem[] = [
     {
       key: "dashboard",
@@ -48,7 +58,7 @@ export default function AdminLayout({
       label: "Kelola Pengguna",
       href: "/admin/pengguna",
       icon: Users,
-      badge: `${usersDatabase.length}`,
+      badge: userCount !== null ? `${userCount}` : undefined,
     },
     {
       key: "moderasi",

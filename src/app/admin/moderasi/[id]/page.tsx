@@ -5,8 +5,7 @@ import { createPortal } from "react-dom"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { projectShowcases, projectDetails, creatorProfiles, projectCreatorIds } from "@/lib/adminData"
-import type { ProjectDocument } from "@/lib/adminData"
+import type { ProjectDocument, ProjectShowcase } from "@/types"
 import AdminLayout from "@/components/admin/AdminLayout"
 import {
   ArrowLeft,
@@ -49,7 +48,8 @@ export default function AdminDetailModerasiPage({ params }: PageProps) {
   const resolvedParams = use(params)
   const projectId = resolvedParams.id
 
-  const project = projectShowcases.find((p) => p.id === projectId)
+  const [projectData, setProjectData] = useState<any | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   // Status karya: "pending" | "approved" | "rejected"
   const [status, setStatus] = useState<"pending" | "approved" | "rejected">("pending")
@@ -62,9 +62,27 @@ export default function AdminDetailModerasiPage({ params }: PageProps) {
   // Panel detail kreator karya (id profil kreator yang sedang dibuka)
   const [selectedCreatorId, setSelectedCreatorId] = useState<string | null>(null)
 
+  useEffect(() => {
+    let isMounted = true
+    fetch(`/api/admin/projects/${projectId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.project && isMounted) {
+          setProjectData(data.project)
+          setStatus((data.project.status as any) || "pending")
+        }
+      })
+      .catch((e) => console.error("Gagal memuat detail karya:", e))
+      .finally(() => {
+        if (isMounted) setIsLoading(false)
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [projectId])
+
   // Kunci scroll halaman di belakang selama kartu kreator terbuka.
-  // Lenis (smooth scroll) mengabaikan `overflow: hidden`, jadi instance-nya
-  // dihentikan sementara lalu dijalankan kembali saat kartu ditutup.
   useEffect(() => {
     if (!selectedCreatorId) return
 
@@ -86,7 +104,9 @@ export default function AdminDetailModerasiPage({ params }: PageProps) {
     }
   }, [selectedCreatorId])
 
-  if (!project) {
+  const project = projectData
+
+  if (!isLoading && !project) {
     return (
       <AdminLayout>
         <div className="p-12 text-center bg-white rounded-3xl border border-slate-200 shadow-xs max-w-lg mx-auto my-12">
@@ -107,8 +127,27 @@ export default function AdminDetailModerasiPage({ params }: PageProps) {
     )
   }
 
-  const handleVerify = () => {
+  if (isLoading || !project) {
+    return (
+      <AdminLayout>
+        <div className="p-12 text-center text-slate-500 text-sm">
+          Memuat data kurasi karya...
+        </div>
+      </AdminLayout>
+    )
+  }
+
+  const handleVerify = async () => {
     setStatus("approved")
+    try {
+      await fetch(`/api/admin/projects/${project.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "approved", reviewNotes: curationNote }),
+      })
+    } catch (e) {
+      console.error(e)
+    }
     setToastMessage({
       text: `Karya "${project.title}" berhasil diverifikasi dan dipublikasikan ke Katalog Galeri Karya.`,
       type: "success",
@@ -116,8 +155,17 @@ export default function AdminDetailModerasiPage({ params }: PageProps) {
     setTimeout(() => setToastMessage(null), 4000)
   }
 
-  const handleDeny = () => {
+  const handleDeny = async () => {
     setStatus("rejected")
+    try {
+      await fetch(`/api/admin/projects/${project.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "rejected", reviewNotes: curationNote }),
+      })
+    } catch (e) {
+      console.error(e)
+    }
     setToastMessage({
       text: `Karya "${project.title}" ditolak. Catatan kurasi telah diteruskan ke siswa.`,
       type: "danger",
@@ -131,17 +179,34 @@ export default function AdminDetailModerasiPage({ params }: PageProps) {
     )
   }
 
-  const documents = project.documents ?? []
+  const documents = (project.documents as ProjectDocument[]) ?? []
   const availableDocs = documents.filter((doc) => Boolean(doc.url))
   const missingDocs = documents.filter((doc) => !doc.url)
   const requiredMissing = missingDocs.filter((doc) => doc.required)
   const reviewedAvailable = availableDocs.filter((doc) => reviewedDocs.includes(doc.id))
-  const details = projectDetails[project.id]
+  const details = project.details
 
   // Satu karya bisa punya berapa pun kreator, termasuk lintas jurusan.
-  const creators = (projectCreatorIds[project.id] ?? [])
-    .map((creatorId) => ({ id: creatorId, profile: creatorProfiles[creatorId] }))
-    .filter((entry) => Boolean(entry.profile))
+  const creators = project.creator
+    ? [
+        {
+          id: project.creator.id,
+          profile: {
+            name: project.creator.name,
+            className: project.creator.class || "XII",
+            major: project.creator.jurusan || "RPL",
+            email: project.creator.email || "siswa@smkn13bdg.sch.id",
+            advisor: project.details?.mentors?.[0]?.name || "Guru Pembimbing",
+            joinedAt: "2024",
+            verifiedWorks: 1,
+            avatar: project.creator.avatar,
+            bio: project.creator.bio || "",
+            role: "Siswa SMK",
+            nis: project.creator.nisn || "1324001",
+          },
+        },
+      ]
+    : []
 
   const isCrossMajor = new Set(creators.map((entry) => entry.profile.major)).size > 1
   const selectedCreator = selectedCreatorId
@@ -569,7 +634,7 @@ export default function AdminDetailModerasiPage({ params }: PageProps) {
                   <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                     Gambaran Umum &amp; Latar Belakang
                   </h4>
-                  {details.overview.map((paragraph, index) => (
+                  {(details.overview || [details.description]).map((paragraph: string, index: number) => (
                     <p key={index} className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                       {paragraph}
                     </p>
@@ -581,7 +646,7 @@ export default function AdminDetailModerasiPage({ params }: PageProps) {
                     Tujuan &amp; Sasaran
                   </h4>
                   <ul className="text-xs text-slate-600 space-y-2 list-disc pl-4 leading-relaxed">
-                    {details.objectives.map((item) => (
+                    {(details.objectives || ["Memenuhi standar kurikulum dan industri."]).map((item: string) => (
                       <li key={item}>{item}</li>
                     ))}
                   </ul>
@@ -592,7 +657,7 @@ export default function AdminDetailModerasiPage({ params }: PageProps) {
                     Cakupan &amp; Isi Proyek
                   </h4>
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-xs text-slate-600 list-disc pl-4 leading-relaxed">
-                    {details.scope.map((item) => (
+                    {(details.scope || ["Implementasi sistem terintegrasi."]).map((item: string) => (
                       <li key={item}>{item}</li>
                     ))}
                   </ul>
@@ -603,7 +668,7 @@ export default function AdminDetailModerasiPage({ params }: PageProps) {
                     Fitur Unggulan &amp; Nilai Guna
                   </h4>
                   <ul className="space-y-2">
-                    {details.highlights.map((item) => (
+                    {(details.highlights || ["Solusi terverifikasi sekolah."]).map((item: string) => (
                       <li key={item} className="flex items-start gap-2 text-xs text-slate-600 leading-relaxed">
                         <Check className="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" />
                         <span>{item}</span>

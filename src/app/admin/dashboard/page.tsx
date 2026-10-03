@@ -15,12 +15,43 @@ import {
   Users,
 } from "lucide-react"
 import { useSession } from "next-auth/react"
-import { projectShowcases, ProjectShowcase, recentIndustryPartners } from "@/lib/adminData"
+import type { ProjectShowcase } from "@/types"
 import AdminLayout from "@/components/admin/AdminLayout"
 
 export default function AdminDashboardPage() {
   const { data: session } = useSession()
   const adminName = session?.user?.username || session?.user?.name || "adit"
+
+  const [projects, setProjects] = useState<ProjectShowcase[]>([])
+  const [partners, setPartners] = useState<any[]>([])
+  const [stats, setStats] = useState<{ verified: number; pending: number; total: number }>({
+    verified: 128,
+    pending: 14,
+    total: 142,
+  })
+
+  useEffect(() => {
+    fetch("/api/admin/projects")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.projects)) {
+          setProjects(data.projects)
+          if (data.stats) {
+            setStats(data.stats)
+          }
+        }
+      })
+      .catch((e) => console.error("Gagal memuat karya:", e))
+
+    fetch("/api/admin/partners")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.partners)) {
+          setPartners(data.partners)
+        }
+      })
+      .catch((e) => console.error("Gagal memuat mitra:", e))
+  }, [])
 
   return (
     <AdminLayout>
@@ -50,13 +81,13 @@ export default function AdminDashboardPage() {
             </div>
             <div className="mt-4">
               <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight block">
-                128
+                {stats.verified}
               </span>
               <span className="text-xs font-bold text-slate-700 block mt-1">
                 Karya Terverifikasi
               </span>
               <span className="text-[11px] text-slate-400 block mt-0.5">
-                Dari total 142 karya diunggah
+                Dari total {stats.total} karya diunggah
               </span>
             </div>
           </Link>
@@ -72,7 +103,7 @@ export default function AdminDashboardPage() {
             </div>
             <div className="mt-4">
               <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight block">
-                14
+                {stats.pending}
               </span>
               <span className="text-xs font-bold text-slate-700 block mt-1">
                 Belum Terverifikasi
@@ -153,7 +184,7 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {projectShowcases.slice(0, 3).map((proj) => (
+            {projects.slice(0, 3).map((proj) => (
               <ProjectShowcaseCard key={proj.id} proj={proj} />
             ))}
           </div>
@@ -181,7 +212,7 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {recentIndustryPartners.map((partner) => (
+            {partners.map((partner) => (
               <div
                 key={partner.id}
                 className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs hover:shadow-md hover:border-[#891337]/30 transition-all duration-300 flex flex-col justify-between"
@@ -221,7 +252,7 @@ export default function AdminDashboardPage() {
 
                     <div className="flex flex-wrap items-center gap-1 pt-1.5 border-t border-slate-200/60">
                       <span className="text-[10px] text-slate-400 mr-1">Jurusan:</span>
-                      {partner.targetJurusan.map((jur) => (
+                      {(partner.targetJurusan || []).map((jur: string) => (
                         <span
                           key={jur}
                           className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 text-[10px] font-bold shadow-2xs"
@@ -238,7 +269,7 @@ export default function AdminDashboardPage() {
                       Posisi Dibuka:
                     </span>
                     <div className="flex flex-wrap gap-1.5">
-                      {partner.positions.map((pos) => (
+                      {(partner.positions || []).map((pos: string) => (
                         <span
                           key={pos}
                           className="text-[10px] font-medium text-slate-600 bg-white border border-slate-200/80 rounded-lg px-2 py-0.5"

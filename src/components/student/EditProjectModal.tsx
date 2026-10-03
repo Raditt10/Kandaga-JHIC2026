@@ -13,8 +13,7 @@ import {
   Loader2,
   Trash2,
 } from "lucide-react";
-import type { GalleryProjectItem } from "@/data/galleryData";
-import type { JurusanSlug } from "@/types";
+import type { GalleryProjectItem, JurusanSlug } from "@/types";
 
 export interface EditProjectModalProps {
   project: GalleryProjectItem | null;

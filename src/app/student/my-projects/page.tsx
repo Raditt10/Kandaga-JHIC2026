@@ -9,7 +9,7 @@ import Loading from "@/components/ui/Loading";
 import StudentProjectCard from "@/components/student/StudentProjectCard";
 import EditProjectModal from "@/components/student/EditProjectModal";
 import StudentProjectDetailModal from "@/components/student/StudentProjectDetailModal";
-import type { GalleryProjectItem } from "@/data/galleryData";
+import type { GalleryProjectItem } from "@/types";
 import {
   Plus,
   Globe,

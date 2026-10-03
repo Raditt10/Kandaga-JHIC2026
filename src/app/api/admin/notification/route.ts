@@ -2,30 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { Role } from "@prisma/client";
 import { Server as SocketIOServer } from "socket.io";
-import type { AdminNotification } from "@/types/notification";
 
 export async function GET() {
   try {
     const notifs = await prisma.notifications.findMany({
       orderBy: { createdAt: "desc" },
-      take: 50,
+      take: 100,
     });
 
-    const mapped: AdminNotification[] = notifs.map((n) => {
+    const mapped = notifs.map((n) => {
       const isCompany = n.type.toLowerCase().includes("company") || n.type.toLowerCase().includes("mitra");
       const isSecurity = n.type.toLowerCase().includes("security") || n.type.toLowerCase().includes("audit");
-      const isCuration = n.type.toLowerCase().includes("curation") || n.type.toLowerCase().includes("review");
-      const category: "project" | "mitra" | "curation" | "security" = isCompany
-        ? "mitra"
-        : isSecurity
-        ? "security"
-        : isCuration
-        ? "curation"
-        : "project";
+      const category = isCompany ? "company" : isSecurity ? "system" : "project";
 
       return {
         id: n.id,
-        type: n.type as any,
+        type: n.type,
         category,
         title: n.title,
         message: n.content,
@@ -41,9 +33,9 @@ export async function GET() {
       notifications: mapped,
     });
   } catch (error) {
-    console.error("GET /api/admin/notify error:", error);
+    console.error("GET /api/admin/notification error:", error);
     return NextResponse.json(
-      { success: false, error: "Gagal mengambil data notifikasi" },
+      { success: false, error: "Gagal mengambil notifikasi" },
       { status: 500 }
     );
   }
@@ -59,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     if (!adminUser) {
       return NextResponse.json(
-        { error: "Admin tidak ditemukan" },
+        { error: "Admin pengguna tidak ditemukan" },
         { status: 404 }
       );
     }
@@ -76,18 +68,11 @@ export async function POST(req: NextRequest) {
 
     const isCompany = created.type.toLowerCase().includes("company") || created.type.toLowerCase().includes("mitra");
     const isSecurity = created.type.toLowerCase().includes("security") || created.type.toLowerCase().includes("audit");
-    const isCuration = created.type.toLowerCase().includes("curation") || created.type.toLowerCase().includes("review");
-    const category: "project" | "mitra" | "curation" | "security" = isCompany
-      ? "mitra"
-      : isSecurity
-      ? "security"
-      : isCuration
-      ? "curation"
-      : "project";
+    const category = isCompany ? "company" : isSecurity ? "system" : "project";
 
-    const newNotification: AdminNotification = {
+    const formattedNotif = {
       id: created.id,
-      type: created.type as any,
+      type: created.type,
       category,
       title: created.title,
       message: created.content,
@@ -97,21 +82,67 @@ export async function POST(req: NextRequest) {
       metadata: body.metadata || {},
     };
 
-    // Broadcast through Socket.IO if custom server is running
+    // Broadcast Socket.IO
     const io = (global as unknown as { io?: SocketIOServer }).io;
     if (io) {
-      io.to("admin_channel").emit("admin_notification", newNotification);
+      io.to("admin_channel").emit("admin_notification", formattedNotif);
     }
 
     return NextResponse.json({
       success: true,
-      notification: newNotification,
-      socketBroadcasted: Boolean(io),
+      notification: formattedNotif,
     });
-  } catch (error: any) {
-    console.error("POST /api/admin/notify error:", error);
+  } catch (error) {
+    console.error("POST /api/admin/notification error:", error);
     return NextResponse.json(
-      { error: "Gagal memproses siaran notifikasi" },
+      { success: false, error: "Gagal menambahkan notifikasi" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const body = await req.json().catch(() => ({}));
+
+    if (body.action === "mark_all_read") {
+      await prisma.notifications.updateMany({
+        where: { isRead: false },
+        data: { isRead: true },
+      });
+
+      const io = (global as unknown as { io?: SocketIOServer }).io;
+      if (io) {
+        io.to("admin_channel").emit("admin_notifications_all_read");
+      }
+
+      return NextResponse.json({ success: true, message: "Semua notifikasi ditandai dibaca" });
+    }
+
+    return NextResponse.json({ error: "Aksi tidak dikenal" }, { status: 400 });
+  } catch (error) {
+    console.error("PATCH /api/admin/notification error:", error);
+    return NextResponse.json(
+      { success: false, error: "Gagal memperbarui notifikasi" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE() {
+  try {
+    await prisma.notifications.deleteMany({});
+
+    const io = (global as unknown as { io?: SocketIOServer }).io;
+    if (io) {
+      io.to("admin_channel").emit("admin_notifications_cleared");
+    }
+
+    return NextResponse.json({ success: true, message: "Semua notifikasi dihapus" });
+  } catch (error) {
+    console.error("DELETE /api/admin/notification error:", error);
+    return NextResponse.json(
+      { success: false, error: "Gagal menghapus notifikasi" },
       { status: 500 }
     );
   }

@@ -1,4 +1,5 @@
 export type NotificationCategory = "all" | "project" | "mitra" | "curation" | "security";
+export type NotificationItemCategory = "project" | "mitra" | "curation" | "security";
 
 export type NotificationType =
   | "project_created"

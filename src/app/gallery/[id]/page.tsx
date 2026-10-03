@@ -8,11 +8,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProjectCard from "@/components/gallery/ProjectCard";
 import Loading from "@/components/ui/Loading";
-import {
-  GalleryProjectItem,
-  getProjectById,
-  getRelatedProjects,
-} from "@/data/galleryData";
+import type { GalleryProjectItem } from "@/types";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -35,6 +31,7 @@ interface ProjectDetailPageProps {
 export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
   const resolvedParams = use(params);
   const [project, setProject] = useState<GalleryProjectItem | null>(null);
+  const [relatedProjects, setRelatedProjects] = useState<GalleryProjectItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
@@ -57,12 +54,7 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
         console.error("Failed to fetch project from API:", error);
       }
 
-      // Fallback ke data mock terpusat bila API belum tersedia
       if (isMounted) {
-        const fallback = getProjectById(resolvedParams.id);
-        if (fallback) {
-          setProject(fallback);
-        }
         setIsLoading(false);
       }
     };
@@ -74,14 +66,39 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
     };
   }, [resolvedParams.id]);
 
+  const currentMajor = project?.major || project?.jurusan || "rpl";
+  const currentMajorLabel = project?.majorLabel || project?.jurusanLabel || "RPL";
+
+  useEffect(() => {
+    if (!project) return;
+    const fetchRelated = async () => {
+      try {
+        const res = await fetch("/api/gallery");
+        if (res.ok) {
+          const data = await res.json();
+          if (data && Array.isArray(data.projects)) {
+            const rel = data.projects
+              .filter(
+                (p: GalleryProjectItem) =>
+                  p.id !== project.id &&
+                  (p.major === currentMajor || p.jurusan === currentMajor)
+              )
+              .slice(0, 3);
+            setRelatedProjects(rel);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch related projects:", e);
+      }
+    };
+    fetchRelated();
+  }, [project, currentMajor]);
+
   // Not found state
   if (!isLoading && !project) {
     notFound();
   }
 
-  const currentMajor = project?.major || project?.jurusan || "rpl";
-  const currentMajorLabel = project?.majorLabel || project?.jurusanLabel || "RPL";
-  const relatedProjects = project ? getRelatedProjects(project.id, currentMajor) : [];
   const currentImages =
     project?.galleryImages && project.galleryImages.length > 0
       ? project.galleryImages

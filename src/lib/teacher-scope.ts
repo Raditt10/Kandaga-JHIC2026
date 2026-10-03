@@ -49,7 +49,7 @@ type ProjectWithRelations = {
   description: string | null
   type: ProjectType | null
   status: string
-  score: number | null
+  score?: number | null
   reviewNotes: string | null
   coverImage: string | null
   createdAt: Date

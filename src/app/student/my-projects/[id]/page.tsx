@@ -8,7 +8,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Loading from "@/components/ui/Loading";
 import EditProjectModal from "@/components/student/EditProjectModal";
-import type { GalleryProjectItem } from "@/data/galleryData";
+import type { GalleryProjectItem } from "@/types";
 import {
   ArrowLeft,
   Globe,

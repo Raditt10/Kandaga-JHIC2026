@@ -41,7 +41,6 @@ yarn-error.log*
 next-env.d.ts
 
 # tools
-.impeccable*
 
 # uploads
 ./public/assets/uploads/kandaga*

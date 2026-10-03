@@ -861,95 +861,133 @@ async function main() {
     },
   ];
 
-  // for(const gallery of galleryData){
-  //   await prisma.projects.create({
-  //     data: {
-  //       id: gallery.id,
-  //       title: gallery.title,
-  //       description: gallery.description,
-  //       mainFeatures: {
-  //         create: {
-  //           projectId: gallery.id,
-  //           name: gallery.solutionHighlights[0],
-  //         }
-  //       },
-  //       type: mapProjectType(gallery.major),
-  //       year: gallery.year,
-  //       coverImage: gallery.coverImage,
-  //       galleryImages: gallery.galleryImages,
-  //       status: gallery.status,
-  //       tools: gallery.tools,
-  //       advisor: {
-  //         users: {
-  //           connectOrCreate: {
-  //             where: {
-  //               email: gallery.advisor.advisorId + "@gmail.com",
-  //             },
-  //             create: {
-  //               name: gallery.advisor.name,
-  //               email: gallery.advisor.advisorId + "@gmail.com",
-  //               passwordHash: hashedPassword,
-  //               role: Role.Teacher,
-  //               avatar: gallery.studentAvatar
-  //             }
-  //           }
-  //         },
-  //       },
-  //       student:{
-  //         user:{
-  //           connectOrCreate: {
-  //             where:{
-  //               email: gallery.studentId + "@gmail.com",
-  //             },
-  //             create: {
-  //               name: gallery.studentName,
-  //               email: gallery.studentId + "@gmail.com",
-  //               passwordHash: hashedPassword,
-  //               role: Role.Student,
-  //               avatar: gallery.studentAvatar
-  //             }
-  //           },
-  //         },
-  //         connectOrCreate: {
-  //           where:{
-  //             nis: gallery.studentId,
-  //           },
-  //           create: {
-  //             nis: gallery.studentId,
-  //             fullName: gallery.studentName,
-  //             class: gallery.studentClass
-  //           }
-  //         }
-  //       },
-  //       badges:{
-  //         create: {
-  //           name: gallery.badgeLabel,
-  //           tier: gallery.badgeTier,
-  //         }
-  //       },
-  //       viewCount: gallery.metrics.views,
-  //       stars: gallery.metrics.likes
-  //     });
-  //   }
-  // }
   // ══════════════════════════════════════════════════════════════════════
-  // DATA DEMO LENGKAP
-  //
-  // Tanpa bagian ini, aplikasi tampak "hidup" padahal database kosong:
-  // galeri hanya terisi dari data statis (src/data/galleryData.ts) dan
-  // semua dashboard selalu kosong. Bagian ini membuat tiap alur bisa
-  // didemokan dengan data nyata dari PostgreSQL:
-  //   /gallery          ← karya berstatus approved
-  //   /teacher          ← karya pending untuk diverifikasi guru
-  //   /student          ← karya milik siswa13
-  //   /company/katalog  ← karya yang bisa dilamar
-  //   /company/riwayat  ← permintaan yang sudah diputuskan
-  //   /bkk/verifikasi   ← perusahaan berstatus pending
-  //   /bkk/kontak       ← permintaan yang menunggu tindakan BKK
+  // DATA DEMO LENGKAP DARI GALLERYDATA & ADMIN
   // ══════════════════════════════════════════════════════════════════════
 
   const u = Object.fromEntries((await prisma.users.findMany()).map((x) => [x.name, x]))
   const m = Object.fromEntries((await prisma.major.findMany()).map((x) => [x.name, x]))
+
+  console.log('  🎨 Seeding rich Gallery Projects...')
+  for (const g of galleryData) {
+    const majorKey = g.major === 'analis-kimia' ? 'Analis Kimia' : g.major.toUpperCase()
+    const targetMajor = m[majorKey] || m['RPL']
+
+    // 1. Student User
+    let sUser = await prisma.users.findFirst({
+      where: { email: `${g.studentId}@smkn13bdg.sch.id` },
+    })
+    if (!sUser) {
+      sUser = await prisma.users.create({
+        data: {
+          name: g.studentName,
+          email: `${g.studentId}@smkn13bdg.sch.id`,
+          passwordHash: hashedPassword,
+          role: Role.Student,
+          status: 'aktif',
+          avatarUrl: g.studentAvatar,
+        },
+      })
+      u[g.studentId] = sUser
+    }
+
+    // Student profile
+    const sProfile = await prisma.student.findUnique({
+      where: { userId: sUser.id },
+    })
+    if (!sProfile) {
+      await prisma.student.create({
+        data: {
+          userId: sUser.id,
+          majorId: targetMajor.id,
+          nis: `22231${Math.floor(1000 + Math.random() * 9000)}`,
+          class: g.studentClass,
+          generation: g.year,
+          status: 'aktif',
+          bio: `Siswa kompetensi keahlian ${targetMajor.fullName} SMKN 13 Bandung.`,
+          photoUrl: g.studentAvatar,
+        },
+      })
+    }
+
+    // 2. Advisor User
+    const advKey = g.advisor.advisorId || 'guru13'
+    let advUser = await prisma.users.findFirst({
+      where: { email: `${advKey}@smkn13bdg.sch.id` },
+    })
+    if (!advUser) {
+      advUser = await prisma.users.create({
+        data: {
+          name: g.advisor.name,
+          email: `${advKey}@smkn13bdg.sch.id`,
+          passwordHash: hashedPassword,
+          role: Role.Teacher,
+          status: 'aktif',
+        },
+      })
+      u[advKey] = advUser
+    }
+
+    const tProfile = await prisma.teacher.findUnique({
+      where: { userId: advUser.id },
+    })
+    if (!tProfile) {
+      await prisma.teacher.create({
+        data: {
+          userId: advUser.id,
+          majorId: targetMajor.id,
+          nip: `1980${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+          bio: g.advisor.role,
+        },
+      })
+    }
+
+    // 3. Project
+    const pType = g.major === 'analis-kimia' ? ProjectType.KA : g.major.toUpperCase() === 'TKJ' ? ProjectType.TKJ : ProjectType.RPL
+    const project = await prisma.projects.create({
+      data: {
+        studentId: sUser.id,
+        advisorId: advUser.id,
+        type: pType,
+        title: g.title,
+        description: g.description,
+        year: g.year,
+        status: 'approved',
+        coverImage: g.coverImage,
+        reviewNotes: g.advisor.reviewNotes,
+        reviewedBy: advUser.id,
+        publishedAt: new Date(),
+        viewCount: g.metrics.views,
+        stars: g.metrics.likes,
+        isPrivate: false,
+      },
+    })
+
+    // 4. Media
+    const images = g.galleryImages && g.galleryImages.length > 0 ? g.galleryImages : [g.coverImage]
+    for (let ord = 0; ord < images.length; ord++) {
+      await prisma.projectsMedia.create({
+        data: {
+          projectId: project.id,
+          url: images[ord],
+          type: 'photo',
+          order: ord,
+        },
+      })
+    }
+
+    // 5. Main features / solution highlights
+    if (g.solutionHighlights && g.solutionHighlights.length > 0) {
+      for (const feat of g.solutionHighlights) {
+        await prisma.projectsMainFeatures.create({
+          data: {
+            projectId: project.id,
+            feature: feat,
+          },
+        }).catch(() => {})
+      }
+    }
+  }
 
   const IMG = (seed: string) => `https://picsum.photos/seed/${seed}/800/600`
 
@@ -979,6 +1017,9 @@ async function main() {
     { user: 'siswa_kimia13', major: 'Analis Kimia', nis: '2026130002', cls: 'XII AK 1',  gen: 2026, bio: 'Tertarik pada analisis laboratorium dan kimia terapan.' },
   ]
   for (const p of studentProfiles) {
+    if (!u[p.user]) continue
+    const existing = await prisma.student.findUnique({ where: { userId: u[p.user].id } })
+    if (existing) continue
     await prisma.student.create({
       data: {
         userId:     u[p.user].id,
@@ -994,21 +1035,45 @@ async function main() {
   }
 
   // ── Profil Guru ────────────────────────────────────────────────────────
-  await prisma.teacher.create({
-    data: { userId: u['guru13'].id, majorId: m['RPL'].id, nip: '198501012010011001' },
-  })
-  console.log('  ✓ Teacher profile: guru13 (RPL)')
+  if (u['guru13']) {
+    const existingTeacher = await prisma.teacher.findUnique({ where: { userId: u['guru13'].id } })
+    if (!existingTeacher) {
+      await prisma.teacher.create({
+        data: { userId: u['guru13'].id, majorId: m['RPL'].id, nip: '198501012010011001' },
+      })
+      console.log('  ✓ Teacher profile: guru13 (RPL)')
+    }
+  }
 
   // ── Profil Perusahaan ──────────────────────────────────────────────────
-  // mitra_perusahaan WAJIB punya baris di sini. Tanpa profil perusahaan,
-  // verificationStatus bernilai null dan akun demo itu selalu dilempar ke
-  // /mitra/menunggu — dashboard perusahaan tidak pernah bisa dicoba.
+  const extraCompanyUsers = [
+    { name: 'adit',  email: 'adit@ijintampil.id', role: Role.Company },
+    { name: 'dzaha', email: 'dzaha@creepix.com',  role: Role.Company },
+  ]
+  for (const c of extraCompanyUsers) {
+    if (!u[c.name]) {
+      u[c.name] = await prisma.users.create({
+        data: {
+          name:         c.name,
+          email:        c.email,
+          passwordHash: hashedPassword,
+          role:         c.role,
+          status:       'aktif',
+        },
+      })
+      console.log(`  ✓ Created user: ${c.name} (company)`)
+    }
+  }
+
   const companyProfiles = [
     { user: 'mitra_perusahaan', name: 'PT Mitra Inovasi Nusantara', field: 'Teknologi Informasi', status: 'disetujui' },
     { user: 'adit',             name: 'Ijin Tampil',                field: 'Teknologi Informasi', status: 'disetujui' },
     { user: 'dzaha',            name: 'Creepix Inc',                field: 'Teknologi Informasi', status: 'pending'   },
   ]
   for (const c of companyProfiles) {
+    if (!u[c.user]) continue
+    const existingComp = await prisma.company.findUnique({ where: { userId: u[c.user].id } })
+    if (existingComp) continue
     const disetujui = c.status === 'disetujui'
     await prisma.company.create({
       data: {
@@ -1017,7 +1082,7 @@ async function main() {
         field:              c.field,
         verificationStatus: c.status,
         documentUrl:        'https://example.com/dokumen-legalitas.pdf',
-        verifiedBy:         disetujui ? u['bkk13'].id : null,
+        verifiedBy:         disetujui ? u['bkk13']?.id : null,
         verifiedAt:         disetujui ? new Date() : null,
       },
     })
@@ -1112,6 +1177,94 @@ async function main() {
     })
   }
   console.log(`  ✓ ${contactSeed.length} permintaan kontak (2 aktif, 2 riwayat)`)
+
+  // ── Audit Logs ─────────────────────────────────────────────────────────
+  console.log('  📋 Seeding Audit Logs...')
+  const adminUser = u['admin13'] || (await prisma.users.findFirst({ where: { role: Role.Admin } }))
+  const sampleAuditLogs = [
+    { action: "ROLE_ASSIGNMENT", entity: "users", detail: "Menetapkan peran BKK kepada pengguna bkk13", status: "SUCCESS" },
+    { action: "CURATION_APPROVAL", entity: "projects", detail: "Menyetujui proyek 'EduClass — LMS & Presensi QR' ke Galeri Utama", status: "SUCCESS" },
+    { action: "INTERNSHIP_POSTED", entity: "internship_applications", detail: "Membuka lowongan magang PKL 'Junior Frontend Engineer'", status: "SUCCESS" },
+    { action: "PROJECT_SUBMISSION", entity: "projects", detail: "Mengunggah proyek tugas akhir baru ke antrean kurasi", status: "SUCCESS" },
+    { action: "COMPANY_VERIFIED", entity: "companies", detail: "Memverifikasi profil kemitraan industri PT Sintesis Digital Nusantara", status: "SUCCESS" },
+  ]
+  for (const log of sampleAuditLogs) {
+    await prisma.auditLogs.create({
+      data: {
+        userId: adminUser ? adminUser.id : null,
+        action: log.action,
+        entity: log.entity,
+        data: { detail: log.detail, status: log.status },
+      },
+    })
+  }
+
+  // ── Admin Notifications ───────────────────────────────────────────────
+  console.log('  🔔 Seeding Admin Notifications...')
+  if (adminUser) {
+    const adminNotifData = [
+      {
+        type: "project_created",
+        title: "Karya Siswa Baru Diunggah",
+        content: "Farhan Maulana (XII RPL 1) mengunggah karya baru: 'EduClass — LMS & Presensi QR Cerdas'.",
+      },
+      {
+        type: "company_registered",
+        title: "Pendaftaran Mitra Industri Baru",
+        content: "PT Sintesis Digital Nusantara mengajukan kemitraan magang PKL ke BKK SMKN 13.",
+      },
+      {
+        type: "curation_review",
+        title: "Catatan Kurasi Guru Pembimbing",
+        content: "Drs. Bambang Heryanto, M.T. meloloskan kurasi karya ke Galeri Publik.",
+      },
+      {
+        type: "security_alert",
+        title: "Audit Keamanan & Hak Akses",
+        content: "Pemberian hak akses guru kurator baru disahkan oleh Administrator Utama.",
+      },
+    ]
+    for (const notif of adminNotifData) {
+      await prisma.notifications.create({
+        data: {
+          userId: adminUser.id,
+          type: notif.type,
+          title: notif.title,
+          content: notif.content,
+          isRead: false,
+        },
+      })
+    }
+  }
+
+  // ── FAQs ───────────────────────────────────────────────────────────────
+  console.log('  ❓ Seeding FAQs...')
+  const faqsToSeed = [
+    {
+      q: "Bagaimana cara sebuah karya siswa bisa masuk ke Galeri Publik Kandaga?",
+      a: "Karya harus diunggah oleh siswa, kemudian melalui proses peninjauan dan kurasi teknis oleh guru pembimbing jurusan. Setelah disetujui, karya otomatis terbit di galeri publik.",
+    },
+    {
+      q: "Apakah perusahaan mitra industri dapat langsung merekrut atau menghubungi siswa?",
+      a: "Perusahaan yang telah terverifikasi oleh BKK SMKN 13 dapat mengirimkan permohonan minat melalui platform. BKK akan memfasilitasi dan mengoordinasikan pertemuan resmi antara perusahaan, siswa, dan sekolah.",
+    },
+    {
+      q: "Siapa saja yang memiliki hak akses untuk mengelola data di portal Kandaga?",
+      a: "Hak kelola sistem terbagi menjadi 5 peran: Siswa (pembuat karya), Guru (kurator & penilai), Mitra Industri (pemberi peluang kerja/magang), BKK (penyalur kerja), dan Administrator Utama (pengawas sistem).",
+    },
+  ]
+  if (u['siswa13'] && adminUser) {
+    for (const f of faqsToSeed) {
+      await prisma.fAQs.create({
+        data: {
+          askerId: u['siswa13'].id,
+          replierId: adminUser.id,
+          question: f.q,
+          answer: f.a,
+        },
+      })
+    }
+  }
 
   console.log('\n✅ Seeding completed!')
   console.log('─────────────────────────────────')

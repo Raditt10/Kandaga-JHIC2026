@@ -1,15 +1,13 @@
 "use client";
 
-import React, { use } from "react";
+import React, { use, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProjectCard from "@/components/gallery/ProjectCard";
-import {
-  getStudentById,
-  getProjectsByStudentId,
-} from "@/data/galleryData";
+import Loading from "@/components/ui/Loading";
+import type { StudentProfileData, GalleryProjectItem } from "@/types";
 import {
   Lock,
   ArrowLeft,
@@ -31,7 +29,49 @@ interface StudentProfilePageProps {
 
 export default function StudentProfilePage({ params }: StudentProfilePageProps) {
   const resolvedParams = use(params);
-  const student = getStudentById(resolvedParams.id);
+  const [student, setStudent] = useState<StudentProfileData | null>(null);
+  const [studentProjects, setStudentProjects] = useState<GalleryProjectItem[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchStudent = async () => {
+      setIsLoading(true);
+      try {
+        const res = await fetch(`/api/siswa/${resolvedParams.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.student && isMounted) {
+            setStudent(data.student);
+            setStudentProjects(data.projects || []);
+            setIsLoading(false);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch student data:", error);
+      }
+      if (isMounted) {
+        setIsLoading(false);
+      }
+    };
+    fetchStudent();
+    return () => {
+      isMounted = false;
+    };
+  }, [resolvedParams.id]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-white">
+        <Navbar />
+        <main className="flex-1 pt-32 pb-20 flex items-center justify-center">
+          <Loading />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   // If student doesn't exist in records
   if (!student) {
@@ -62,8 +102,6 @@ export default function StudentProfilePage({ params }: StudentProfilePageProps) 
       </div>
     );
   }
-
-  const studentProjects = getProjectsByStudentId(student.id);
 
   /* ──────────────────────────────────────────────────────────
    * KONDISI 1: PROFIL SISWA DIPRIVAT (isPrivate === true)

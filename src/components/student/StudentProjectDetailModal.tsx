@@ -22,7 +22,7 @@ import {
   Tag,
   Share2,
 } from "lucide-react";
-import type { GalleryProjectItem } from "@/data/galleryData";
+import type { GalleryProjectItem } from "@/types";
 
 export interface StudentProjectDetailModalProps {
   project: GalleryProjectItem | null;

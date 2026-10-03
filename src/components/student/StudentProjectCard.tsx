@@ -15,7 +15,7 @@ import {
   ExternalLink,
   Maximize2,
 } from "lucide-react";
-import type { GalleryProjectItem } from "@/data/galleryData";
+import type { GalleryProjectItem } from "@/types";
 
 export interface StudentProjectCardProps {
   project: GalleryProjectItem;

@@ -1,9 +1,9 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { projectShowcases } from "@/lib/adminData"
+import type { ProjectShowcase } from "@/types"
 import {
   Search,
   Filter,
@@ -18,12 +18,24 @@ import AdminLayout from "@/components/admin/AdminLayout"
 const ITEMS_PER_SLIDE = 6
 
 export default function AdminModerasiPage() {
+  const [projects, setProjects] = useState<ProjectShowcase[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("all")
   const [currentSlide, setCurrentSlide] = useState(0)
 
+  useEffect(() => {
+    fetch("/api/admin/projects")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.projects)) {
+          setProjects(data.projects)
+        }
+      })
+      .catch((e) => console.error("Gagal memuat karya:", e))
+  }, [])
+
   // Filtered and sorted projects (sorted by uploadOrder / earliest upload)
-  const filteredProjects = projectShowcases
+  const filteredProjects = projects
     .filter((proj) => {
       const matchCategory =
         categoryFilter === "all"

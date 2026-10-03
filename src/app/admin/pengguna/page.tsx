@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { usersDatabase, UserAccount, Role } from "@/lib/users"
+import type { UserAccount, Role } from "@/types"
 import {
   CheckCircle2,
   Search,
@@ -20,7 +20,7 @@ import {
 import AdminLayout from "@/components/admin/AdminLayout"
 
 export default function AdminPenggunaPage() {
-  const [usersList, setUsersList] = useState<UserAccount[]>(usersDatabase)
+  const [usersList, setUsersList] = useState<UserAccount[]>([])
   const [userSearch, setUserSearch] = useState("")
   const [roleFilter, setRoleFilter] = useState("all")
 
@@ -46,6 +46,24 @@ export default function AdminPenggunaPage() {
       setToast(null)
     }, 3500)
   }
+
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch("/api/admin/pengguna")
+      if (res.ok) {
+        const data = await res.json()
+        if (data.success && Array.isArray(data.users)) {
+          setUsersList(data.users)
+        }
+      }
+    } catch (e) {
+      console.error("Gagal memuat pengguna:", e)
+    }
+  }
+
+  useEffect(() => {
+    fetchUsers()
+  }, [])
 
   // Handle ESC key to close open modals
   useEffect(() => {
@@ -94,7 +112,7 @@ export default function AdminPenggunaPage() {
   }
 
   // Submit Edit
-  const handleSaveEdit = (e: React.FormEvent) => {
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingUser) return
 
@@ -128,23 +146,38 @@ export default function AdminPenggunaPage() {
       return
     }
 
-    const updatedUser: UserAccount = {
-      ...editingUser,
-      username: trimmedUsername,
-      email: trimmedEmail,
-      role: formRole,
-      password: formPassword.trim() ? formPassword.trim() : editingUser.password,
-    }
+    try {
+      const res = await fetch("/api/admin/pengguna", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingUser.id,
+          username: trimmedUsername,
+          email: trimmedEmail,
+          role: formRole,
+          password: formPassword.trim() || undefined,
+        }),
+      })
 
-    // Update in-memory runtime usersDatabase
-    const dbIndex = usersDatabase.findIndex((u) => u.id === editingUser.id)
-    if (dbIndex !== -1) {
-      usersDatabase[dbIndex] = updatedUser
-    }
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        setEditError(data.error || "Gagal memperbarui akun.")
+        return
+      }
 
-    setUsersList((prev) => prev.map((u) => (u.id === editingUser.id ? updatedUser : u)))
-    handleCloseEdit()
-    showToast(`Akun ${trimmedUsername} berhasil diperbarui.`, "success")
+      setUsersList((prev) =>
+        prev.map((u) =>
+          u.id === editingUser.id
+            ? { ...u, username: trimmedUsername, email: trimmedEmail, role: formRole }
+            : u
+        )
+      )
+      handleCloseEdit()
+      showToast(`Akun ${trimmedUsername} berhasil diperbarui.`, "success")
+    } catch (err) {
+      console.error("handleSaveEdit error:", err)
+      setEditError("Terjadi kesalahan jaringan.")
+    }
   }
 
   // Open Delete Modal
@@ -159,20 +192,28 @@ export default function AdminPenggunaPage() {
   }
 
   // Confirm Delete
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deletingUser) return
 
     const deletedName = deletingUser.username
 
-    // Remove from in-memory runtime usersDatabase
-    const dbIndex = usersDatabase.findIndex((u) => u.id === deletingUser.id)
-    if (dbIndex !== -1) {
-      usersDatabase.splice(dbIndex, 1)
-    }
+    try {
+      const res = await fetch(`/api/admin/pengguna?id=${deletingUser.id}`, {
+        method: "DELETE",
+      })
 
-    setUsersList((prev) => prev.filter((u) => u.id !== deletingUser.id))
-    handleCloseDelete()
-    showToast(`Akun ${deletedName} berhasil dihapus dari sistem.`, "success")
+      if (!res.ok) {
+        showToast("Gagal menghapus pengguna dari sistem.", "error")
+        return
+      }
+
+      setUsersList((prev) => prev.filter((u) => u.id !== deletingUser.id))
+      handleCloseDelete()
+      showToast(`Akun ${deletedName} berhasil dihapus dari sistem.`, "success")
+    } catch (err) {
+      console.error("handleConfirmDelete error:", err)
+      showToast("Terjadi kesalahan saat menghapus pengguna.", "error")
+    }
   }
 
   return (

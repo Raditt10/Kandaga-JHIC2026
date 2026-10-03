@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, Suspense } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -22,6 +22,12 @@ import {
 } from "lucide-react"
 
 type RoleId = "student" | "admin" | "company" | "teacher" | "bkk"
+
+interface MajorItem {
+  id: string
+  name: string
+  fullName: string
+}
 
 export function RegisterFormContent() {
   const router = useRouter()
