@@ -60,12 +60,13 @@ model Major {
 model Student {
   userId        String  @id @map("user_id") @db.Uuid
   majorId       String  @map("major_id") @db.Uuid
-  nis           String  @unique
+  nis           String? @unique
   class         String  
-  generation    Int     @db.SmallInt
+  generation    Int?    @db.SmallInt
   status        String  @default("aktif")
   bio           String?
   currentCareer String?
+  photoUrl      String? @map("photo_url")
 
   user     Users      @relation(fields: [userId], references: [id], onDelete: Cascade)
   major    Major      @relation(fields: [majorId], references: [id])
@@ -112,7 +113,7 @@ model Company {
   verificationStatus String    @default("pending") @map("verification_status")
   verifiedBy         String?   @map("verified_by") @db.Uuid
   verifiedAt         DateTime? @map("verified_at") @db.Timestamptz
-  verifiedNotes      String?   @map("verivied_notes")
+  catatanVerifikasi  String?   @map("catatan_verifikasi")
 
   user            Users             @relation(fields: [userId], references: [id], onDelete: Cascade)
   verifier        Users?            @relation("CompanyVerifiedBy", fields: [verifiedBy], references: [id])

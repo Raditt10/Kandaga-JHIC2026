@@ -1,363 +1,578 @@
 "use client"
 
-import React, { useState } from "react"
-import Image from "next/image"
+import React, { useState, useEffect, Suspense } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import Image from "next/image"
+import { useRouter, useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
 import {
-  ArrowRight,
-  Sparkles,
-  Lock,
-  User,
-  Mail,
+  ArrowLeft,
   Eye,
   EyeOff,
   AlertCircle,
-  GraduationCap,
-  ShieldCheck,
-  Building2,
-  BookOpen,
-  Briefcase,
   CheckCircle2,
+  GraduationCap,
+  Building2,
+  Sparkles,
+  ShieldCheck,
+  Briefcase,
 } from "lucide-react"
 
-export default function RegisterPage() {
-  const router = useRouter()
+interface MajorItem {
+  id: string
+  name: string
+  fullName: string
+}
 
-  // 4 crucial non-nullable fields
+function RegisterFormContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const defaultRole = searchParams.get("role") === "company" ? "company" : "student"
+
+  // Role: Only Public Roles (Internal roles admin, bkk, teacher removed)
+  const [role, setRole] = useState<"student" | "company">(defaultRole)
+
+  // Common Fields
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [role, setRole] = useState<"student" | "admin" | "company" | "teacher" | "bkk">("student")
-
   const [showPassword, setShowPassword] = useState(false)
+
+  // Student Specific Fields
+  const [currentClass, setCurrentClass] = useState("")
+  const [selectedMajorId, setSelectedMajorId] = useState("")
+  const [nis, setNis] = useState("")
+  const [majors, setMajors] = useState<MajorItem[]>([
+    { id: "rpl", name: "RPL", fullName: "Rekayasa Perangkat Lunak" },
+    { id: "tkj", name: "TKJ", fullName: "Teknik Komputer Jaringan" },
+    { id: "ak", name: "Analis Kimia", fullName: "Analis Kimia" },
+  ])
+
+  // Company Specific Fields
+  const [companyName, setCompanyName] = useState("")
+  const [industryField, setIndustryField] = useState("")
+
+  // Form State
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [loading, setLoading] = useState(false)
 
-  // 5 roles metadata
-  const rolesList = [
-    {
-      id: "student" as const,
-      label: "Students",
-      subtitle: "Siswa SMKN 13 Bandung",
-      description: "Memamerkan karya portofolio & mendaftar magang industri",
-      icon: GraduationCap,
-      color: "from-rose-500 to-pink-600",
-    },
-    {
-      id: "admin" as const,
-      label: "Admin",
-      subtitle: "Administrator Sekolah",
-      description: "Mengelola sistem, pengguna, dan hak akses portal",
-      icon: ShieldCheck,
-      color: "from-[#891337] to-[#a61743]",
-    },
-    {
-      id: "company" as const,
-      label: "Company",
-      subtitle: "Mitra Industri & Perusahaan",
-      description: "Merekrut talenta siswa & membuka lowongan magang",
-      icon: Building2,
-      color: "from-blue-600 to-indigo-700",
-    },
-    {
-      id: "teacher" as const,
-      label: "Teacher",
-      subtitle: "Guru & Pembimbing Akademik",
-      description: "Menilai karya siswa & memberikan rekomendasi riset",
-      icon: BookOpen,
-      color: "from-amber-600 to-orange-600",
-    },
-    {
-      id: "bkk" as const,
-      label: "BKK",
-      subtitle: "Bursa Kerja Khusus",
-      description: "Fasilitator penyaluran kerja & bursa karir alumni",
-      icon: Briefcase,
-      color: "from-emerald-600 to-teal-700",
-    },
-  ]
+  // Fetch majors on mount from API
+  useEffect(() => {
+    async function loadMajors() {
+      try {
+        const res = await fetch("/api/auth/register")
+        if (res.ok) {
+          const data = await res.json()
+          if (data.majors && data.majors.length > 0) {
+            setMajors(data.majors)
+            if (!selectedMajorId) {
+              setSelectedMajorId(data.majors[0].id)
+            }
+          }
+        }
+      } catch {
+        // Fallback to static majors
+      }
+    }
+    loadMajors()
+  }, [])
+
+  // Auto-select first major once loaded
+  useEffect(() => {
+    if (majors.length > 0 && !selectedMajorId) {
+      setSelectedMajorId(majors[0].id)
+    }
+  }, [majors, selectedMajorId])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setSuccess("")
 
-    // Validation for 4 crucial non-nullable fields
+    // Common validations
     if (!username.trim()) {
-      setError("Username wajib diisi.")
+      setError("Nama lengkap / username wajib diisi.")
       return
     }
     if (!email.trim()) {
-      setError("Email wajib diisi.")
+      setError("Alamat email wajib diisi.")
       return
     }
-    if (!password.trim()) {
-      setError("Password wajib diisi.")
+    if (!password || password.length < 6) {
+      setError("Kata sandi minimal 6 karakter.")
       return
     }
-    if (!role) {
-      setError("Role wajib dipilih salah satu dari 5 role.")
-      return
+
+    // Role-specific validations
+    if (role === "student") {
+      if (!currentClass.trim()) {
+        setError("Kelas saat ini wajib diisi (contoh: XII RPL 1, XI TKJ 2).")
+        return
+      }
+    } else if (role === "company") {
+      if (!companyName.trim()) {
+        setError("Nama perusahaan atau instansi wajib diisi.")
+        return
+      }
     }
 
     setLoading(true)
 
     try {
+      const payload: Record<string, any> = {
+        username: username.trim(),
+        email: email.trim().toLowerCase(),
+        password: password.trim(),
+        role,
+      }
+
+      if (role === "student") {
+        payload.class = currentClass.trim()
+        payload.majorId = selectedMajorId
+        if (nis.trim()) {
+          payload.nis = nis.trim()
+        }
+      } else if (role === "company") {
+        payload.companyName = companyName.trim()
+        if (industryField.trim()) {
+          payload.field = industryField.trim()
+        }
+      }
+
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: username.trim(),
-          email: email.trim(),
-          password: password.trim(),
-          role: role,
-        }),
+        body: JSON.stringify(payload),
       })
 
       const data = await res.json()
+
       if (!res.ok) {
-        setError(data.error || "Gagal melakukan registrasi.")
+        setError(data.error || "Gagal melakukan registrasi akun.")
         setLoading(false)
         return
       }
 
-      setSuccess("Registrasi berhasil! Menghubungkan ke dashboard Anda...")
+      // Success handling
+      if (role === "student") {
+        setSuccess("Pendaftaran berhasil! Mengarahkan ke sesi Anda...")
+        
+        // Auto sign-in for student
+        const loginRes = await signIn("credentials", {
+          identifier: username.trim(),
+          password: password.trim(),
+          redirect: false,
+        })
 
-      // Auto sign-in after successful registration
-      const loginRes = await signIn("credentials", {
-        identifier: username,
-        password: password,
-        redirect: false,
-      })
-
-      if (loginRes?.ok) {
-        router.push(`/${role}`)
-        router.refresh()
+        if (loginRes?.ok) {
+          router.push("/student")
+          router.refresh()
+        } else {
+          router.push("/auth/login?registered=student")
+        }
       } else {
-        router.push("/auth/login")
+        // Company accounts start with pending verification status
+        setSuccess("Pendaftaran mitra berhasil! Akun Anda telah dicatat untuk diverifikasi oleh BKK.")
+        setTimeout(() => {
+          router.push("/mitra/menunggu")
+        }, 1200)
       }
-    } catch (err) {
-      setError("Terjadi kesalahan koneksi server. Silakan coba lagi.")
+    } catch {
+      setError("Terjadi kendala koneksi ke server. Silakan coba lagi beberapa saat.")
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-[#fafafc] text-zinc-900 font-sans selection:bg-[#90133b] selection:text-white flex flex-col justify-between relative overflow-hidden">
-      {/* Background Gradients */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-gradient-to-b from-rose-100/40 via-pink-50/20 to-transparent blur-3xl pointer-events-none" />
+    <div
+      suppressHydrationWarning
+      className="relative min-h-screen w-full bg-[#a61743] flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans selection:bg-[#a61743] selection:text-white overflow-hidden py-8 sm:py-12"
+    >
+      {/* Background Graphic Design: Diagonal rounded pills matching login page in white & maroon theme */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
+        <svg
+          className="absolute inset-0 w-full h-full"
+          viewBox="0 0 1440 900"
+          preserveAspectRatio="xMidYMid slice"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <linearGradient id="whitePillBrightReg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.55" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.28" />
+            </linearGradient>
+            <linearGradient id="whitePillMediumReg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.42" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.18" />
+            </linearGradient>
+            <linearGradient id="whitePillSoftReg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.32" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.12" />
+            </linearGradient>
+          </defs>
 
-      {/* Floating Header Navigation */}
-      <header className="w-full pt-6 px-4 z-20">
-        <div className="max-w-4xl mx-auto bg-white/90 backdrop-blur-xl border border-zinc-200/80 shadow-[0_10px_35px_-5px_rgba(0,0,0,0.08)] rounded-full px-6 py-3 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-1 group">
-            <div className="w-8 h-8 relative rounded-full overflow-hidden shadow-xs ring-1 ring-zinc-900/5 transition-transform duration-200 group-hover:scale-105 shrink-0">
-              <Image src="/logo.png" alt="Kandaga Logo" fill className="object-contain" priority />
-            </div>
-            <span className="inline-flex items-center select-none -ml-0.5 bg-gradient-to-r from-zinc-950 via-[#4e0e20] to-[#a61743] bg-clip-text text-transparent">
-              <span className="font-tangerine font-bold text-3xl leading-none inline-block -translate-y-[1px]">K</span>
-              <span className="font-extrabold text-[15px] tracking-tight -ml-0.5">andaga</span>
-            </span>
-          </Link>
+          {/* Top-Left Diagonal Rounded Pills (Crisp White) */}
+          <g transform="rotate(-35 250 200)">
+            <rect x="-180" y="-140" width="130" height="640" rx="65" fill="url(#whitePillMediumReg)" />
+            <rect x="0" y="-180" width="160" height="740" rx="80" fill="url(#whitePillBrightReg)" />
+            <rect x="210" y="-100" width="110" height="520" rx="55" fill="url(#whitePillMediumReg)" />
+            <rect x="360" y="-50" width="75" height="380" rx="37.5" fill="url(#whitePillSoftReg)" />
+          </g>
 
-          <div className="flex items-center gap-4 text-xs font-semibold">
-            <Link href="/" className="text-zinc-600 hover:text-zinc-950 transition">
-              Beranda
-            </Link>
+          {/* Bottom-Right Diagonal Rounded Pills (Crisp White) */}
+          <g transform="rotate(-35 1200 700)">
+            <rect x="960" y="440" width="80" height="460" rx="40" fill="url(#whitePillSoftReg)" />
+            <rect x="1080" y="340" width="130" height="620" rx="65" fill="url(#whitePillMediumReg)" />
+            <rect x="1250" y="260" width="165" height="760" rx="82.5" fill="url(#whitePillBrightReg)" />
+            <rect x="1460" y="320" width="140" height="660" rx="70" fill="url(#whitePillMediumReg)" />
+          </g>
+        </svg>
+      </div>
+
+      {/* Main Floating Card matching Login layout */}
+      <div className="relative z-10 w-full max-w-5xl xl:max-w-6xl bg-white rounded-3xl lg:rounded-[32px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] border border-white/40 p-6 sm:p-8 lg:p-10 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+        
+        {/* Left Column: Register Form */}
+        <div className="w-full flex flex-col justify-between py-2 sm:py-3">
+          {/* Top Header: Back Link & Switch Link */}
+          <div className="flex items-center justify-between mb-4">
             <Link
-              href="/auth/login"
-              className="bg-gradient-to-r from-[#891337] to-[#a61743] hover:from-[#76102f] hover:to-[#92143b] text-white px-5 py-2 rounded-full font-bold tracking-wide transition-all shadow-md shadow-[#891337]/25"
+              href="/"
+              aria-label="Kembali ke Beranda"
+              className="w-8 h-8 rounded-md bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center text-zinc-600 hover:text-zinc-900 transition shadow-2xs"
             >
-              Sudah Punya Akun? Masuk
+              <ArrowLeft className="w-4 h-4" />
             </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Register Section */}
-      <main className="flex-1 flex items-center justify-center p-4 sm:p-6 my-8 z-10">
-        <div className="bg-white/95 backdrop-blur-xl rounded-3xl border border-zinc-200/90 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.09)] max-w-5xl w-full p-6 sm:p-10">
-          
-          <div className="mb-8 text-center max-w-xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 border border-rose-100 text-[#90133b] text-xs font-bold mb-3">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Registrasi Pengguna Baru</span>
+            <div className="flex items-center gap-1.5 text-xs text-zinc-500 font-medium">
+              <span>Sudah punya akun?</span>
+              <Link
+                href="/auth/login"
+                className="font-semibold text-[#a61743] hover:underline transition"
+              >
+                Masuk
+              </Link>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight">
-              Buat Akun Kandaga Anda
+          </div>
+
+          {/* Form Content */}
+          <div className="w-full max-w-[420px] mx-auto">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">
+              Daftar Akun Baru
             </h1>
-            <p className="text-xs sm:text-sm text-zinc-600 mt-1.5">
-              Lengkapi 4 field wajib (username, email, password, role) untuk mendapatkan akses dashboard khusus.
+            <p className="text-sm text-zinc-500 mt-1.5 mb-5">
+              Pilih peran Anda dan lengkapi data untuk mengakses platform Kandaga.
             </p>
-          </div>
 
-          {/* Feedback Banners */}
-          {error && (
-            <div className="max-w-2xl mx-auto mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2.5 animate-in fade-in">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-              <span>{error}</span>
+            {/* Error Alert */}
+            {error && (
+              <div className="mb-4 p-3 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-center gap-2 animate-in fade-in">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {/* Success Alert */}
+            {success && (
+              <div className="mb-4 p-3 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium flex items-center gap-2 animate-in fade-in">
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                <span>{success}</span>
+              </div>
+            )}
+
+            {/* Role Switcher: Only Public Roles (Siswa & Mitra Industri) */}
+            <div className="mb-5">
+              <label className="block text-xs font-semibold text-zinc-700 mb-2">
+                Pilih Peran Pendaftaran
+              </label>
+              <div className="grid grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setRole("student")}
+                  className={`flex items-center gap-3 p-3 rounded-xl border text-left transition cursor-pointer ${
+                    role === "student"
+                      ? "border-[#a61743] bg-[#a61743]/5 text-zinc-900 ring-1 ring-[#a61743]"
+                      : "border-zinc-200 hover:border-zinc-300 text-zinc-600 hover:bg-zinc-50/50"
+                  }`}
+                >
+                  <div
+                    className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition ${
+                      role === "student"
+                        ? "bg-[#a61743] text-white"
+                        : "bg-zinc-100 text-zinc-500"
+                    }`}
+                  >
+                    <GraduationCap className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-zinc-900">Siswa SMK</div>
+                    <div className="text-[11px] text-zinc-500">Portofolio & Magang</div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setRole("company")}
+                  className={`flex items-center gap-3 p-3 rounded-xl border text-left transition cursor-pointer ${
+                    role === "company"
+                      ? "border-[#a61743] bg-[#a61743]/5 text-zinc-900 ring-1 ring-[#a61743]"
+                      : "border-zinc-200 hover:border-zinc-300 text-zinc-600 hover:bg-zinc-50/50"
+                  }`}
+                >
+                  <div
+                    className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition ${
+                      role === "company"
+                        ? "bg-[#a61743] text-white"
+                        : "bg-zinc-100 text-zinc-500"
+                    }`}
+                  >
+                    <Building2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-zinc-900">Mitra Industri</div>
+                    <div className="text-[11px] text-zinc-500">Rekrutmen & PKL</div>
+                  </div>
+                </button>
+              </div>
             </div>
-          )}
 
-          {success && (
-            <div className="max-w-2xl mx-auto mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2.5 animate-in fade-in">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>{success}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl mx-auto">
-            {/* Step 1: Mandatory Credentials (3 Fields) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Field 1: Username */}
+            {/* Registration Form */}
+            <form onSubmit={handleSubmit} className="space-y-3.5">
+              {/* Common Field: Username / Nama Lengkap */}
               <div>
-                <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                  <span>1. Username</span>
-                  <span className="text-[10px] text-rose-600 font-extrabold">Wajib</span>
+                <label className="block text-xs font-semibold text-zinc-700 mb-1.5">
+                  {role === "student" ? "Nama Lengkap / Username Siswa" : "Nama Lengkap Narahubung (PIC)"}
                 </label>
-                <div className="relative">
-                  <User className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Contoh: siswa_rpl13"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#90133b] transition bg-zinc-50/50"
-                    required
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder={role === "student" ? "Contoh: Ahmad Zaki" : "Contoh: Budi Santoso"}
+                  className="w-full px-3.5 py-2.5 rounded-md border border-zinc-200 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#a61743]/15 focus:border-[#a61743] transition bg-white"
+                  required
+                />
               </div>
 
-              {/* Field 2: Email */}
+              {/* Common Field: Email */}
               <div>
-                <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                  <span>2. Email</span>
-                  <span className="text-[10px] text-rose-600 font-extrabold">Wajib</span>
+                <label className="block text-xs font-semibold text-zinc-700 mb-1.5">
+                  Alamat Email
                 </label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="email@smkn13bdg.sch.id"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#90133b] transition bg-zinc-50/50"
-                    required
-                  />
-                </div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="nama@email.com"
+                  className="w-full px-3.5 py-2.5 rounded-md border border-zinc-200 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#a61743]/15 focus:border-[#a61743] transition bg-white"
+                  required
+                />
               </div>
 
-              {/* Field 3: Password */}
+              {/* Student Role Additional Fields */}
+              {role === "student" && (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Current Class (Kelas Saat Ini) */}
+                    <div>
+                      <label className="block text-xs font-semibold text-zinc-700 mb-1.5 flex items-center justify-between">
+                        <span>Kelas Saat Ini</span>
+                        <span className="text-[10px] text-[#a61743] font-medium">Wajib</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={currentClass}
+                        onChange={(e) => setCurrentClass(e.target.value)}
+                        placeholder="Contoh: XII RPL 1"
+                        className="w-full px-3.5 py-2.5 rounded-md border border-zinc-200 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#a61743]/15 focus:border-[#a61743] transition bg-white"
+                        required
+                      />
+                    </div>
+
+                    {/* NIS */}
+                    <div>
+                      <label className="block text-xs font-semibold text-zinc-700 mb-1.5 flex items-center justify-between">
+                        <span>NIS</span>
+                        <span className="text-[10px] text-zinc-400 font-normal">Opsional</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={nis}
+                        onChange={(e) => setNis(e.target.value)}
+                        placeholder="1324001"
+                        className="w-full px-3.5 py-2.5 rounded-md border border-zinc-200 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#a61743]/15 focus:border-[#a61743] transition bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Major Selection */}
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-700 mb-1.5">
+                      Kompetensi Keahlian / Jurusan
+                    </label>
+                    <select
+                      value={selectedMajorId}
+                      onChange={(e) => setSelectedMajorId(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-md border border-zinc-200 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#a61743]/15 focus:border-[#a61743] transition bg-white"
+                    >
+                      {majors.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.name} - {m.fullName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </>
+              )}
+
+              {/* Company Role Additional Fields */}
+              {role === "company" && (
+                <>
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-700 mb-1.5 flex items-center justify-between">
+                      <span>Nama Perusahaan / Instansi</span>
+                      <span className="text-[10px] text-[#a61743] font-medium">Wajib</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      placeholder="Contoh: PT Sintesis Digital Nusantara"
+                      className="w-full px-3.5 py-2.5 rounded-md border border-zinc-200 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#a61743]/15 focus:border-[#a61743] transition bg-white"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-700 mb-1.5 flex items-center justify-between">
+                      <span>Bidang Industri</span>
+                      <span className="text-[10px] text-zinc-400 font-normal">Opsional</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={industryField}
+                      onChange={(e) => setIndustryField(e.target.value)}
+                      placeholder="Contoh: Teknologi Informasi & Software"
+                      className="w-full px-3.5 py-2.5 rounded-md border border-zinc-200 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#a61743]/15 focus:border-[#a61743] transition bg-white"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Common Field: Password */}
               <div>
-                <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                  <span>3. Password</span>
-                  <span className="text-[10px] text-rose-600 font-extrabold">Wajib</span>
+                <label className="block text-xs font-semibold text-zinc-700 mb-1.5">
+                  Kata Sandi
                 </label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Minimal 6 karakter"
-                    className="w-full pl-10 pr-10 py-3 rounded-xl border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#90133b] transition bg-zinc-50/50"
+                    className="w-full px-3.5 py-2.5 pr-10 rounded-md border border-zinc-200 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#a61743]/15 focus:border-[#a61743] transition bg-white"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition cursor-pointer"
+                    tabIndex={-1}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
-            </div>
 
-            {/* Step 2: Role Selection Grid (Field 4 - 5 Roles) */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider">
-                  4. Pilih Role Pengguna (5 Peran Spesifik)
-                </label>
-                <span className="text-[10px] text-rose-600 font-extrabold">Wajib (Non-Nullable)</span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                {rolesList.map((r) => {
-                  const Icon = r.icon
-                  const isSelected = role === r.id
-                  return (
-                    <button
-                      key={r.id}
-                      type="button"
-                      onClick={() => setRole(r.id)}
-                      className={`p-4 rounded-2xl border text-left transition-all duration-200 relative flex flex-col justify-between cursor-pointer ${
-                        isSelected
-                          ? "border-[#90133b] bg-rose-50/60 ring-2 ring-[#90133b]/30 shadow-md"
-                          : "border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50/80"
-                      }`}
-                    >
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <div className={`w-8 h-8 rounded-xl bg-gradient-to-r ${r.color} flex items-center justify-center text-white shadow-sm`}>
-                            <Icon className="w-4 h-4" />
-                          </div>
-                          {isSelected && (
-                            <CheckCircle2 className="w-4 h-4 text-[#90133b]" />
-                          )}
-                        </div>
-                        <h3 className="text-sm font-extrabold text-zinc-900">{r.label}</h3>
-                        <p className="text-[11px] font-medium text-rose-700 mt-0.5">{r.subtitle}</p>
-                        <p className="text-[11px] text-zinc-500 mt-2 leading-tight">
-                          {r.description}
-                        </p>
-                      </div>
-
-                      <div className="mt-4 pt-2 border-t border-zinc-100 flex items-center justify-between text-[10px] text-zinc-400 uppercase tracking-wider font-mono">
-                        <span>Akses: /{r.id}/dashboard</span>
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <div className="pt-2">
+              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-[#891337] to-[#a61743] hover:from-[#76102f] hover:to-[#92143b] text-white py-4 rounded-2xl text-sm font-bold tracking-wide transition-all shadow-lg shadow-[#891337]/30 cursor-pointer active:scale-98 flex items-center justify-center gap-2 disabled:opacity-70"
+                className="w-full bg-[#242c4b] hover:bg-[#1a2038] text-white py-3 rounded-md text-sm font-semibold transition-colors duration-150 flex items-center justify-center gap-2 disabled:opacity-70 cursor-pointer mt-4 shadow-xs"
               >
-                {loading ? (
-                  <span>Mendaftarkan Akun...</span>
-                ) : (
-                  <>
-                    <span>Daftar Sekarang & Masuk Ke Dashboard</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
+                {loading ? "Memproses Registrasi..." : "Daftar Sekarang"}
               </button>
-            </div>
-          </form>
+            </form>
 
-          <p className="text-center text-xs text-zinc-500 mt-8">
-            Sudah memiliki akun terdaftar?{" "}
-            <Link href="/auth/login" className="font-bold text-[#90133b] hover:underline">
-              Masuk ke portal
-            </Link>
-          </p>
+            {/* Note regarding internal roles */}
+            <p className="text-[11px] text-zinc-400 text-center mt-4 leading-relaxed">
+              Akun pengelola sekolah (Admin, Guru, BKK) hanya dapat dibuat melalui administrator utama.
+            </p>
+          </div>
         </div>
-      </main>
 
-      {/* Footer */}
-      <footer className="py-4 text-center text-xs text-zinc-500 border-t border-zinc-200/60">
-        © {new Date().getFullYear()} SMKN 13 Bandung • Major Gallery & Industrial Portal
-      </footer>
+        {/* Right Column: Matched styling with login page */}
+        <div className="hidden lg:flex w-full h-full min-h-[580px] rounded-2xl lg:rounded-[28px] bg-[#9c153e] relative overflow-hidden items-center justify-center p-8 text-white">
+          {/* Subtle branding and highlights inside the right container */}
+          <div className="relative z-10 w-full max-w-sm flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center mb-6 shadow-md">
+              <div className="w-10 h-10 relative">
+                <Image src="/logo.png" alt="Kandaga Logo" fill className="object-contain" priority />
+              </div>
+            </div>
+
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white mb-2">
+              Kandaga SMKN 13
+            </h2>
+            <p className="text-xs sm:text-sm text-white/80 leading-relaxed mb-8">
+              Pusat galeri karya teknologi, kurasi keahlian vokasi, dan jembatan kolaborasi industri terpercaya.
+            </p>
+
+            <div className="w-full space-y-3 text-left">
+              <div className="p-3.5 rounded-xl bg-white/10 backdrop-blur-xs border border-white/15 flex items-start gap-3">
+                <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0 mt-0.5">
+                  <Sparkles className="w-3.5 h-3.5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-white">Portofolio & Rekomendasi</h3>
+                  <p className="text-[11px] text-white/70 mt-0.5 leading-normal">
+                    Pamerkan karya terbaik siswa RPL, TKJ, dan Analis Kimia langsung ke publik.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-white/10 backdrop-blur-xs border border-white/15 flex items-start gap-3">
+                <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0 mt-0.5">
+                  <Briefcase className="w-3.5 h-3.5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-white">Jejaring Magang & PKL</h3>
+                  <p className="text-[11px] text-white/70 mt-0.5 leading-normal">
+                    Kemudahan verifikasi kemitraan industri oleh BKK untuk penyaluran talenta kerja.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-white/10 backdrop-blur-xs border border-white/15 flex items-start gap-3">
+                <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0 mt-0.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-white">Ekosistem Terintegrasi</h3>
+                  <p className="text-[11px] text-white/70 mt-0.5 leading-normal">
+                    Kolaborasi terpusat antara siswa, pembimbing sekolah, dan mitra dunia industri.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#a61743] text-white text-sm">
+          Memuat formulir pendaftaran...
+        </div>
+      }
+    >
+      <RegisterFormContent />
+    </Suspense>
   )
 }
