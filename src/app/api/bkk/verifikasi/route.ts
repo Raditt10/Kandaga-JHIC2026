@@ -16,8 +16,9 @@ export async function GET(req: Request) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Tidak terautentikasi." }, { status: 401 })
     }
-    if (session.user.role?.toLowerCase() !== "bkk") {
-      return NextResponse.json({ error: "Hanya Koordinator BKK yang dapat mengakses." }, { status: 403 })
+    const userRole = session.user.role?.toLowerCase()
+    if (userRole !== "bkk" && userRole !== "admin") {
+      return NextResponse.json({ error: "Hanya Koordinator BKK atau Admin yang dapat mengakses." }, { status: 403 })
     }
 
     const { searchParams } = new URL(req.url)
@@ -77,8 +78,9 @@ export async function PATCH(req: Request) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Tidak terautentikasi." }, { status: 401 })
     }
-    if (session.user.role?.toLowerCase() !== "bkk") {
-      return NextResponse.json({ error: "Hanya Koordinator BKK yang dapat memverifikasi." }, { status: 403 })
+    const userRole = session.user.role?.toLowerCase()
+    if (userRole !== "bkk" && userRole !== "admin") {
+      return NextResponse.json({ error: "Hanya Koordinator BKK atau Admin yang dapat memverifikasi." }, { status: 403 })
     }
 
     const { userId, action, catatan } = await req.json()

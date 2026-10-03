@@ -69,6 +69,11 @@ interface DashboardShellProps {
   searchPlaceholder?: string
   /** Label menu kanan bawah; default "Lihat Website". */
   settingsLabel?: string
+  /**
+   * Menu tambahan di blok SETTINGS, dirender di atas "Lihat Website".
+   * Dipakai supaya setiap role punya entri "Pengaturan" yang seragam.
+   */
+  settingsItems?: ShellNavItem[]
   signOutCallbackUrl?: string
   /** Bila diisi, tampilkan breadcrumb di atas konten. */
   pageTitle?: string
@@ -97,6 +102,7 @@ export default function DashboardShell({
   navSectionLabel = "OVERVIEW",
   searchPlaceholder = "Cari...",
   settingsLabel = "Lihat Website",
+  settingsItems = [],
   signOutCallbackUrl = "/auth/login",
   pageTitle,
   breadcrumbHref = "/",
@@ -308,6 +314,44 @@ export default function DashboardShell({
               SETTINGS
             </span>
           )}
+          {settingsItems.map((item) => {
+            const Icon = item.icon
+            const active =
+              item.active ??
+              (item.href
+                ? pathname === item.href ||
+                  (!item.exact && pathname.startsWith(`${item.href}/`))
+                : false)
+
+            return (
+              <Link
+                key={item.key}
+                href={item.href ?? "#"}
+                title={item.label}
+                aria-current={active ? "page" : undefined}
+                className={`flex items-center ${
+                  isSidebarCollapsed
+                    ? "xl:justify-center px-3 py-2.5"
+                    : "gap-3 px-3.5 py-2"
+                } rounded-xl text-xs font-semibold transition ${
+                  active
+                    ? "bg-slate-100 text-[#891337] font-bold shadow-2xs"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                }`}
+              >
+                <Icon
+                  className={`w-4 h-4 shrink-0 ${
+                    active ? "text-[#891337]" : "text-slate-400"
+                  }`}
+                  aria-hidden="true"
+                />
+                {!isSidebarCollapsed && (
+                  <span className="whitespace-nowrap">{item.label}</span>
+                )}
+              </Link>
+            )
+          })}
+
           <Link
             href="/"
             title={settingsLabel}

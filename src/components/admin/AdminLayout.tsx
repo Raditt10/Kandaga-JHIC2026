@@ -3,29 +3,32 @@
 /**
  * AdminLayout — chrome dashboard Administrator.
  *
- * Sejak penyeragaman design, seluruh struktur visual admin (sidebar terang
- * yang bisa dilipat, header pencarian, kartu identitas pengguna, palet
- * `slate` + aksen #891337) dipindahkan ke `DashboardShell` supaya bisa dipakai
- * bersama oleh dashboard Siswa, Guru, Perusahaan, dan BKK.
+ * Seluruh struktur visual admin (sidebar terang yang bisa dilipat, header
+ * pencarian, kartu identitas pengguna, palet `slate` + aksen #891337) ada di
+ * `DashboardShell` supaya dipakai bersama dashboard Siswa, Guru, Perusahaan,
+ * dan BKK. File ini hanya mendefinisikan DAFTAR MENU khas administrator.
  *
- * Layout ini sekarang hanya mendefinisikan DAFTAR MENU khas administrator;
- * urusan tampilan sepenuhnya milik DashboardShell.
+ * Daftar menu diselaraskan dengan hasil merge branch `admin-section`:
+ * halaman Audit Log dihapus di sana dan digantikan halaman Pengaturan,
+ * ditambah Trend Karya, BLUD, dan Pendaftaran Mitra.
  */
 
 import React from "react"
 import {
   Briefcase,
   FileCheck2,
+  Landmark,
   LayoutDashboard,
-  ScrollText,
+  Settings,
   ShieldCheck,
+  TrendingUp,
+  UserPlus,
   Users,
 } from "lucide-react"
 import DashboardShell, {
   type ShellNavItem,
 } from "@/components/dashboard/DashboardShell"
 import { usersDatabase } from "@/lib/users"
-import { systemAuditLogs } from "@/lib/adminData"
 
 export default function AdminLayout({
   children,
@@ -42,23 +45,28 @@ export default function AdminLayout({
     },
     {
       key: "pengguna",
-      label: "Pengguna",
+      label: "Kelola Pengguna",
       href: "/admin/pengguna",
       icon: Users,
       badge: `${usersDatabase.length}`,
     },
     {
       key: "moderasi",
-      label: "Moderasi",
+      label: "Kurasi Karya",
       href: "/admin/moderasi",
       icon: FileCheck2,
     },
     {
-      key: "audit-log",
-      label: "Audit Log",
-      href: "/admin/audit-log",
-      icon: ScrollText,
-      badge: `${systemAuditLogs.length}`,
+      key: "trend-karya",
+      label: "Trend Karya",
+      href: "/admin/trend-karya",
+      icon: TrendingUp,
+    },
+    {
+      key: "blud",
+      label: "BLUD",
+      href: "/admin/blud",
+      icon: Landmark,
     },
     {
       key: "bkk",
@@ -66,11 +74,27 @@ export default function AdminLayout({
       href: "/admin/bkk",
       icon: Briefcase,
     },
+    {
+      key: "pendaftaran-mitra",
+      label: "Pendaftaran Mitra",
+      href: "/admin/pendaftaran-mitra",
+      icon: UserPlus,
+    },
+  ]
+
+  const settingsItems: ShellNavItem[] = [
+    {
+      key: "pengaturan",
+      label: "Pengaturan",
+      href: "/admin/pengaturan",
+      icon: Settings,
+    },
   ]
 
   return (
     <DashboardShell
       navItems={navItems}
+      settingsItems={settingsItems}
       roleLabel="Administrator"
       roleIcon={ShieldCheck}
       searchPlaceholder="Cari karya siswa, pengguna, atau audit log..."
