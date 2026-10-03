@@ -22,15 +22,14 @@
  *                  datanya memang dimuat sekali lalu ditukar lewat state.
  */
 
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import {
   Bell,
   LogOut,
-  Mail,
   PanelLeftClose,
   PanelLeftOpen,
   Search,
@@ -78,6 +77,16 @@ interface DashboardShellProps {
   children: React.ReactNode
 }
 
+/** Notifikasi dari /api/notifications — dipakai lonceng di header. */
+type TNotif = {
+  id: string
+  type: string
+  title: string
+  content: string
+  isRead: boolean
+  createdAt: string
+}
+
 const DEFAULT_ACCENT = "from-[#891337] to-[#a61743]"
 
 export default function DashboardShell({
@@ -95,8 +104,52 @@ export default function DashboardShell({
 }: DashboardShellProps) {
   const { data: session } = useSession()
   const pathname = usePathname()
+  const router = useRouter()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+
+  // ── Notifikasi nyata dari database (sebelumnya lonceng hanya hiasan) ──
+  const [notifOpen, setNotifOpen] = useState(false)
+  const [notifs, setNotifs] = useState<TNotif[]>([])
+  const [unread, setUnread] = useState(0)
+
+  const muatNotifikasi = async () => {
+    try {
+      const res = await fetch("/api/notifications?limit=8", { cache: "no-store" })
+      if (!res.ok) return
+      const data = await res.json()
+      setNotifs(data.items ?? [])
+      setUnread(data.unread ?? 0)
+    } catch {
+      // Lonceng dibiarkan kosong bila gagal; tidak mengganggu halaman.
+    }
+  }
+
+  useEffect(() => {
+    if (session?.user?.id) muatNotifikasi()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.id])
+
+  const tandaiDibaca = async (id?: string) => {
+    try {
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(id ? { id } : { all: true }),
+      })
+    } finally {
+      muatNotifikasi()
+    }
+  }
+
+  /** Kotak pencarian mengarah ke galeri publik — satu-satunya data yang bisa dicari lintas peran. */
+  const kirimPencarian = (e: React.FormEvent) => {
+    e.preventDefault()
+    const q = searchQuery.trim()
+    if (!q) return
+    setNotifOpen(false)
+    router.push(`/gallery?q=${encodeURIComponent(q)}`)
+  }
 
   const userName =
     session?.user?.username || session?.user?.name || "Pengguna Kandaga"
@@ -291,7 +344,7 @@ export default function DashboardShell({
       <main className="flex-1 p-6 sm:p-8 space-y-7 bg-white min-w-0">
         {/* Header: pencarian + aksi + identitas pengguna */}
         <div className="flex items-center justify-between gap-4">
-          <div className="flex-1 relative max-w-lg">
+          <form onSubmit={kirimPencarian} className="flex-1 relative max-w-lg">
             <Search
               className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2"
               aria-hidden="true"
@@ -307,26 +360,83 @@ export default function DashboardShell({
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#891337]/15 focus:border-[#891337] transition"
             />
-          </div>
+          </form>
 
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              title="Pesan"
-              aria-label="Pesan"
-              className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-500 hover:text-slate-800 transition cursor-pointer"
-            >
-              <Mail className="w-4 h-4" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              title="Notifikasi"
-              aria-label="Notifikasi"
-              className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-500 hover:text-slate-800 transition relative cursor-pointer"
-            >
-              <Bell className="w-4 h-4" aria-hidden="true" />
-              <span className="w-2 h-2 rounded-full bg-[#891337] absolute top-2 right-2" />
-            </button>
+            {/* Lonceng notifikasi — datanya nyata dari /api/notifications.
+                Tombol "Pesan" dihapus karena aplikasi ini tidak punya sistem
+                pesan; sebelumnya hanya hiasan tanpa handler. */}
+            <div className="relative">
+              <button
+                type="button"
+                title="Notifikasi"
+                aria-label={`Notifikasi${unread > 0 ? `, ${unread} belum dibaca` : ""}`}
+                aria-expanded={notifOpen}
+                onClick={() => {
+                  setNotifOpen((v) => !v)
+                  if (!notifOpen) muatNotifikasi()
+                }}
+                className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-500 hover:text-slate-800 transition relative cursor-pointer"
+              >
+                <Bell className="w-4 h-4" aria-hidden="true" />
+                {unread > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-[#891337] text-white text-[9px] font-bold flex items-center justify-center">
+                    {unread > 9 ? "9+" : unread}
+                  </span>
+                )}
+              </button>
+
+              {notifOpen && (
+                <div className="absolute right-0 mt-2 w-80 max-w-[85vw] bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+                    <span className="text-xs font-bold text-slate-800">Notifikasi</span>
+                    {unread > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => tandaiDibaca()}
+                        className="text-[11px] font-semibold text-[#891337] hover:underline cursor-pointer"
+                      >
+                        Tandai semua dibaca
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
+                    {notifs.length === 0 ? (
+                      <p className="px-4 py-6 text-center text-xs text-slate-400">
+                        Belum ada notifikasi.
+                      </p>
+                    ) : (
+                      notifs.map((n) => (
+                        <button
+                          key={n.id}
+                          type="button"
+                          onClick={() => !n.isRead && tandaiDibaca(n.id)}
+                          className={`w-full text-left px-4 py-3 hover:bg-slate-50 transition cursor-pointer ${
+                            n.isRead ? "" : "bg-rose-50/40"
+                          }`}
+                        >
+                          <span className="block text-xs font-bold text-slate-800">
+                            {n.title}
+                          </span>
+                          <span className="block text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                            {n.content}
+                          </span>
+                          <span className="block text-[10px] text-slate-400 mt-1">
+                            {new Date(n.createdAt).toLocaleString("id-ID", {
+                              day: "numeric",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
 
             {RoleIcon && (
               <span

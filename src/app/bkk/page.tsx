@@ -19,14 +19,27 @@ import { ShieldCheck, MessageSquare, Building2, ArrowRight, Loader2 } from "luci
 
 export default function BKKDashboardPage() {
   const { data: session } = useSession();
-  const [menunggu, setMenunggu]   = useState<number | null>(null);
-  const [loading, setLoading]     = useState(true);
+  const [menunggu, setMenunggu]           = useState<number | null>(null);
+  const [antrianKontak, setAntrianKontak] = useState<number | null>(null);
+  const [mitra, setMitra]                 = useState<number | null>(null);
+  const [loading, setLoading]             = useState(true);
 
+  // Ketiga widget dibaca dari database sekaligus. Sebelumnya widget "Antrian
+  // Kontak" dan "Mitra Terdaftar" hanya menampilkan tanda "—" hardcoded,
+  // padahal API-nya sudah tersedia.
   useEffect(() => {
-    fetch("/api/bkk/verifikasi?count=true")
-      .then((r) => r.json())
-      .then((d) => { setMenunggu(d.count ?? 0); setLoading(false); })
-      .catch(() => { setMenunggu(0); setLoading(false); });
+    Promise.all([
+      fetch("/api/bkk/verifikasi?count=true").then((r) => r.json()).catch(() => ({})),
+      // status "aktif" = permintaan yang masih menunggu tindakan BKK
+      fetch("/api/bkk/kontak?status=aktif&count=true").then((r) => r.json()).catch(() => ({})),
+      fetch("/api/bkk/mitra").then((r) => r.json()).catch(() => ({})),
+    ])
+      .then(([v, k, m]) => {
+        setMenunggu(v.count ?? 0);
+        setAntrianKontak(k.count ?? 0);
+        setMitra(m.summary?.semua ?? (Array.isArray(m.companies) ? m.companies.length : 0));
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -78,7 +91,7 @@ export default function BKKDashboardPage() {
           </Link>
         </div>
 
-        {/* Antrian Kontak — placeholder Fase 5 alurMitra */}
+        {/* Antrian Kontak — permintaan yang menunggu tindakan BKK */}
         <div className="rounded-2xl border border-ink-150 bg-white p-6 flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <h2 className="font-heading text-sm font-semibold text-ink">
@@ -86,7 +99,11 @@ export default function BKKDashboardPage() {
             </h2>
             <MessageSquare className="w-5 h-5 text-ink-300" aria-hidden="true" />
           </div>
-          <p className="font-heading text-4xl font-extrabold text-ink-300">—</p>
+          {loading ? (
+            <Loader2 className="w-8 h-8 text-ink-300 animate-spin" aria-hidden="true" />
+          ) : (
+            <p className="font-heading text-4xl font-extrabold text-ink">{antrianKontak ?? 0}</p>
+          )}
           <p className="text-xs text-ink-600">
             Permintaan minat rekrutmen dari perusahaan ke siswa.
           </p>
@@ -99,7 +116,7 @@ export default function BKKDashboardPage() {
           </Link>
         </div>
 
-        {/* Manajemen Mitra — placeholder Fase 4 */}
+        {/* Manajemen Mitra — seluruh perusahaan yang pernah mendaftar */}
         <div className="rounded-2xl border border-ink-150 bg-white p-6 flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <h2 className="font-heading text-sm font-semibold text-ink">
@@ -107,7 +124,11 @@ export default function BKKDashboardPage() {
             </h2>
             <Building2 className="w-5 h-5 text-ink-300" aria-hidden="true" />
           </div>
-          <p className="font-heading text-4xl font-extrabold text-ink-300">—</p>
+          {loading ? (
+            <Loader2 className="w-8 h-8 text-ink-300 animate-spin" aria-hidden="true" />
+          ) : (
+            <p className="font-heading text-4xl font-extrabold text-ink">{mitra ?? 0}</p>
+          )}
           <p className="text-xs text-ink-600">
             Seluruh perusahaan yang sudah pernah mendaftar.
           </p>

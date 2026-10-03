@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireStudent } from "@/lib/api-auth";
+import { audit } from "@/lib/activity";
 import type { ProjectType } from "@prisma/client";
 
 function mapMajorToProjectType(major: string): ProjectType {
@@ -282,11 +283,26 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
       return NextResponse.json({ error: "Karya ini bukan milik Anda" }, { status: 403 });
     }
 
-    await prisma.projects.delete({
+    // AGENTS.md §6: "soft-delete via deleted_at untuk arsip alumni — JANGAN
+    // hard-delete karya". Sebelumnya baris ini memakai prisma.projects.delete()
+    // yang menghapus permanen beserta seluruh media & relasinya.
+    await prisma.projects.update({
       where: { id },
+      data: { deletedAt: new Date() },
     });
 
-    return NextResponse.json({ success: true, message: "Karya berhasil dihapus" }, { status: 200 });
+    await audit({
+      userId: auth.userId,
+      action: "project.soft_delete",
+      entity: "projects",
+      entityId: id,
+      data: { title: existing.title },
+    });
+
+    return NextResponse.json(
+      { success: true, message: "Karya dipindahkan ke arsip (bisa dipulihkan admin)." },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("DELETE /api/student/projects/[id] error:", error);
     return NextResponse.json({ error: "Gagal menghapus proyek" }, { status: 500 });

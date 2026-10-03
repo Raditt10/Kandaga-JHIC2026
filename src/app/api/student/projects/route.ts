@@ -118,7 +118,8 @@ export async function GET(req: NextRequest) {
     await ensureStudentProfile(studentId);
 
     const dbProjects = await prisma.projects.findMany({
-      where: { studentId },
+      // Karya yang sudah diarsipkan (soft-delete) tidak boleh muncul lagi.
+      where: { studentId, deletedAt: null },
       include: {
         media: { orderBy: { order: "asc" } },
         tools: {
