@@ -39,3 +39,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# node compile cache (dibuat otomatis oleh Node saat NODE_COMPILE_CACHE aktif)
+/node-compile-cache
+
+# prisma agent skills — dibuat ulang otomatis oleh `prisma skills sync`
+# (lihat script "postinstall" di package.json)
+/.agents/skills
+
+# artefak verifikasi lokal — screenshot & backup data, bukan bagian aplikasi
+/screenshots
+/backup-sebelum-seed-*.json

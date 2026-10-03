@@ -20,6 +20,14 @@ export default function GalleryPage() {
   const [projects, setProjects] = useState<GalleryProjectItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  // Menerima kata kunci dari kotak pencarian dashboard lewat /gallery?q=...
+  // Dibaca dari window (bukan useSearchParams) supaya halaman ini tidak
+  // memerlukan Suspense boundary saat dirender statis.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (q) setSearchQuery(q);
+  }, []);
+
   const fetchProjects = async () => {
     setIsLoading(true);
     try {

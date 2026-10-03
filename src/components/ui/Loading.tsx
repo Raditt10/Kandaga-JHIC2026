@@ -70,11 +70,11 @@ export default function Loading({
       aria-busy="true"
       className={`${layoutClass} ${className}`.trim()}
     >
-      <div className="flex flex-col items-center justify-center gap-3.5 p-6 rounded-3xl bg-white/90 border border-ink-150/70 shadow-sm max-w-sm text-center">
+      <div className="flex flex-col items-center justify-center gap-3.5 p-6 rounded-2xl bg-white/90 border border-ink-150/70 shadow-sm max-w-sm text-center">
         {/* ── Kandaga Branded Dual-Tone Spinner ── */}
         <div className="relative flex items-center justify-center">
           <svg
-            className={`animate-spin ${sizeMap.spinner} text-[#8B1A2F]`}
+            className={`animate-spin ${sizeMap.spinner} text-primary`}
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"

@@ -112,7 +112,7 @@ export function DetailSkeleton({
             <Skeleton
               variant="rounded"
               animation={animation}
-              className={`w-full rounded-3xl ${aspectClass} bg-ink-150`}
+              className={`w-full rounded-2xl ${aspectClass} bg-ink-150`}
             />
             {/* Thumbnails strip */}
             <div className="mt-4 flex items-center gap-3">

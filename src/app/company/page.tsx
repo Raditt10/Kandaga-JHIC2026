@@ -8,12 +8,13 @@
  *     h2: "Mulai dari Sini" (panel aksi cepat)
  */
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import CompanyLayout from "@/components/company/CompanyLayout";
 import {
   Search, Bookmark, ClipboardList, User,
-  ArrowRight, Clock,
+  ArrowRight, Clock, Send, CheckCircle2, FileSearch,
 } from "lucide-react";
 
 const QUICK_ACTIONS = [
@@ -51,15 +52,99 @@ const QUICK_ACTIONS = [
   },
 ] as const;
 
+type Ringkasan = {
+  katalog: number | null;
+  tersimpan: number | null;
+  permintaan: number | null;
+  diteruskan: number | null;
+};
+
 export default function CompanyDashboardPage() {
   const { data: session } = useSession();
   const companyName = session?.user?.name ?? "Mitra Industri";
+
+  // Ringkasan angka dari database. Halaman ini sebelumnya tidak mengambil data
+  // sama sekali — seluruh isinya statis.
+  const [ringkasan, setRingkasan] = useState<Ringkasan>({
+    katalog: null,
+    tersimpan: null,
+    permintaan: null,
+    diteruskan: null,
+  });
+  const [memuat, setMemuat] = useState(true);
+
+  useEffect(() => {
+    let aktif = true;
+
+    const ambilAngka = async () => {
+      const [katalogRes, bookmarkRes, minatRes] = await Promise.all([
+        fetch("/api/company/katalog?pageSize=1", { cache: "no-store" })
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null),
+        fetch("/api/company/bookmark", { cache: "no-store" })
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null),
+        fetch("/api/company/minat", { cache: "no-store" })
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null),
+      ]);
+
+      if (!aktif) return;
+
+      const items = Array.isArray(minatRes?.items) ? minatRes.items : [];
+      setRingkasan({
+        katalog: katalogRes?.pagination?.total ?? null,
+        tersimpan: bookmarkRes?.total ?? null,
+        permintaan: items.length,
+        diteruskan: items.filter(
+          (m: { status?: string }) => m.status === "diteruskan"
+        ).length,
+      });
+      setMemuat(false);
+    };
+
+    ambilAngka();
+    return () => {
+      aktif = false;
+    };
+  }, []);
+
+  const kartuRingkasan = [
+    {
+      label: "Katalog Karya Tersedia",
+      value: ringkasan.katalog,
+      hint: "Karya siswa yang sudah diverifikasi guru",
+      icon: FileSearch,
+      warna: "text-primary",
+    },
+    {
+      label: "Karya Anda Simpan",
+      value: ringkasan.tersimpan,
+      hint: "Tersimpan untuk ditinjau lebih lanjut",
+      icon: Bookmark,
+      warna: "text-amber-600",
+    },
+    {
+      label: "Permintaan Diajukan",
+      value: ringkasan.permintaan,
+      hint: "Seluruh permintaan yang pernah Anda kirim",
+      icon: Send,
+      warna: "text-blue-600",
+    },
+    {
+      label: "Sudah Diteruskan BKK",
+      value: ringkasan.diteruskan,
+      hint: "Sudah dihubungkan ke siswa dan guru",
+      icon: CheckCircle2,
+      warna: "text-emerald-600",
+    },
+  ];
 
   return (
     <CompanyLayout>
 
       {/* ── Welcome banner ── */}
-      <div className="mb-8 rounded-3xl bg-gradient-to-br from-ink via-zinc-900 to-[#3b0818] text-white p-6 sm:p-8 relative overflow-hidden">
+      <div className="mb-8 rounded-3xl bg-gradient-to-r from-primary-dark to-primary text-white p-7 sm:p-9 relative overflow-hidden shadow-xl shadow-primary/15">
         <div className="pointer-events-none absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/5 blur-3xl" aria-hidden="true" />
         <div className="relative z-10">
           <p className="text-xs font-mono text-white/50 mb-1 uppercase tracking-widest">
@@ -85,6 +170,32 @@ export default function CompanyDashboardPage() {
               <span>Akun terverifikasi</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* ── Ringkasan angka dari database ── */}
+      <div className="mb-8">
+        <h2 className="font-heading text-lg font-semibold text-ink mb-5">
+          Ringkasan
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {kartuRingkasan.map(({ label, value, hint, icon: Icon, warna }) => (
+            <div
+              key={label}
+              className="rounded-2xl border border-ink-150 bg-white p-5"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <span className="text-xs font-semibold text-ink-600 uppercase tracking-wider">
+                  {label}
+                </span>
+                <Icon className={`w-4 h-4 shrink-0 ${warna}`} aria-hidden="true" />
+              </div>
+              <p className="font-heading text-3xl font-extrabold text-ink mt-3">
+                {memuat || value === null ? "—" : value.toLocaleString("id-ID")}
+              </p>
+              <span className="text-xs text-ink-600 mt-1 block">{hint}</span>
+            </div>
+          ))}
         </div>
       </div>
 

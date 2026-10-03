@@ -47,6 +47,10 @@ export interface GalleryProjectItem {
   studentAvatar: string;
   studentClass: string;
   isStudentPrivate: boolean;
+  /** Karya privat: hanya pemilik & guru pembimbing yang bisa melihat. */
+  isPrivate?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
   advisor: {
     name: string;
     role: string;

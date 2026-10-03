@@ -1,7 +1,8 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import DashboardLayout, { DashboardTab } from "@/components/DashboardLayout"
+import AccountSettings from "@/components/settings/AccountSettings"
 import { useSession } from "next-auth/react"
 import {
   GraduationCap,
@@ -27,7 +28,8 @@ import {
   AlertCircle,
   Building2,
   ChevronRight,
-  BookOpen
+  BookOpen,
+  Settings
 } from "lucide-react"
 
 export interface StudentProject {
@@ -47,75 +49,62 @@ export interface StudentProject {
   demo: string | null
 }
 
-// Mock Data Karya Siswa
-const initialProjects: StudentProject[] = [
-  {
-    id: "1",
-    title: "EduClass — LMS & Presensi QR Cerdas",
-    description: "Sistem manajemen kelas digital terintegrasi presensi QR code geolokasi dan modul penilaian otomatis berbasis kurikulum merdeka.",
-    major: "RPL",
-    category: "Web & Mobile App",
-    techStack: ["Next.js", "TypeScript", "Tailwind CSS", "PostgreSQL"],
-    views: 1240,
-    status: "verified", // verified | review | draft
-    mentor: "Drs. Ahmad Hidayat, M.Kom",
-    submittedAt: "18 Sep 2026",
-    verifiedAt: "22 Sep 2026",
-    score: 95,
-    github: "https://github.com/smkn13/educlass-lms",
-    demo: "https://educlass.smkn13bandung.sch.id",
-  },
-  {
-    id: "2",
-    title: "Smart Green Energy Microcontroller IoT",
-    description: "Sistem monitoring daya panel surya laboratorium sekolah secara real-time via MQTT protocol dan dashboard telemetry.",
-    major: "TKJ",
-    category: "IoT & Network System",
-    techStack: ["ESP32", "MicroPython", "MQTT", "Grafana"],
-    views: 890,
-    status: "verified",
-    mentor: "Budi Santoso, S.T.",
-    submittedAt: "10 Sep 2026",
-    verifiedAt: "15 Sep 2026",
-    score: 92,
-    github: "https://github.com/smkn13/iot-green-energy",
-    demo: "https://iot.smkn13bandung.sch.id",
-  },
-  {
-    id: "3",
-    title: "Formulasi Indikator Asam-Basa Antosianin Alami",
-    description: "Ekstraksi pigmen bunga telang dan kubis ungu terstandarisasi spektrofotometri sebagai alternatif ramah lingkungan indikator titrasi.",
-    major: "Analis Kimia",
-    category: "Riset Laboratorium ISO",
-    techStack: ["Spektrofotometri UV-Vis", "Ekstraksi Pelarut", "Uji Presisi ISO 17025"],
-    views: 450,
-    status: "review",
-    mentor: "Dra. Siti Nurhaliza, M.Si",
-    submittedAt: "26 Sep 2026",
-    verifiedAt: null,
-    score: null,
+// ── Data karya dari database ────────────────────────────────────────────
+// Halaman ini sebelumnya memakai `initialProjects` (data mock di dalam file)
+// sehingga kartu statistik dan daftar "Karya Saya" tidak mencerminkan isi
+// database. Sekarang datanya diambil dari GET /api/student/projects.
+//
+// Database memakai status: pending | approved | revisi | private.
+// UI ini memakai istilah: verified | review | draft.
+const STATUS_UI: Record<string, "verified" | "review" | "draft"> = {
+  approved: "verified",
+  pending: "review",
+  revisi: "review",
+  private: "draft",
+}
+
+type ApiProject = {
+  id: string
+  title: string
+  description?: string
+  majorLabel?: string
+  tools?: string[]
+  status?: string
+  score?: number | null
+  createdAt?: string
+  updatedAt?: string | null
+  metrics?: { views?: number }
+  advisor?: { name?: string; reviewNotes?: string }
+}
+
+function dariApi(p: ApiProject): StudentProject {
+  const tgl = (iso?: string | null) =>
+    iso
+      ? new Date(iso).toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        })
+      : "—"
+
+  return {
+    id: p.id,
+    title: p.title,
+    description: p.description || "Belum ada deskripsi.",
+    major: p.majorLabel || "—",
+    category: p.majorLabel || "Karya Siswa",
+    techStack: p.tools ?? [],
+    views: p.metrics?.views ?? 0,
+    status: STATUS_UI[p.status ?? ""] ?? "review",
+    mentor: p.advisor?.name || "—",
+    submittedAt: tgl(p.createdAt),
+    verifiedAt: p.status === "approved" ? tgl(p.updatedAt) : null,
+    score: p.score ?? null,
     github: null,
     demo: null,
-  },
-  {
-    id: "4",
-    title: "Kandaga Asset Hub — Inventory Jaringan Sekolah",
-    description: "Modul pelacakan perangkat switch, router, dan workstation lab berbasis barcode scanner PWA.",
-    major: "TKJ",
-    category: "Network Infrastructure",
-    techStack: ["React", "Node.js", "SQLite"],
-    views: 310,
-    status: "verified",
-    mentor: "Budi Santoso, S.T.",
-    submittedAt: "05 Agu 2026",
-    verifiedAt: "12 Agu 2026",
-    score: 89,
-    github: "https://github.com/smkn13/asset-hub",
-    demo: null,
-  },
-]
+  }
+}
 
-// Mock Peluang Magang dari BKK & Industri
 const internshipOpportunities = [
   {
     id: "m-1",
@@ -152,7 +141,9 @@ const internshipOpportunities = [
 export default function StudentDashboardPage() {
   const { data: session } = useSession()
   const [activeTab, setActiveTab] = useState("dashboard")
-  const [projects, setProjects] = useState<StudentProject[]>(initialProjects)
+  const [projects, setProjects] = useState<StudentProject[]>([])
+  const [memuatKarya, setMemuatKarya] = useState(true)
+  const [galatKarya, setGalatKarya] = useState<string | null>(null)
   const [filterStatus, setFilterStatus] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
@@ -165,6 +156,30 @@ export default function StudentDashboardPage() {
   const [newTechStack, setNewTechStack] = useState("")
   const [newGithub, setNewGithub] = useState("")
   const [newDemo, setNewDemo] = useState("")
+
+  // ── Ambil karya milik siswa dari database ─────────────────────────────
+  const muatKarya = async () => {
+    setMemuatKarya(true)
+    setGalatKarya(null)
+    try {
+      const res = await fetch("/api/student/projects", { cache: "no-store" })
+      const data = await res.json()
+      if (!res.ok) {
+        setGalatKarya(data.error || "Gagal memuat karya dari database.")
+      } else {
+        setProjects((data.projects ?? []).map(dariApi))
+      }
+    } catch {
+      setGalatKarya("Terjadi kesalahan koneksi saat memuat karya.")
+    }
+    setMemuatKarya(false)
+  }
+
+  useEffect(() => {
+    muatKarya()
+    // sengaja hanya sekali saat halaman dibuka
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleCreateProject = (e: React.FormEvent) => {
     e.preventDefault()
@@ -233,6 +248,11 @@ export default function StudentDashboardPage() {
       label: "Profil Siswa",
       icon: User,
     },
+    {
+      id: "pengaturan",
+      label: "Pengaturan",
+      icon: Settings,
+    },
   ]
 
   return (
@@ -245,11 +265,23 @@ export default function StudentDashboardPage() {
       activeTab={activeTab}
       onTabChange={setActiveTab}
     >
+      {/* ── Status pemuatan karya dari database ── */}
+      {memuatKarya && (
+        <div className="p-4 rounded-2xl bg-ink-100 border border-ink-150 text-xs font-semibold text-ink-600">
+          Memuat karya Anda dari database…
+        </div>
+      )}
+      {galatKarya && (
+        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs font-semibold text-amber-800">
+          {galatKarya}
+        </div>
+      )}
+
       {/* ──────────────── TAB 1: DASHBOARD ──────────────── */}
       {activeTab === "dashboard" && (
         <div className="space-y-8 animate-in fade-in duration-200">
           {/* Header Welcome Card */}
-          <div className="bg-gradient-to-r from-rose-950 via-[#701026] to-[#8B1A2F] rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+          <div className="rounded-3xl bg-gradient-to-r from-primary-dark to-primary text-white p-7 sm:p-9 relative overflow-hidden shadow-xl shadow-primary/15">
             <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none" />
 
             <div className="relative z-10">
@@ -285,30 +317,30 @@ export default function StudentDashboardPage() {
 
           {/* Quick Metrics */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white rounded-2xl p-5 border border-zinc-200/90 shadow-xs">
-              <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block">Total Karya Diunggah</span>
-              <p className="font-heading text-3xl font-extrabold text-zinc-900 mt-2">{projects.length}</p>
-              <span className="text-xs text-zinc-500 mt-1 block">Tugas akhir & portofolio</span>
+            <div className="bg-white rounded-2xl p-5 border border-ink-150 shadow-xs">
+              <span className="text-xs font-semibold text-ink-600 uppercase tracking-wider block">Total Karya Diunggah</span>
+              <p className="font-heading text-3xl font-extrabold text-ink mt-2">{projects.length}</p>
+              <span className="text-xs text-ink-600 mt-1 block">Tugas akhir & portofolio</span>
             </div>
 
-            <div className="bg-white rounded-2xl p-5 border border-zinc-200/90 shadow-xs">
-              <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block">Terverifikasi Guru</span>
+            <div className="bg-white rounded-2xl p-5 border border-ink-150 shadow-xs">
+              <span className="text-xs font-semibold text-ink-600 uppercase tracking-wider block">Terverifikasi Guru</span>
               <p className="font-heading text-3xl font-extrabold text-emerald-600 mt-2">
                 {projects.filter((p) => p.status === "verified").length}
               </p>
               <span className="text-xs text-emerald-700 font-medium mt-1 block">Tayang di Galeri Utama</span>
             </div>
 
-            <div className="bg-white rounded-2xl p-5 border border-zinc-200/90 shadow-xs">
-              <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block">Dalam Review Guru</span>
+            <div className="bg-white rounded-2xl p-5 border border-ink-150 shadow-xs">
+              <span className="text-xs font-semibold text-ink-600 uppercase tracking-wider block">Dalam Review Guru</span>
               <p className="font-heading text-3xl font-extrabold text-amber-600 mt-2">
                 {projects.filter((p) => p.status === "review").length}
               </p>
               <span className="text-xs text-amber-700 font-medium mt-1 block">Sedang dinilai pembimbing</span>
             </div>
 
-            <div className="bg-white rounded-2xl p-5 border border-zinc-200/90 shadow-xs">
-              <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block">Dilihat Mitra Industri</span>
+            <div className="bg-white rounded-2xl p-5 border border-ink-150 shadow-xs">
+              <span className="text-xs font-semibold text-ink-600 uppercase tracking-wider block">Dilihat Mitra Industri</span>
               <p className="font-heading text-3xl font-extrabold text-blue-600 mt-2">
                 {projects.reduce((acc, curr) => acc + curr.views, 0).toLocaleString()}
               </p>
@@ -319,16 +351,16 @@ export default function StudentDashboardPage() {
           {/* Alur Kurasi & Aksi Cepat */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Alur Kurasi Siswa */}
-            <div className="lg:col-span-2 bg-white rounded-3xl p-6 border border-zinc-200/90 shadow-xs space-y-4">
+            <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-ink-150 shadow-xs space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="font-heading text-lg font-bold text-zinc-900">Alur Verifikasi Karya Sekolah</h2>
-                  <p className="text-xs text-zinc-500 max-w-[65ch]">Setiap karya melalui 4 tahapan kurasi sebelum ditayangkan ke publik dan mitra industri.</p>
+                  <h2 className="font-heading text-lg font-bold text-ink">Alur Verifikasi Karya Sekolah</h2>
+                  <p className="text-xs text-ink-600 max-w-[65ch]">Setiap karya melalui 4 tahapan kurasi sebelum ditayangkan ke publik dan mitra industri.</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsUploadModalOpen(true)}
-                  className="px-4 py-2 bg-[#8B1A2F] text-white rounded-xl text-xs font-bold hover:bg-[#701026] transition cursor-pointer flex items-center gap-1.5 shrink-0"
+                  className="px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary-dark transition cursor-pointer flex items-center gap-1.5 shrink-0"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Tambah Karya</span>
@@ -342,30 +374,30 @@ export default function StudentDashboardPage() {
                   { step: "03", title: "Approval Sekolah", desc: "Standarisasi ISO & kurasi tim kurikulum", active: true },
                   { step: "04", title: "Publikasi Galeri", desc: "Tampil di galeri utama & diakses industri", active: true },
                 ].map((s, idx) => (
-                  <div key={idx} className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/70 relative">
-                    <span className="font-mono text-xs font-extrabold text-[#8B1A2F] block mb-1">{s.step}</span>
-                    <h3 className="font-heading text-xs font-bold text-zinc-900">{s.title}</h3>
-                    <p className="text-[12px] text-zinc-500 mt-1 leading-snug">{s.desc}</p>
+                  <div key={idx} className="p-3.5 rounded-2xl bg-ink-100 border border-ink-150 relative">
+                    <span className="font-mono text-xs font-extrabold text-primary block mb-1">{s.step}</span>
+                    <h3 className="font-heading text-xs font-bold text-ink">{s.title}</h3>
+                    <p className="text-[12px] text-ink-600 mt-1 leading-snug">{s.desc}</p>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Quick Action Card */}
-            <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 text-white rounded-3xl p-6 shadow-xs flex flex-col justify-between">
+            <div className="bg-gradient-to-br from-ink to-ink text-white rounded-2xl p-6 shadow-xs flex flex-col justify-between">
               <div>
                 <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-amber-300 mb-4">
                   <Award className="w-5 h-5" />
                 </div>
                 <h2 className="font-heading text-lg font-bold">Siapkan Portofolio PKL</h2>
-                <p className="font-sans text-xs text-zinc-300 mt-2 leading-relaxed">
+                <p className="font-sans text-xs text-ink-300 mt-2 leading-relaxed">
                   Mitra industri saat ini sedang membuka rekrutmen magang untuk periode semester mendatang melalui unit BKK SMKN 13.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveTab("magang")}
-                className="mt-6 w-full py-2.5 px-4 bg-white text-zinc-950 rounded-xl font-bold text-xs hover:bg-zinc-100 transition flex items-center justify-center gap-1.5 cursor-pointer"
+                className="mt-6 w-full py-2.5 px-4 bg-white text-ink rounded-xl font-bold text-xs hover:bg-ink-100 transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <span>Lihat Lowongan Magang</span>
                 <ChevronRight className="w-4 h-4" />
@@ -374,37 +406,37 @@ export default function StudentDashboardPage() {
           </div>
 
           {/* Karya Terbaru Siswa Preview */}
-          <div className="bg-white rounded-3xl p-6 border border-zinc-200/90 shadow-xs">
+          <div className="bg-white rounded-2xl p-6 border border-ink-150 shadow-xs">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-heading text-lg font-bold text-zinc-900">Karya Terkini Anda</h2>
+              <h2 className="font-heading text-lg font-bold text-ink">Karya Terkini Anda</h2>
               <button
                 type="button"
                 onClick={() => setActiveTab("karya-saya")}
-                className="text-xs font-bold text-[#8B1A2F] hover:underline flex items-center gap-1 cursor-pointer"
+                className="text-xs font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
               >
                 <span>Buka Menu Karya Saya ({projects.length})</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            <div className="divide-y divide-zinc-100">
+            <div className="divide-y divide-ink-150">
               {projects.slice(0, 3).map((item) => (
                 <div key={item.id} className="py-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#8B1A2F] flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-rose-50 text-primary flex items-center justify-center shrink-0">
                       {item.major === "RPL" ? <FileCode className="w-5 h-5" /> : item.major === "TKJ" ? <Wifi className="w-5 h-5" /> : <FlaskConical className="w-5 h-5" />}
                     </div>
                     <div>
-                      <h3 className="font-heading text-sm font-bold text-zinc-900">{item.title}</h3>
+                      <h3 className="font-heading text-sm font-bold text-ink">{item.title}</h3>
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-xs font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md">{item.major}</span>
-                        <span className="text-xs text-zinc-500">{item.category}</span>
+                        <span className="text-xs text-ink-600">{item.category}</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3 self-end sm:self-center">
-                    <span className="text-xs text-zinc-500 font-mono">{item.views} views</span>
+                    <span className="text-xs text-ink-600 font-mono">{item.views} views</span>
                     <span
                       className={`text-xs px-2.5 py-1 rounded-full font-bold ${
                         item.status === "verified"
@@ -426,12 +458,12 @@ export default function StudentDashboardPage() {
       {activeTab === "karya-saya" && (
         <div className="space-y-6 animate-in fade-in duration-200">
           {/* Header Action Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 bg-white rounded-3xl border border-zinc-200/90 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 bg-white rounded-2xl border border-ink-150 shadow-xs">
             <div>
-              <h1 className="font-heading text-xl sm:text-2xl font-extrabold text-zinc-900">
+              <h1 className="font-heading text-xl sm:text-2xl font-extrabold text-ink">
                 Karya & Portofolio Saya
               </h1>
-              <p className="font-sans text-xs sm:text-sm text-zinc-500 mt-1 max-w-[65ch]">
+              <p className="font-sans text-xs sm:text-sm text-ink-600 mt-1 max-w-[65ch]">
                 Koleksi karya portofolio Anda. Unggah proyek tugas akhir baru atau pantau status kurasi guru pembimbing.
               </p>
             </div>
@@ -439,7 +471,7 @@ export default function StudentDashboardPage() {
             <button
               type="button"
               onClick={() => setIsUploadModalOpen(true)}
-              className="px-4 py-2.5 bg-[#8B1A2F] text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-[#701026] transition cursor-pointer flex items-center justify-center gap-2 shadow-xs shrink-0"
+              className="px-4 py-2.5 bg-primary text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-primary-dark transition cursor-pointer flex items-center justify-center gap-2 shadow-xs shrink-0"
             >
               <Plus className="w-4 h-4" />
               <span>Unggah Karya Baru</span>
@@ -447,16 +479,16 @@ export default function StudentDashboardPage() {
           </div>
 
           {/* Filter & Search Bar */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 bg-white rounded-2xl border border-zinc-200/80 shadow-xs">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 bg-white rounded-2xl border border-ink-150 shadow-xs">
             {/* Search Input */}
             <div className="relative w-full sm:w-72">
-              <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-ink-300 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Cari karya saya..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 rounded-xl bg-zinc-50 border border-zinc-200 text-xs text-zinc-800 focus:outline-none focus:ring-1 focus:ring-[#8B1A2F]"
+                className="w-full pl-9 pr-3 py-2 rounded-xl bg-ink-100 border border-ink-150 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
 
@@ -473,8 +505,8 @@ export default function StudentDashboardPage() {
                   onClick={() => setFilterStatus(f.id)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
                     filterStatus === f.id
-                      ? "bg-zinc-900 text-white"
-                      : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+                      ? "bg-ink text-white"
+                      : "bg-ink-100 text-ink-600 hover:bg-ink-150"
                   }`}
                 >
                   <span>{f.label}</span>
@@ -487,16 +519,16 @@ export default function StudentDashboardPage() {
           {/* Project List Items */}
           <div className="space-y-4">
             {filteredProjects.length === 0 ? (
-              <div className="p-12 text-center bg-white rounded-3xl border border-zinc-200">
-                <FolderGit2 className="w-12 h-12 text-zinc-300 mx-auto mb-3" />
-                <h3 className="font-heading text-base font-bold text-zinc-700">Tidak ada karya yang cocok</h3>
-                <p className="text-xs text-zinc-500 mt-1">Coba sesuaikan kata kunci pencarian atau filter status Anda.</p>
+              <div className="p-12 text-center bg-white rounded-2xl border border-ink-150">
+                <FolderGit2 className="w-12 h-12 text-ink-300 mx-auto mb-3" />
+                <h3 className="font-heading text-base font-bold text-ink-700">Tidak ada karya yang cocok</h3>
+                <p className="text-xs text-ink-600 mt-1">Coba sesuaikan kata kunci pencarian atau filter status Anda.</p>
               </div>
             ) : (
               filteredProjects.map((project) => (
                 <div
                   key={project.id}
-                  className="p-6 bg-white rounded-3xl border border-zinc-200/90 shadow-xs hover:border-zinc-300 transition space-y-4"
+                  className="p-6 bg-white rounded-2xl border border-ink-150 shadow-xs hover:border-ink-300 transition space-y-4"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                     <div className="space-y-1">
@@ -504,13 +536,13 @@ export default function StudentDashboardPage() {
                         <span className="text-xs font-bold text-rose-800 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">
                           {project.major}
                         </span>
-                        <span className="text-xs font-semibold text-zinc-500">
+                        <span className="text-xs font-semibold text-ink-600">
                           {project.category}
                         </span>
-                        <span className="text-zinc-300">•</span>
-                        <span className="text-xs text-zinc-400">Diajukan: {project.submittedAt}</span>
+                        <span className="text-ink-300">•</span>
+                        <span className="text-xs text-ink-300">Diajukan: {project.submittedAt}</span>
                       </div>
-                      <h2 className="font-heading text-lg font-bold text-zinc-900 pt-1">
+                      <h2 className="font-heading text-lg font-bold text-ink pt-1">
                         {project.title}
                       </h2>
                     </div>
@@ -531,7 +563,7 @@ export default function StudentDashboardPage() {
                     </div>
                   </div>
 
-                  <p className="font-sans text-xs sm:text-sm text-zinc-600 leading-relaxed max-w-[65ch]">
+                  <p className="font-sans text-xs sm:text-sm text-ink-600 leading-relaxed max-w-[65ch]">
                     {project.description}
                   </p>
 
@@ -540,7 +572,7 @@ export default function StudentDashboardPage() {
                     {project.techStack.map((tech, idx) => (
                       <span
                         key={idx}
-                        className="px-2.5 py-1 rounded-md bg-zinc-100 text-zinc-700 text-xs font-mono font-medium"
+                        className="px-2.5 py-1 rounded-md bg-ink-100 text-ink-700 text-xs font-mono font-medium"
                       >
                         {tech}
                       </span>
@@ -548,10 +580,10 @@ export default function StudentDashboardPage() {
                   </div>
 
                   {/* Footer info: Pembimbing, Nilai, Aksi */}
-                  <div className="pt-4 border-t border-zinc-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                  <div className="pt-4 border-t border-ink-150 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                     <div className="space-y-0.5">
-                      <p className="text-zinc-500">
-                        Pembimbing: <strong className="text-zinc-800">{project.mentor}</strong>
+                      <p className="text-ink-600">
+                        Pembimbing: <strong className="text-ink">{project.mentor}</strong>
                       </p>
                       {project.score && (
                         <p className="text-emerald-700 font-semibold">
@@ -566,7 +598,7 @@ export default function StudentDashboardPage() {
                           href={project.github}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-3 py-1.5 rounded-xl border border-zinc-200 text-zinc-700 font-semibold hover:bg-zinc-50 transition flex items-center gap-1.5"
+                          className="px-3 py-1.5 rounded-xl border border-ink-150 text-ink-700 font-semibold hover:bg-ink-100 transition flex items-center gap-1.5"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
                           <span>GitHub</span>
@@ -577,7 +609,7 @@ export default function StudentDashboardPage() {
                           href={project.demo}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-3 py-1.5 rounded-xl bg-zinc-900 text-white font-semibold hover:bg-black transition flex items-center gap-1.5"
+                          className="px-3 py-1.5 rounded-xl bg-ink text-white font-semibold hover:bg-black transition flex items-center gap-1.5"
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>Live Demo</span>
@@ -585,7 +617,7 @@ export default function StudentDashboardPage() {
                       )}
                       <button
                         type="button"
-                        className="px-3 py-1.5 rounded-xl border border-zinc-200 text-zinc-600 font-semibold hover:bg-zinc-50 transition cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl border border-ink-150 text-ink-600 font-semibold hover:bg-ink-100 transition cursor-pointer"
                       >
                         Edit Draf
                       </button>
@@ -601,18 +633,18 @@ export default function StudentDashboardPage() {
       {/* ──────────────── TAB 3: PELUANG MAGANG & BKK ──────────────── */}
       {activeTab === "magang" && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          <div className="p-6 bg-white rounded-3xl border border-zinc-200/90 shadow-xs">
-            <h1 className="font-heading text-xl sm:text-2xl font-extrabold text-zinc-900">
+          <div className="p-6 bg-white rounded-2xl border border-ink-150 shadow-xs">
+            <h1 className="font-heading text-xl sm:text-2xl font-extrabold text-ink">
               Peluang Magang & Kemitraan Industri (BKK)
             </h1>
-            <p className="font-sans text-xs sm:text-sm text-zinc-500 mt-1 max-w-[65ch]">
+            <p className="font-sans text-xs sm:text-sm text-ink-600 mt-1 max-w-[65ch]">
               Peluang Praktik Kerja Lapangan (PKL) dan rekrutmen magang industri yang telah dikurasi oleh Bursa Kerja Khusus (BKK) SMKN 13 Bandung.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {internshipOpportunities.map((m) => (
-              <div key={m.id} className="p-6 bg-white rounded-3xl border border-zinc-200/90 shadow-xs flex flex-col justify-between space-y-4">
+              <div key={m.id} className="p-6 bg-white rounded-2xl border border-ink-150 shadow-xs flex flex-col justify-between space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
@@ -620,20 +652,20 @@ export default function StudentDashboardPage() {
                     </span>
                     <span className="text-xs text-amber-600 font-semibold font-mono">{m.status}</span>
                   </div>
-                  <h2 className="font-heading text-base font-bold text-zinc-900">{m.role}</h2>
-                  <p className="text-xs font-semibold text-zinc-700 mt-1 flex items-center gap-1">
-                    <Building2 className="w-3.5 h-3.5 text-zinc-400" />
+                  <h2 className="font-heading text-base font-bold text-ink">{m.role}</h2>
+                  <p className="text-xs font-semibold text-ink-700 mt-1 flex items-center gap-1">
+                    <Building2 className="w-3.5 h-3.5 text-ink-300" />
                     <span>{m.company}</span>
                   </p>
-                  <p className="text-xs text-zinc-500 mt-2">{m.type} • {m.location}</p>
+                  <p className="text-xs text-ink-600 mt-2">{m.type} • {m.location}</p>
                 </div>
 
-                <div className="pt-3 border-t border-zinc-100 flex items-center justify-between">
-                  <span className="text-[11px] text-zinc-400">Batas: {m.deadline}</span>
+                <div className="pt-3 border-t border-ink-150 flex items-center justify-between">
+                  <span className="text-[11px] text-ink-300">Batas: {m.deadline}</span>
                   <button
                     type="button"
                     onClick={() => alert(`Pengajuan minat untuk ${m.role} di ${m.company} diteruskan ke Koordinator BKK SMKN 13.`)}
-                    className="px-3.5 py-1.5 bg-zinc-900 hover:bg-black text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                    className="px-3.5 py-1.5 bg-ink hover:bg-black text-white text-xs font-bold rounded-xl transition cursor-pointer"
                   >
                     Ajukan Minat via BKK
                   </button>
@@ -647,65 +679,65 @@ export default function StudentDashboardPage() {
       {/* ──────────────── TAB 4: PROFIL SISWA ──────────────── */}
       {activeTab === "profil" && (
         <div className="max-w-4xl space-y-6 animate-in fade-in duration-200">
-          <div className="p-6 bg-white rounded-3xl border border-zinc-200/90 shadow-xs">
-            <h1 className="font-heading text-xl sm:text-2xl font-extrabold text-zinc-900">
+          <div className="p-6 bg-white rounded-2xl border border-ink-150 shadow-xs">
+            <h1 className="font-heading text-xl sm:text-2xl font-extrabold text-ink">
               Profil & Informasi Siswa
             </h1>
-            <p className="font-sans text-xs sm:text-sm text-zinc-500 mt-1 max-w-[65ch]">
+            <p className="font-sans text-xs sm:text-sm text-ink-600 mt-1 max-w-[65ch]">
               Data identitas siswa yang tercatat di sistem akademik SMKN 13 Bandung dan lampiran portofolio resmi.
             </p>
           </div>
 
-          <div className="p-6 bg-white rounded-3xl border border-zinc-200/90 shadow-xs space-y-6">
+          <div className="p-6 bg-white rounded-2xl border border-ink-150 shadow-xs space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
-                <label className="block text-zinc-500 font-medium mb-1">Nama Siswa</label>
+                <label className="block text-ink-600 font-medium mb-1">Nama Siswa</label>
                 <input
                   type="text"
                   readOnly
                   value={session?.user?.username || "Ahmad Rizky Pratama"}
-                  className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-bold text-zinc-900"
+                  className="w-full px-3 py-2 bg-ink-100 border border-ink-150 rounded-xl font-bold text-ink"
                 />
               </div>
 
               <div>
-                <label className="block text-zinc-500 font-medium mb-1">Email Akademik</label>
+                <label className="block text-ink-600 font-medium mb-1">Email Akademik</label>
                 <input
                   type="text"
                   readOnly
                   value={session?.user?.email || "ahmad.rizky@smkn13bandung.sch.id"}
-                  className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-mono text-zinc-700"
+                  className="w-full px-3 py-2 bg-ink-100 border border-ink-150 rounded-xl font-mono text-ink-700"
                 />
               </div>
 
               <div>
-                <label className="block text-zinc-500 font-medium mb-1">Kompetensi Keahlian</label>
+                <label className="block text-ink-600 font-medium mb-1">Kompetensi Keahlian</label>
                 <input
                   type="text"
                   readOnly
                   value="Rekayasa Perangkat Lunak (RPL)"
-                  className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-semibold text-rose-800"
+                  className="w-full px-3 py-2 bg-ink-100 border border-ink-150 rounded-xl font-semibold text-rose-800"
                 />
               </div>
 
               <div>
-                <label className="block text-zinc-500 font-medium mb-1">Tingkat / Kelas</label>
+                <label className="block text-ink-600 font-medium mb-1">Tingkat / Kelas</label>
                 <input
                   type="text"
                   readOnly
                   value="XII RPL 1 (Tahun Ajaran 2026/2027)"
-                  className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-800"
+                  className="w-full px-3 py-2 bg-ink-100 border border-ink-150 rounded-xl text-ink"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs text-zinc-500 font-medium mb-1">Bio Singkat Portofolio</label>
+              <label className="block text-xs text-ink-600 font-medium mb-1">Bio Singkat Portofolio</label>
               <textarea
                 readOnly
                 rows={3}
                 value="Siswa tingkat akhir jurusan RPL SMKN 13 Bandung dengan spesialisasi Next.js, TypeScript, dan arsitektur database relasional PostgreSQL. Memiliki sertifikasi junior web developer BNSP."
-                className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-800 leading-relaxed resize-none"
+                className="w-full px-3 py-2 bg-ink-100 border border-ink-150 rounded-xl text-xs text-ink leading-relaxed resize-none"
               />
             </div>
           </div>
@@ -715,18 +747,18 @@ export default function StudentDashboardPage() {
       {/* ──────────────── MODAL UNGGAH KARYA BARU ──────────────── */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-4 border-b border-zinc-100">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-4 border-b border-ink-150">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-rose-50 text-[#8B1A2F] flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-rose-50 text-primary flex items-center justify-center">
                   <Upload className="w-4 h-4" />
                 </div>
-                <h3 className="font-heading text-lg font-bold text-zinc-900">Unggah Karya Baru</h3>
+                <h3 className="font-heading text-lg font-bold text-ink">Unggah Karya Baru</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsUploadModalOpen(false)}
-                className="p-1 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 cursor-pointer"
+                className="p-1 rounded-lg text-ink-300 hover:text-ink-600 hover:bg-ink-100 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -734,24 +766,24 @@ export default function StudentDashboardPage() {
 
             <form onSubmit={handleCreateProject} className="space-y-4 pt-4 text-xs">
               <div>
-                <label className="block font-semibold text-zinc-700 mb-1">Judul Karya / Proyek *</label>
+                <label className="block font-semibold text-ink-700 mb-1">Judul Karya / Proyek *</label>
                 <input
                   type="text"
                   required
                   placeholder="Misal: EduClass — LMS & Presensi QR Cerdas"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full px-3 py-2 border border-zinc-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#8B1A2F]"
+                  className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-zinc-700 mb-1">Kompetensi Keahlian</label>
+                  <label className="block font-semibold text-ink-700 mb-1">Kompetensi Keahlian</label>
                   <select
                     value={newMajor}
                     onChange={(e) => setNewMajor(e.target.value)}
-                    className="w-full px-3 py-2 border border-zinc-200 rounded-xl bg-white focus:outline-none"
+                    className="w-full px-3 py-2 border border-ink-150 rounded-xl bg-white focus:outline-none"
                   >
                     <option value="RPL">RPL (Rekayasa Perangkat Lunak)</option>
                     <option value="TKJ">TKJ (Teknik Komputer Jaringan)</option>
@@ -759,58 +791,58 @@ export default function StudentDashboardPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block font-semibold text-zinc-700 mb-1">Kategori Karya</label>
+                  <label className="block font-semibold text-ink-700 mb-1">Kategori Karya</label>
                   <input
                     type="text"
                     placeholder="Web App, IoT, Riset ISO"
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value)}
-                    className="w-full px-3 py-2 border border-zinc-200 rounded-xl focus:outline-none"
+                    className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-zinc-700 mb-1">Deskripsi Proyek Singkat</label>
+                <label className="block font-semibold text-ink-700 mb-1">Deskripsi Proyek Singkat</label>
                 <textarea
                   rows={3}
                   placeholder="Jelaskan tujuan, masalah yang diselesaikan, dan hasil karya Anda..."
                   value={newDescription}
                   onChange={(e) => setNewDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-zinc-200 rounded-xl focus:outline-none"
+                  className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-zinc-700 mb-1">Teknologi / Stack (pisahkan koma)</label>
+                <label className="block font-semibold text-ink-700 mb-1">Teknologi / Stack (pisahkan koma)</label>
                 <input
                   type="text"
                   placeholder="Next.js, TypeScript, PostgreSQL"
                   value={newTechStack}
                   onChange={(e) => setNewTechStack(e.target.value)}
-                  className="w-full px-3 py-2 border border-zinc-200 rounded-xl focus:outline-none"
+                  className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-zinc-700 mb-1">Tautan GitHub / Repo</label>
+                  <label className="block font-semibold text-ink-700 mb-1">Tautan GitHub / Repo</label>
                   <input
                     type="url"
                     placeholder="https://github.com/..."
                     value={newGithub}
                     onChange={(e) => setNewGithub(e.target.value)}
-                    className="w-full px-3 py-2 border border-zinc-200 rounded-xl focus:outline-none"
+                    className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-zinc-700 mb-1">Tautan Demo / Laporan</label>
+                  <label className="block font-semibold text-ink-700 mb-1">Tautan Demo / Laporan</label>
                   <input
                     type="url"
                     placeholder="https://..."
                     value={newDemo}
                     onChange={(e) => setNewDemo(e.target.value)}
-                    className="w-full px-3 py-2 border border-zinc-200 rounded-xl focus:outline-none"
+                    className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none"
                   />
                 </div>
               </div>
@@ -826,13 +858,13 @@ export default function StudentDashboardPage() {
                 <button
                   type="button"
                   onClick={() => setIsUploadModalOpen(false)}
-                  className="px-4 py-2 border border-zinc-200 text-zinc-600 rounded-xl font-bold hover:bg-zinc-100 transition cursor-pointer"
+                  className="px-4 py-2 border border-ink-150 text-ink-600 rounded-xl font-bold hover:bg-ink-100 transition cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#8B1A2F] text-white rounded-xl font-bold hover:bg-[#701026] transition cursor-pointer"
+                  className="px-5 py-2 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition cursor-pointer"
                 >
                   Simpan & Ajukan Kurasi
                 </button>
@@ -841,6 +873,8 @@ export default function StudentDashboardPage() {
           </div>
         </div>
       )}
+      {/* ──────────────── TAB 5: PENGATURAN AKUN ──────────────── */}
+      {activeTab === "pengaturan" && <AccountSettings />}
     </DashboardLayout>
   )
 }

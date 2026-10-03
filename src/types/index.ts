@@ -91,9 +91,9 @@ export type Feature = {
 // ─────────────────────────────────────────────
 
 export type Partner = {
-  name: string;           // nama lengkap perusahaan
-  abbr: string;           // singkatan untuk placeholder logo
-  logoUrl?: string;       // URL logo (opsional, diisi saat data asli tersedia)
+  name:     string;
+  abbr:     string;          // singkatan untuk fallback
+  logoUrl?: string;          // path di public/partners/ — opsional untuk backward compat
   website?: string;
 };
 

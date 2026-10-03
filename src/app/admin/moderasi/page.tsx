@@ -7,11 +7,12 @@ import { projectShowcases } from "@/lib/adminData"
 import {
   Search,
   Filter,
+  Heart,
   X,
   FolderGit2,
   ChevronLeft,
   ChevronRight,
-  Eye
+  Eye,
 } from "lucide-react"
 import AdminLayout from "@/components/admin/AdminLayout"
 
@@ -29,8 +30,11 @@ export default function AdminModerasiPage() {
         categoryFilter === "all"
           ? true
           : proj.category.toLowerCase().includes(categoryFilter.toLowerCase())
-      // Pencarian hanya berdasarkan nama karya (bukan nama siswa).
-      const matchSearch = proj.title.toLowerCase().includes(searchQuery.trim().toLowerCase())
+      const matchSearch =
+        proj.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        proj.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        proj.authorRole.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        proj.description.toLowerCase().includes(searchQuery.toLowerCase())
       return matchCategory && matchSearch
     })
     .sort((a, b) => (a.uploadOrder ?? 0) - (b.uploadOrder ?? 0))
@@ -59,13 +63,13 @@ export default function AdminModerasiPage() {
     <AdminLayout>
       <div className="space-y-6 animate-in fade-in duration-200">
         {/* Header & Filter Controls Bar */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="p-5 rounded-2xl bg-white border border-ink-150 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="font-heading text-lg font-bold text-slate-900 flex items-center gap-2">
-              <FolderGit2 className="w-5 h-5 text-[#891337]" />
-              <span>Kurasi Karya Galeri</span>
+            <h1 className="font-heading text-lg font-bold text-ink flex items-center gap-2">
+              <FolderGit2 className="w-5 h-5 text-primary" />
+              <span>Kurasi Karya</span>
             </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-ink-600 mt-0.5">
               Daftar karya inovasi dan portofolio siswa Kandaga ({filteredProjects.length} karya). Hover kartu untuk melihat detail di halaman kurasi.
             </p>
           </div>
@@ -74,19 +78,19 @@ export default function AdminModerasiPage() {
           <div className="flex flex-wrap items-center gap-3">
             {/* Search Input */}
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-ink-300 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Cari nama karya..."
+                placeholder="Cari karya / siswa..."
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className="pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-slate-50/70 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#891337]/15 focus:border-[#891337] transition"
+                className="pl-8 pr-3 py-1.5 rounded-xl border border-ink-150 text-xs bg-ink-100/70 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary transition"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => handleSearchChange("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-300 hover:text-ink-600 cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -95,11 +99,11 @@ export default function AdminModerasiPage() {
 
             {/* Filter Kategori / Jurusan */}
             <div className="flex items-center gap-2">
-              <Filter className="w-3.5 h-3.5 text-slate-400" />
+              <Filter className="w-3.5 h-3.5 text-ink-300" />
               <select
                 value={categoryFilter}
                 onChange={(e) => handleCategoryChange(e.target.value)}
-                className="text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#891337]/15 cursor-pointer font-medium"
+                className="text-xs px-3 py-1.5 rounded-xl border border-ink-150 bg-white text-ink-700 focus:outline-none focus:ring-2 focus:ring-primary/15 cursor-pointer font-medium"
               >
                 <option value="all">Semua Kategori</option>
                 <option value="RPL">RPL (Rekayasa Perangkat Lunak)</option>
@@ -112,15 +116,15 @@ export default function AdminModerasiPage() {
 
         {/* Projects Cards Grid */}
         {filteredProjects.length === 0 ? (
-          <div className="p-12 text-center bg-white rounded-2xl border border-slate-200/80 shadow-xs">
-            <p className="text-xs text-slate-400">Tidak ada karya yang sesuai dengan filter atau kata kunci.</p>
+          <div className="p-12 text-center bg-white rounded-2xl border border-ink-150 shadow-xs">
+            <p className="text-xs text-ink-300">Tidak ada karya yang sesuai dengan filter atau kata kunci.</p>
             <button
               type="button"
               onClick={() => {
                 handleSearchChange("")
                 handleCategoryChange("all")
               }}
-              className="mt-2 text-xs font-bold text-[#891337] hover:underline cursor-pointer"
+              className="mt-2 text-xs font-bold text-primary hover:underline cursor-pointer"
             >
               Reset Filter
             </button>
@@ -133,15 +137,15 @@ export default function AdminModerasiPage() {
             {displayedProjects.map((proj) => (
               <div
                 key={proj.id}
-                className="relative group p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between overflow-hidden"
+                className="relative group p-4 rounded-2xl bg-white border border-ink-150 shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between overflow-hidden"
               >
                 {/* Dark Overlay saat Hover dengan Icon Mata untuk Menuju Halaman Detail (Tanpa tombol verifikasi/tolak di card) */}
                 <Link
                   href={`/admin/moderasi/${proj.id}`}
-                  className="absolute inset-0 bg-slate-950/75 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 z-30 flex flex-col items-center justify-center p-4 text-center cursor-pointer no-underline"
+                  className="absolute inset-0 bg-ink/75 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 z-30 flex flex-col items-center justify-center p-4 text-center cursor-pointer no-underline"
                 >
-                  <div className="w-13 h-13 rounded-full bg-white/20 hover:bg-white text-white hover:text-slate-900 flex items-center justify-center backdrop-blur-md shadow-xl transition-all duration-200 transform scale-90 group-hover:scale-100 hover:scale-110 mb-2">
-                    <Eye className="w-6 h-6" />
+                  <div className="w-12 h-12 rounded-full bg-white/20 hover:bg-white text-white hover:text-ink flex items-center justify-center backdrop-blur-md shadow-xl transition-all duration-200 transform scale-90 group-hover:scale-100 hover:scale-110 mb-2">
+                    <Eye className="w-5 h-5" />
                   </div>
                   <span className="text-white text-xs font-semibold tracking-wide drop-shadow-sm hover:underline">
                     Lihat Detail Karya
@@ -150,7 +154,7 @@ export default function AdminModerasiPage() {
 
                 <div>
                   {/* Image Area */}
-                  <div className="relative h-44 rounded-xl overflow-hidden bg-slate-100 mb-3">
+                  <div className="relative h-44 rounded-xl overflow-hidden bg-ink-100 mb-3">
                     <Image
                       src={proj.image}
                       alt={proj.title}
@@ -158,33 +162,37 @@ export default function AdminModerasiPage() {
                       className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />
 
-                    {/* Kategori di Kanan Atas Gambar (Sama dengan Dashboard) */}
-                    <span className="absolute top-2.5 right-2.5 z-10 bg-white text-slate-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-sm tracking-wide">
+                    {/* Kategori di Kanan Atas Gambar (Badge putih konsisten dengan Dashboard) */}
+                    <span className="absolute top-2.5 right-2.5 z-10 bg-white text-ink text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-sm tracking-wide">
                       {proj.category}
                     </span>
                   </div>
 
-                  <h2 className="font-bold text-sm text-slate-900 group-hover:text-[#891337] transition-colors leading-snug line-clamp-2">
+                  <h2 className="font-bold text-sm text-ink group-hover:text-primary transition-colors leading-snug line-clamp-2">
                     {proj.title}
                   </h2>
-                  <p className="text-xs text-slate-500 mt-1.5 line-clamp-2 leading-relaxed font-sans">
+                  <p className="text-xs text-ink-600 mt-1.5 line-clamp-2 leading-relaxed font-sans">
                     {proj.description}
                   </p>
                 </div>
 
-                <div className="pt-3 mt-3 border-t border-slate-100 flex items-center text-xs">
+                <div className="pt-3 mt-3 border-t border-ink-150 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-[#891337]/10 text-[#891337] font-bold text-[9px] flex items-center justify-center shrink-0">
+                    <div className="w-6 h-6 rounded-full bg-primary/10 text-primary font-bold text-[9px] flex items-center justify-center shrink-0">
                       {proj.author.slice(0, 1)}
                     </div>
                     <div>
-                      <span className="font-semibold text-slate-800 text-xs block leading-tight">
+                      <span className="font-semibold text-ink text-xs block leading-tight">
                         {proj.author}
                       </span>
-                      <span className="text-[10px] text-slate-400 block">
+                      <span className="text-[10px] text-ink-300 block">
                         {proj.authorRole}
                       </span>
                     </div>
+                  </div>
+                  <div className="flex items-center gap-1 text-ink-600 font-medium text-xs shrink-0">
+                    <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+                    <span>{proj.likes}</span>
                   </div>
                 </div>
               </div>
@@ -194,14 +202,14 @@ export default function AdminModerasiPage() {
 
         {/* Bottom Slide Pagination Bar (Jika > 6 karya) */}
         {totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs text-xs text-slate-500">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-ink-150 shadow-xs text-xs text-ink-600">
             {/* Pagination Controls di sebelah Kiri */}
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 disabled={safeSlide === 0}
                 onClick={() => setCurrentSlide((prev) => Math.max(0, prev - 1))}
-                className="w-8 h-8 rounded-xl border border-slate-200/80 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-35 disabled:cursor-not-allowed transition cursor-pointer shadow-2xs"
+                className="w-8 h-8 rounded-xl border border-ink-150 bg-white flex items-center justify-center text-ink-600 hover:bg-ink-100 hover:text-ink disabled:opacity-35 disabled:cursor-not-allowed transition cursor-pointer shadow-2xs"
                 title="Slide Sebelumnya"
                 aria-label="Slide Sebelumnya"
               >
@@ -215,8 +223,8 @@ export default function AdminModerasiPage() {
                     onClick={() => setCurrentSlide(idx)}
                     className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       safeSlide === idx
-                        ? "bg-[#891337] text-white shadow-xs"
-                        : "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/70"
+                        ? "bg-primary text-white shadow-xs"
+                        : "bg-ink-100 text-ink-600 hover:bg-ink-100 border border-ink-150"
                     }`}
                   >
                     {idx + 1}
@@ -227,7 +235,7 @@ export default function AdminModerasiPage() {
                 type="button"
                 disabled={safeSlide === totalPages - 1}
                 onClick={() => setCurrentSlide((prev) => Math.min(totalPages - 1, prev + 1))}
-                className="w-8 h-8 rounded-xl border border-slate-200/80 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-35 disabled:cursor-not-allowed transition cursor-pointer shadow-2xs"
+                className="w-8 h-8 rounded-xl border border-ink-150 bg-white flex items-center justify-center text-ink-600 hover:bg-ink-100 hover:text-ink disabled:opacity-35 disabled:cursor-not-allowed transition cursor-pointer shadow-2xs"
                 title="Slide Berikutnya"
                 aria-label="Slide Berikutnya"
               >
@@ -238,13 +246,13 @@ export default function AdminModerasiPage() {
             {/* Info Jumlah & Slide di sebelah Kanan */}
             <div className="flex items-center gap-2">
               <span>Menampilkan karya</span>
-              <span className="font-bold text-slate-800">
+              <span className="font-bold text-ink">
                 {startItem}–{endItem}
               </span>
               <span>dari</span>
-              <span className="font-bold text-slate-800">{filteredProjects.length}</span>
-              <span className="text-slate-300">|</span>
-              <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-semibold text-[11px]">
+              <span className="font-bold text-ink">{filteredProjects.length}</span>
+              <span className="text-ink-300">|</span>
+              <span className="px-2 py-0.5 rounded-full bg-ink-100 text-ink-700 font-semibold text-[11px]">
                 Slide {safeSlide + 1} dari {totalPages}
               </span>
             </div>

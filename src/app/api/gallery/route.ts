@@ -7,6 +7,12 @@ export async function GET() {
     // 1. Coba ambil dari database Prisma
     try {
       const dbProjects = await prisma.projects.findMany({
+        // Hanya karya yang SUDAH diverifikasi guru dan belum dihapus yang boleh
+        // tayang di galeri publik. Sebelumnya tidak ada filter sama sekali:
+        // karya berstatus "pending" ikut muncul, dan karena `status` di bawah
+        // selalu dipetakan ke "verified", karya yang belum dinilai pun
+        // dilabeli "Terverifikasi" di UI.
+        where: { status: "approved", deletedAt: null },
         include: {
           media: true,
           tools: {
