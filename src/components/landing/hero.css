@@ -1,0 +1,535 @@
+/* ════════════════════════════════════════════════════════════════════
+   hero.css  v3  —  3 Lingkaran Jurusan · KANDAGA SMKN 13 Bandung
+   Perbaikan: centering model, flush-bottom, z-index hover unit penuh,
+              ikon di hero-root (bukan di stage), placeholder kondisional
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Design Tokens ────────────────────────────────────────────────── */
+.hero-root {
+  --hero-brand:        #8B1A2F;
+  --hero-brand-mid:    #A01535;
+  --hero-brand-light:  #C2254E;
+
+  /*
+   * --d  = diameter lingkaran samping.
+   * Dikecilkan dari 590 → 480px (lebih compact).
+   * Lingkaran tengah = --d × 1.12.
+   */
+  --d:       clamp(300px, 32vw, 600px);
+  --d-mid:   calc(var(--d) * 1.12);
+
+  /* Overlap: 15% dari --d */
+  --overlap: calc(var(--d) * -0.15);
+
+  /* Tinggi model default (RPL & TKJ) */
+  --model-h: calc(var(--d) * 1.24);
+
+  /* Animasi masuk */
+  --enter-dur:  0.5s;
+  --enter-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Hover */
+  --hover-dur:  0.25s;
+  --hover-ease: ease-out;
+}
+
+/* ── Section root ─────────────────────────────────────────────────── */
+.hero-root {
+  position: relative;
+  background: #ffffff;
+  overflow: hidden;
+  min-height: 100svh;
+  /* Keep navbar clearance; the text block uses remaining space through its auto margin. */
+  padding-top: clamp(106px, 10vw, 128px);
+  padding-bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Blok Teks ────────────────────────────────────────────────────── */
+.hero-text-block {
+  flex-shrink: 0;
+  margin-top: auto;
+  margin-bottom: clamp(14px, calc(38px - 1.25vw), 26px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 1.25rem 0;
+  position: relative;
+  z-index: 3;
+}
+
+.hero-heading {
+  font-family: var(--font-poppins), sans-serif;
+  font-size: clamp(2.75rem, 8vw, 5.5rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #1A1A1A;
+  line-height: 1;
+}
+
+.hero-subheading {
+  margin-top: 0.4rem;
+  font-size: clamp(0.6rem, 1.4vw, 0.8rem);
+  font-weight: 500;
+  letter-spacing: 0.55em;
+  color: var(--hero-brand);
+  text-transform: uppercase;
+}
+
+.hero-paragraph {
+  margin-top: 0.85rem;
+  max-width: 36rem;
+  font-size: clamp(0.78rem, 1.6vw, 1rem);
+  line-height: 1.6;
+  color: #3D3D3D;
+  /* Tambah sedikit margin-bottom supaya tombol lebih bernapas */
+  margin-bottom: 0;
+}
+
+.hero-cta-wrapper {
+  /* Jarak paragraf → tombol: clamp(24px, 2.2vw, 36px) */
+  margin-top: clamp(24px, 2.2vw, 36px);
+  position: relative;
+}
+
+/* ── Shadow merah di bagian atas hero (di belakang navbar) ───────── */
+/*
+ * Elemen ini position:absolute top:0 di hero-root.
+ * Navbar pill adalah fixed z-50 sehingga selalu di atas shadow ini.
+ * Shadow hanya terlihat di sisi kiri/kanan navbar yang tidak tertutup pill.
+ */
+.hero-top-glow {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  height: 200px;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    rgba(160, 21, 53, 0.38) 0%,
+    rgba(139, 26, 47, 0.20) 35%,
+    rgba(139, 26, 47, 0.08) 60%,
+    transparent 80%
+  );
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(4px);
+}
+
+/* ── Layer ikon melayang (terpasang di hero-root, bukan di stage) ─── */
+/*
+ * PERBAIKAN: .hero-icons-layer dipindah ke hero-root agar ikon zona
+ * atas bisa muncul di sebelah judul/teks. Sebelumnya ada di dalam
+ * stage sehingga semua ikon hanya di area model.
+ */
+.hero-icons-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;               /* di bawah teks (z-3), di atas bg */
+}
+
+.hero-floating-icon {
+  position: absolute;
+  color: var(--hero-brand);
+  animation: heroFloat linear infinite;
+  transform-origin: center;
+  will-change: transform;
+}
+
+@keyframes heroFloat {
+  0%, 100% { transform: translate(0, 0) rotate(-3deg); }
+  25%      { transform: translate(5px, -5px) rotate(2deg); }
+  50%      { transform: translate(-2px, -11px) rotate(5deg); }
+  75%      { transform: translate(-5px, -4px) rotate(-1deg); }
+}
+
+/* ── Stage ────────────────────────────────────────────────────────── */
+.hero-stage {
+  position: relative;
+  /* Stage stays at the bottom; the text block absorbs the flexible space above. */
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  /* Keep at least 48px between the CTA and the center circle. */
+  padding-top: clamp(48px, 3.5vw, 56px);
+  padding-bottom: 0;
+  margin-bottom: 0;
+  min-height: calc(var(--d-mid) * 0.60);
+  overflow: visible;
+  z-index: 1;
+}
+
+/* ── Cincin Konsentris ────────────────────────────────────────────── */
+.hero-rings {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Glow Tengah ──────────────────────────────────────────────────── */
+.hero-center-glow {
+  position: absolute;
+  bottom: -5%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(var(--d-mid) * 1.6);
+  height: calc(var(--d-mid) * 1.6);
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(160, 21, 53, 0.13) 0%,
+    rgba(139, 26, 47, 0.05) 45%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 1;
+  filter: blur(20px);
+}
+
+/* ── Bayangan Blur Kiri & Kanan ───────────────────────────────────── */
+.hero-shadow-left,
+.hero-shadow-right {
+  position: absolute;
+  bottom: 0;
+  width: 32%;
+  height: 55%;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  filter: blur(55px);
+}
+
+.hero-shadow-left {
+  left: 3%;
+  background: radial-gradient(ellipse at center,
+    rgba(0, 0, 0, 0.17), transparent 70%);
+}
+
+.hero-shadow-right {
+  right: 3%;
+  background: radial-gradient(ellipse at center,
+    rgba(0, 0, 0, 0.17), transparent 70%);
+}
+
+/* ── Grup 3 Lingkaran ─────────────────────────────────────────────── */
+.hero-circles-group {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  /* Pastikan grup persis rata bawah stage */
+  z-index: 2;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   WRAPPER DUPLEKS — mencegah bug hover slide-up ulang:
+   .hero-circle-enter-wrap  → animasi masuk sekali, fill-mode: both
+   .hero-circle-hover-wrap  → hanya transition hover, tanpa keyframe
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Wrapper Animasi Masuk ────────────────────────────────────────── */
+.hero-circle-enter-wrap {
+  position: relative;
+  flex-shrink: 0;
+  animation: heroCircleEnter var(--enter-dur) var(--enter-ease) both;
+}
+
+.hero-circle-enter-wrap--center {
+  width: var(--d-mid);
+  height: var(--d-mid);
+  animation-delay: 0ms;
+  z-index: 4;
+  margin-left:  var(--overlap);
+  margin-right: var(--overlap);
+}
+
+.hero-circle-enter-wrap--left {
+  width: var(--d);
+  height: var(--d);
+  animation-delay: 80ms;
+  z-index: 2;
+}
+
+.hero-circle-enter-wrap--right {
+  width: var(--d);
+  height: var(--d);
+  animation-delay: 160ms;
+  z-index: 2;
+}
+
+/* ── Wrapper Hover ────────────────────────────────────────────────── */
+.hero-circle-hover-wrap {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  border-radius: 9999px;
+  /* Penting: transition SAJA, tidak ada animation */
+  transition:
+    transform var(--hover-dur) var(--hover-ease),
+    box-shadow var(--hover-dur) var(--hover-ease);
+}
+
+/*
+ * Hover mengangkat SELURUH unit ke depan.
+ * z-index pada hover-wrap saja tidak cukup karena parent enter-wrap
+ * punya z-index eksplisit yang membatasi stacking context.
+ * Solusi: saat hover, naikkan z-index enter-wrap via :has().
+ * Fallback untuk browser tanpa :has(): unit yang di-hover akan tetap
+ * naik transformasi-nya, tapi mungkin masih di belakang lingkaran tengah.
+ */
+.hero-circle-enter-wrap:has(.hero-circle-hover-wrap:hover),
+.hero-circle-enter-wrap:has(.hero-circle-hover-wrap:focus-visible) {
+  z-index: 20 !important;
+}
+
+.hero-circle-hover-wrap:hover,
+.hero-circle-hover-wrap:focus-visible {
+  transform: translateY(-10px) scale(1.03);
+  box-shadow:
+    0 20px 48px rgba(139, 26, 47, 0.30),
+    0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.hero-circle-hover-wrap:focus-visible {
+  box-shadow:
+    0 0 0 3px #fff,
+    0 0 0 5px var(--hero-brand),
+    0 20px 48px rgba(139, 26, 47, 0.30);
+}
+
+/* ── Lingkaran Visual ─────────────────────────────────────────────── */
+.hero-circle {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: radial-gradient(
+    ellipse at 35% 30%,
+    var(--hero-brand-light) 0%,
+    var(--hero-brand-mid)   45%,
+    var(--hero-brand)       100%
+  );
+  overflow: hidden;
+  z-index: 0;
+}
+
+/* ── Pola Dekoratif ───────────────────────────────────────────────── */
+.hero-circle-pattern {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.25;
+  mask-image: radial-gradient(
+    ellipse at 50% 35%,
+    transparent 28%,
+    rgba(0,0,0,0.4) 52%,
+    black 72%
+  );
+  -webkit-mask-image: radial-gradient(
+    ellipse at 50% 35%,
+    transparent 28%,
+    rgba(0,0,0,0.4) 52%,
+    black 72%
+  );
+}
+
+/* ── Placeholder Siluet ───────────────────────────────────────────── */
+.hero-circle-placeholder {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 65%;
+  height: 90%;
+  z-index: 2;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.hero-circle-placeholder-text {
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.65);
+  text-align: center;
+  line-height: 1.3;
+  padding-bottom: 0.5rem;
+}
+
+/* ── Gambar Siswa ─────────────────────────────────────────────────── */
+/*
+ * PERBAIKAN CENTERING:
+ * student-wrap: position:absolute, inset:0 — TIDAK ada left/transform
+ *               (wrap hanya memberi ruang, bukan menggeser img)
+ * student-img:  position:absolute; bottom:0; left:50%;
+ *               transform:translateX(-50%)
+ *               → centering SATU kali, tidak ada double-offset
+ *               width:auto; height:calc(var(--model-h))
+ *               → gambar portrait tetap proporsional
+ */
+.hero-circle-student-wrap {
+  position: absolute;
+  inset: 0;
+  /* Biarkan overflow ke atas (pop-out kepala/badan): overflow:visible */
+  overflow: visible;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.hero-circle-student-img {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  /* RPL & TKJ: model hampir pas dengan diameter lingkaran, gap kecil */
+  height: var(--model-h);
+  max-height: calc(var(--d) * 1.28);
+  object-fit: contain;
+  object-position: bottom center;
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.28));
+}
+
+/* Model tengah (Kimia Analisis): lebih besar dari samping */
+.hero-circle-enter-wrap--center .hero-circle-student-img {
+  height: calc(var(--d-mid) * 1.42);
+  max-height: calc(var(--d-mid) * 1.46);
+}
+
+/* RPL & TKJ: ukuran sama — tidak perlu override, sudah pakai --model-h default */
+
+/* Model kanan (TKJ): sedikit lebih kecil dari RPL */
+.hero-circle-enter-wrap--right .hero-circle-student-img {
+  height: calc(var(--d) * 1.08);
+  max-height: calc(var(--d) * 1.12);
+}
+
+/* ── Chip Label ───────────────────────────────────────────────────── */
+/*
+ * Chip dipindah ke DALAM lingkaran bagian bawah.
+ * Posisi lama: bottom: calc(100% + 10px) = DI ATAS lingkaran
+ *   → chip bisa muncul tepat di bawah tombol CTA saat render.
+ * Posisi baru: bottom: 7% = dalam lingkaran, ~7% dari dasar
+ *   → chip tidak bisa keluar ke area tombol.
+ * z-index di atas model (z:4) supaya terlihat di depan foto.
+ */
+.hero-label-chip {
+  position: absolute;
+  bottom: 7%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--hero-brand);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.28rem 0.85rem;
+  border-radius: 9999px;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+  pointer-events: none;
+  z-index: 4;    /* di atas foto model (z:3), di bawah chip override */
+
+  /* Default: tidak terlihat sama sekali */
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.20s ease,
+    visibility 0s linear 0.20s;
+}
+
+.hero-circle-hover-wrap:hover .hero-label-chip,
+.hero-circle-hover-wrap:focus-visible .hero-label-chip {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.20s ease,
+    visibility 0s linear 0s;
+}
+
+/* ── Animasi Masuk ────────────────────────────────────────────────── */
+@keyframes heroCircleEnter {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+/* ── prefers-reduced-motion ───────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .hero-circle-enter-wrap {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  .hero-floating-icon {
+    animation: none !important;
+  }
+  .hero-circle-hover-wrap {
+    transition: none !important;
+  }
+  .hero-circle-hover-wrap:hover,
+  .hero-circle-hover-wrap:focus-visible {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  .hero-label-chip {
+    transition: opacity 0.01ms, visibility 0s !important;
+  }
+  .hero-circle-enter-wrap:has(.hero-circle-hover-wrap:hover),
+  .hero-circle-enter-wrap:has(.hero-circle-hover-wrap:focus-visible) {
+    z-index: auto !important;
+  }
+}
+
+/* ── Responsif ────────────────────────────────────────────────────── */
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .hero-floating-icon:nth-child(5) {
+    display: none;
+  }
+}
+
+/* Tablet 640–1023px */
+@media (max-width: 1023px) {
+  .hero-root {
+    --d: clamp(180px, 26vw, 300px);
+    padding-top: clamp(80px, 9vw, 108px);
+  }
+  .hero-text-block {
+    padding: 0 1.25rem 0;
+  }
+}
+
+/* Mobile < 640px */
+@media (max-width: 639px) {
+  .hero-root {
+    --d: clamp(95px, 34vw, 170px);
+    --overlap: calc(var(--d) * -0.20);
+    padding-top: 108px;
+    min-height: 100svh;
+  }
+  .hero-text-block {
+    padding: 0 1rem 0;
+  }
+  .hero-shadow-left,
+  .hero-shadow-right {
+    filter: blur(38px);
+  }
+  .hero-icon-hide-mobile {
+    display: none;
+  }
+  .hero-floating-icon:nth-child(5),
+  .hero-floating-icon:nth-child(7) {
+    display: none;
+  }
+}
