@@ -274,7 +274,7 @@ export default function CreateProjectPage() {
       {isLoading && <Loading text="Menyimpan karya inovasi ke database..." />}
 
       {/* ── Header Welcome Section ── */}
-      <section className="mb-8 rounded-3xl bg-primary text-white p-6 sm:p-8 relative overflow-hidden shadow-xs">
+      <section className="mb-8 rounded-3xl bg-gradient-to-r from-primary-dark to-primary text-white p-7 sm:p-9 relative overflow-hidden shadow-xl shadow-primary/15">
         <div className="relative z-10 max-w-3xl">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-accent text-xs font-semibold mb-3">
             <Sparkles className="w-3.5 h-3.5 text-accent" aria-hidden="true" />
@@ -294,7 +294,7 @@ export default function CreateProjectPage() {
       {/* ── Form Container ── */}
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* ── BAGIAN 1: Identitas & Program Keahlian ── */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-white border border-ink-150 shadow-xs space-y-6">
+        <div className="p-6 sm:p-8 rounded-2xl bg-white border border-ink-150 shadow-xs space-y-6">
           <div className="border-b border-ink-150 pb-4">
             <h2 className="font-heading text-base sm:text-lg font-bold text-ink flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-bold">
@@ -381,7 +381,7 @@ export default function CreateProjectPage() {
         </div>
 
         {/* ── BAGIAN 2: Pengaturan Visibilitas ── */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-white border border-ink-150 shadow-xs space-y-6">
+        <div className="p-6 sm:p-8 rounded-2xl bg-white border border-ink-150 shadow-xs space-y-6">
           <div className="border-b border-ink-150 pb-4">
             <h2 className="font-heading text-base sm:text-lg font-bold text-ink flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-bold">
@@ -406,7 +406,7 @@ export default function CreateProjectPage() {
             >
               <div
                 className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                  !isPrivate ? "bg-emerald-100 text-emerald-800" : "bg-ink-100 text-ink-500"
+                  !isPrivate ? "bg-emerald-100 text-emerald-800" : "bg-ink-100 text-ink-600"
                 }`}
               >
                 <Globe className="w-5 h-5" />
@@ -435,7 +435,7 @@ export default function CreateProjectPage() {
             >
               <div
                 className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                  isPrivate ? "bg-amber-100 text-amber-800" : "bg-ink-100 text-ink-500"
+                  isPrivate ? "bg-amber-100 text-amber-800" : "bg-ink-100 text-ink-600"
                 }`}
               >
                 <Lock className="w-5 h-5" />
@@ -451,7 +451,7 @@ export default function CreateProjectPage() {
         </div>
 
         {/* ── BAGIAN 3: Gambar Sampul & Upload Lokal (/public/assets/uploads/) ── */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-white border border-ink-150 shadow-xs space-y-6">
+        <div className="p-6 sm:p-8 rounded-2xl bg-white border border-ink-150 shadow-xs space-y-6">
           <div className="border-b border-ink-150 pb-4">
             <h2 className="font-heading text-base sm:text-lg font-bold text-ink flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-bold">
@@ -550,7 +550,7 @@ export default function CreateProjectPage() {
                 <span className="block text-xs font-bold text-ink-700 mb-2">
                   Pratinjau Sampul Aktif:
                 </span>
-                <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden border border-ink-200 shadow-xs">
+                <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden border border-ink-150 shadow-xs">
                   <Image src={coverImage} alt="Pratinjau Sampul" fill className="object-cover" />
                 </div>
               </div>
@@ -641,7 +641,7 @@ export default function CreateProjectPage() {
         </div>
 
         {/* ── BAGIAN 4: Narasi Solusi & Poin Inovasi ── */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-white border border-ink-150 shadow-xs space-y-6">
+        <div className="p-6 sm:p-8 rounded-2xl bg-white border border-ink-150 shadow-xs space-y-6">
           <div className="border-b border-ink-150 pb-4">
             <h2 className="font-heading text-base sm:text-lg font-bold text-ink flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-bold">
@@ -678,7 +678,7 @@ export default function CreateProjectPage() {
               {mainFeatures.map((item, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between gap-3 p-3 rounded-xl bg-cream/40 border border-ink-150 text-xs sm:text-sm text-ink-800"
+                  className="flex items-center justify-between gap-3 p-3 rounded-xl bg-cream/40 border border-ink-150 text-xs sm:text-sm text-ink-700"
                 >
                   <span className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -687,7 +687,7 @@ export default function CreateProjectPage() {
                   <button
                     type="button"
                     onClick={() => handleRemoveHighlight(idx)}
-                    className="text-ink-400 hover:text-rose-600 transition"
+                    className="text-ink-300 hover:text-rose-600 transition"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -721,7 +721,7 @@ export default function CreateProjectPage() {
         </div>
 
         {/* ── BAGIAN 5: Alat, Bahasa & Tautan Eksternal ── */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-white border border-ink-150 shadow-xs space-y-6">
+        <div className="p-6 sm:p-8 rounded-2xl bg-white border border-ink-150 shadow-xs space-y-6">
           <div className="border-b border-ink-150 pb-4">
             <h2 className="font-heading text-base sm:text-lg font-bold text-ink flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-bold">

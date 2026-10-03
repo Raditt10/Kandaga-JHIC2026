@@ -4,7 +4,7 @@
  * AdminLayout — chrome dashboard Administrator.
  *
  * Seluruh struktur visual admin (sidebar terang yang bisa dilipat, header
- * pencarian, kartu identitas pengguna, palet `slate` + aksen #891337) ada di
+ * pencarian, kartu identitas pengguna, token Kandaga `ink` + `primary`) ada di
  * `DashboardShell` supaya dipakai bersama dashboard Siswa, Guru, Perusahaan,
  * dan BKK. File ini hanya mendefinisikan DAFTAR MENU khas administrator.
  *

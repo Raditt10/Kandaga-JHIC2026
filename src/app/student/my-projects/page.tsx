@@ -230,17 +230,17 @@ export default function StudentMyProjectsPage() {
               <Link href="/" className="hover:text-ink transition-colors">
                 Beranda
               </Link>
-              <ChevronRight className="w-3.5 h-3.5 text-ink-400" />
+              <ChevronRight className="w-3.5 h-3.5 text-ink-300" />
               <Link href="/student" className="hover:text-ink transition-colors">
                 Portal Siswa
               </Link>
-              <ChevronRight className="w-3.5 h-3.5 text-ink-400" />
+              <ChevronRight className="w-3.5 h-3.5 text-ink-300" />
               <span className="font-semibold text-ink">Karya Saya</span>
             </nav>
 
             <Link
               href="/gallery"
-              className="text-xs font-bold text-[#8B1A2F] hover:underline hidden sm:inline-flex items-center gap-1"
+              className="text-xs font-bold text-primary hover:underline hidden sm:inline-flex items-center gap-1"
             >
               <span>Lihat Etalase Publik</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -253,7 +253,7 @@ export default function StudentMyProjectsPage() {
           <div className="mx-auto max-w-7xl px-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#8B1A2F]/10 border border-[#8B1A2F]/20 text-[#8B1A2F] text-xs font-bold mb-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold mb-3">
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>MANAJEMEN KARYA KREATOR SISWA</span>
                 </div>
@@ -271,7 +271,7 @@ export default function StudentMyProjectsPage() {
               <div className="flex items-center gap-3 shrink-0">
                 <Link
                   href="/student/create-project"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#8B1A2F] hover:bg-[#6B1424] text-white rounded-full text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-95"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-[#6B1424] text-white rounded-full text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-95"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Unggah Karya Baru</span>
@@ -286,7 +286,7 @@ export default function StudentMyProjectsPage() {
                 <span className="font-heading text-2xl font-bold text-ink mt-1 block">
                   {totalCount}
                 </span>
-                <span className="text-[11px] text-zinc-500 mt-0.5 block">Diurutkan berdasarkan tanggal buat</span>
+                <span className="text-[11px] text-ink-600 mt-0.5 block">Diurutkan berdasarkan tanggal buat</span>
               </div>
 
               <div className="p-4 rounded-2xl bg-white border border-ink-150 shadow-xs">
@@ -297,7 +297,7 @@ export default function StudentMyProjectsPage() {
                 <span className="font-heading text-2xl font-bold text-emerald-800 mt-1 block">
                   {publicCount}
                 </span>
-                <span className="text-[11px] text-zinc-500 mt-0.5 block">Tampil di Galeri Resmi</span>
+                <span className="text-[11px] text-ink-600 mt-0.5 block">Tampil di Galeri Resmi</span>
               </div>
 
               <div className="p-4 rounded-2xl bg-white border border-ink-150 shadow-xs">
@@ -308,7 +308,7 @@ export default function StudentMyProjectsPage() {
                 <span className="font-heading text-2xl font-bold text-amber-900 mt-1 block">
                   {privateCount}
                 </span>
-                <span className="text-[11px] text-zinc-500 mt-0.5 block">Hanya Anda & guru pembimbing</span>
+                <span className="text-[11px] text-ink-600 mt-0.5 block">Hanya Anda & guru pembimbing</span>
               </div>
 
               <div className="p-4 rounded-2xl bg-white border border-ink-150 shadow-xs">
@@ -319,7 +319,7 @@ export default function StudentMyProjectsPage() {
                 <span className="font-heading text-2xl font-bold text-ink mt-1 block">
                   {totalViews.toLocaleString("id-ID")}
                 </span>
-                <span className="text-[11px] text-zinc-500 mt-0.5 block">Dari seluruh karya Anda</span>
+                <span className="text-[11px] text-ink-600 mt-0.5 block">Dari seluruh karya Anda</span>
               </div>
             </div>
           </div>
@@ -351,8 +351,8 @@ export default function StudentMyProjectsPage() {
                 onClick={() => setVisibilityFilter("all")}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                   visibilityFilter === "all"
-                    ? "bg-[#8B1A2F] text-white shadow-xs"
-                    : "text-zinc-600 hover:text-ink"
+                    ? "bg-primary text-white shadow-xs"
+                    : "text-ink-600 hover:text-ink"
                 }`}
               >
                 Semua ({totalCount})
@@ -363,7 +363,7 @@ export default function StudentMyProjectsPage() {
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
                   visibilityFilter === "public"
                     ? "bg-emerald-600 text-white shadow-xs"
-                    : "text-zinc-600 hover:text-ink"
+                    : "text-ink-600 hover:text-ink"
                 }`}
               >
                 <Globe className="w-3.5 h-3.5" />
@@ -375,7 +375,7 @@ export default function StudentMyProjectsPage() {
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
                   visibilityFilter === "private"
                     ? "bg-amber-600 text-white shadow-xs"
-                    : "text-zinc-600 hover:text-ink"
+                    : "text-ink-600 hover:text-ink"
                 }`}
               >
                 <Lock className="w-3.5 h-3.5" />
@@ -386,13 +386,13 @@ export default function StudentMyProjectsPage() {
             {/* Search Input & Sort Dropdown */}
             <div className="flex items-center gap-3 flex-1 max-w-lg justify-end">
               <div className="relative flex-1">
-                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-300" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Cari karya Anda..."
-                  className="w-full pl-9 pr-4 py-2 rounded-xl border border-ink-200 bg-white text-xs sm:text-sm focus:outline-hidden focus:border-[#8B1A2F] focus:ring-2 focus:ring-[#8B1A2F]/15 transition"
+                  className="w-full pl-9 pr-4 py-2 rounded-xl border border-ink-150 bg-white text-xs sm:text-sm focus:outline-hidden focus:border-primary focus:ring-2 focus:ring-primary/15 transition"
                 />
               </div>
 
@@ -400,7 +400,7 @@ export default function StudentMyProjectsPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="px-3 py-2 rounded-xl border border-ink-200 bg-white text-xs sm:text-sm font-semibold text-zinc-700 focus:outline-hidden focus:border-[#8B1A2F] cursor-pointer"
+                className="px-3 py-2 rounded-xl border border-ink-150 bg-white text-xs sm:text-sm font-semibold text-ink-700 focus:outline-hidden focus:border-primary cursor-pointer"
               >
                 <option value="newest">Terbaru (Created At)</option>
                 <option value="oldest">Terlama</option>
@@ -425,9 +425,9 @@ export default function StudentMyProjectsPage() {
             </div>
           ) : !isLoading ? (
             /* Empty State */
-            <div className="p-12 sm:p-16 rounded-3xl border-2 border-dashed border-ink-200 bg-[#FBF9F6] text-center max-w-xl mx-auto flex flex-col items-center">
-              <div className="w-16 h-16 rounded-2xl bg-white border border-ink-200 flex items-center justify-center text-zinc-400 mb-4 shadow-xs">
-                <FolderOpen className="w-8 h-8 text-[#8B1A2F]" />
+            <div className="p-12 sm:p-16 rounded-2xl border-2 border-dashed border-ink-150 bg-[#FBF9F6] text-center max-w-xl mx-auto flex flex-col items-center">
+              <div className="w-16 h-16 rounded-2xl bg-white border border-ink-150 flex items-center justify-center text-ink-300 mb-4 shadow-xs">
+                <FolderOpen className="w-8 h-8 text-primary" />
               </div>
               <h3 className="font-heading text-xl font-bold text-ink">
                 Belum Ada Karya Ditemukan
@@ -445,14 +445,14 @@ export default function StudentMyProjectsPage() {
                       setSearchQuery("");
                       setVisibilityFilter("all");
                     }}
-                    className="px-5 py-2.5 rounded-full border border-ink-300 text-xs sm:text-sm font-bold text-zinc-700 hover:bg-zinc-100 transition cursor-pointer"
+                    className="px-5 py-2.5 rounded-full border border-ink-300 text-xs sm:text-sm font-bold text-ink-700 hover:bg-ink-100 transition cursor-pointer"
                   >
                     Reset Filter
                   </button>
                 ) : (
                   <Link
                     href="/student/create-project"
-                    className="px-6 py-2.5 rounded-full bg-[#8B1A2F] text-white text-xs sm:text-sm font-bold hover:bg-[#6B1424] transition shadow-xs cursor-pointer flex items-center gap-2"
+                    className="px-6 py-2.5 rounded-full bg-primary text-white text-xs sm:text-sm font-bold hover:bg-[#6B1424] transition shadow-xs cursor-pointer flex items-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Unggah Karya Pertama</span>

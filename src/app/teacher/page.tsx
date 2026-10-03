@@ -281,7 +281,7 @@ export default function TeacherDashboardPage() {
     >
       {/* ── Status pemuatan, pesan, dan lingkup kurasi ── */}
       {loading && (
-        <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 text-xs font-semibold text-zinc-600">
+        <div className="p-4 rounded-2xl bg-ink-100 border border-ink-150 text-xs font-semibold text-ink-600">
           Memuat data kurasi dari database…
         </div>
       )}
@@ -307,8 +307,8 @@ export default function TeacherDashboardPage() {
       )}
 
       {scope?.majorName && (
-        <p className="text-xs text-zinc-500">
-          Lingkup kurasi Anda: <strong className="text-zinc-800">{scope.majorName}</strong> — hanya karya
+        <p className="text-xs text-ink-600">
+          Lingkup kurasi Anda: <strong className="text-ink">{scope.majorName}</strong> — hanya karya
           jurusan ini yang tampil.
         </p>
       )}
@@ -317,7 +317,7 @@ export default function TeacherDashboardPage() {
       {activeTab === "dashboard" && (
         <div className="space-y-8 animate-in fade-in duration-200">
           {/* Header Banner */}
-          <div className="bg-gradient-to-r from-amber-950 via-orange-950 to-amber-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+          <div className="rounded-3xl bg-gradient-to-r from-primary-dark to-primary text-white p-7 sm:p-9 relative overflow-hidden shadow-xl shadow-primary/15">
             <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none" />
 
             <div className="relative z-10">
@@ -353,33 +353,33 @@ export default function TeacherDashboardPage() {
 
           {/* Assessment Metrics */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div className="bg-white rounded-3xl p-6 border border-zinc-200/90 shadow-xs">
+            <div className="bg-white rounded-2xl p-6 border border-ink-150 shadow-xs">
               <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mb-4">
                 <Clock className="w-5 h-5" />
               </div>
-              <h2 className="font-heading text-xs font-semibold text-zinc-500 uppercase tracking-wider">Antrean Verifikasi Pending</h2>
+              <h2 className="font-heading text-xs font-semibold text-ink-600 uppercase tracking-wider">Antrean Verifikasi Pending</h2>
               <p className="font-heading text-3xl font-extrabold text-amber-600 mt-2">{stats.menunggu} Proyek</p>
-              <span className="text-xs text-zinc-500 font-medium mt-1 block">Menunggu kurasi dan review Anda</span>
+              <span className="text-xs text-ink-600 font-medium mt-1 block">Menunggu kurasi dan review Anda</span>
             </div>
 
-            <div className="bg-white rounded-3xl p-6 border border-zinc-200/90 shadow-xs">
+            <div className="bg-white rounded-2xl p-6 border border-ink-150 shadow-xs">
               <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center mb-4">
                 <CheckCircle className="w-5 h-5" />
               </div>
-              <h2 className="font-heading text-xs font-semibold text-zinc-500 uppercase tracking-wider">Disetujui Publikasi</h2>
+              <h2 className="font-heading text-xs font-semibold text-ink-600 uppercase tracking-wider">Disetujui Publikasi</h2>
               <p className="font-heading text-3xl font-extrabold text-emerald-600 mt-2">{stats.disetujui} Proyek</p>
-              <span className="text-xs text-zinc-500 font-medium mt-1 block">Telah tayang di Galeri Utama Kandaga</span>
+              <span className="text-xs text-ink-600 font-medium mt-1 block">Telah tayang di Galeri Utama Kandaga</span>
             </div>
 
-            <div className="bg-white rounded-3xl p-6 border border-zinc-200/90 shadow-xs">
+            <div className="bg-white rounded-2xl p-6 border border-ink-150 shadow-xs">
               <div className="w-10 h-10 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center mb-4">
                 <Award className="w-5 h-5" />
               </div>
-              <h2 className="font-heading text-xs font-semibold text-zinc-500 uppercase tracking-wider">Rata-Rata Nilai Riset</h2>
+              <h2 className="font-heading text-xs font-semibold text-ink-600 uppercase tracking-wider">Rata-Rata Nilai Riset</h2>
               <p className="font-heading text-3xl font-extrabold text-blue-600 mt-2">
                 {rataNilai ? `${rataNilai} / 100` : "— / 100"}
               </p>
-              <span className="text-xs text-zinc-500 font-medium mt-1 block">
+              <span className="text-xs text-ink-600 font-medium mt-1 block">
                 {bernilai.length > 0
                   ? `Dari ${bernilai.length} karya yang sudah dinilai`
                   : "Belum ada karya yang diberi nilai"}
@@ -388,11 +388,11 @@ export default function TeacherDashboardPage() {
           </div>
 
           {/* Quick Preview Antrean */}
-          <div className="bg-white rounded-3xl p-6 border border-zinc-200/90 shadow-xs space-y-4">
+          <div className="bg-white rounded-2xl p-6 border border-ink-150 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="font-heading text-lg font-bold text-zinc-900">Perlu Verifikasi Segera</h2>
-                <p className="text-xs text-zinc-500 max-w-[65ch]">Karya yang baru diajukan oleh siswa dan memerlukan validasi materi tugas akhir.</p>
+                <h2 className="font-heading text-lg font-bold text-ink">Perlu Verifikasi Segera</h2>
+                <p className="text-xs text-ink-600 max-w-[65ch]">Karya yang baru diajukan oleh siswa dan memerlukan validasi materi tugas akhir.</p>
               </div>
               <button
                 type="button"
@@ -408,17 +408,17 @@ export default function TeacherDashboardPage() {
               {curationQueue.map((item) => (
                 <div
                   key={item.id}
-                  className="p-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                  className="p-4 rounded-2xl border border-ink-150 bg-ink-100/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
                         {item.major}
                       </span>
-                      <span className="text-xs text-zinc-400 font-mono">{item.classRoom}</span>
+                      <span className="text-xs text-ink-300 font-mono">{item.classRoom}</span>
                     </div>
-                    <h3 className="font-heading text-base font-bold text-zinc-900">{item.title}</h3>
-                    <p className="text-xs text-zinc-500 font-medium">Diajukan oleh: {item.studentName}</p>
+                    <h3 className="font-heading text-base font-bold text-ink">{item.title}</h3>
+                    <p className="text-xs text-ink-600 font-medium">Diajukan oleh: {item.studentName}</p>
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
@@ -433,7 +433,7 @@ export default function TeacherDashboardPage() {
                     <button
                       type="button"
                       onClick={() => handleRevision(item.id)}
-                      className="px-4 py-2 bg-zinc-200 hover:bg-zinc-300 text-zinc-800 rounded-xl text-xs font-bold transition cursor-pointer"
+                      className="px-4 py-2 bg-ink-150 hover:bg-ink-150 text-ink rounded-xl text-xs font-bold transition cursor-pointer"
                     >
                       Revisi
                     </button>
@@ -448,27 +448,27 @@ export default function TeacherDashboardPage() {
       {/* ──────────────── TAB 2: ANTREAN VERIFIKASI ──────────────── */}
       {activeTab === "antrean" && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          <div className="p-6 bg-white rounded-3xl border border-zinc-200/90 shadow-xs">
-            <h1 className="font-heading text-xl sm:text-2xl font-extrabold text-zinc-900">
+          <div className="p-6 bg-white rounded-2xl border border-ink-150 shadow-xs">
+            <h1 className="font-heading text-xl sm:text-2xl font-extrabold text-ink">
               Antrean Penilaian & Kurasi Karya Siswa
             </h1>
-            <p className="font-sans text-xs sm:text-sm text-zinc-500 mt-1 max-w-[65ch]">
+            <p className="font-sans text-xs sm:text-sm text-ink-600 mt-1 max-w-[65ch]">
               Tinjau kelayakan metodologi riset, kualitas implementasi kode, dan dokumentasi karya sebelum diberikan hak tayang di galeri publik.
             </p>
           </div>
 
           <div className="space-y-4">
             {curationQueue.length === 0 ? (
-              <div className="p-12 text-center bg-white rounded-3xl border border-zinc-200">
+              <div className="p-12 text-center bg-white rounded-2xl border border-ink-150">
                 <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
-                <h3 className="font-heading text-base font-bold text-zinc-800">Semua Antrean Selesai</h3>
-                <p className="text-xs text-zinc-500 mt-1">Tidak ada karya yang menunggu review saat ini.</p>
+                <h3 className="font-heading text-base font-bold text-ink">Semua Antrean Selesai</h3>
+                <p className="text-xs text-ink-600 mt-1">Tidak ada karya yang menunggu review saat ini.</p>
               </div>
             ) : (
               curationQueue.map((item) => (
                 <div
                   key={item.id}
-                  className="p-6 bg-white rounded-3xl border border-zinc-200/90 shadow-xs space-y-4"
+                  className="p-6 bg-white rounded-2xl border border-ink-150 shadow-xs space-y-4"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                     <div className="space-y-1">
@@ -476,12 +476,12 @@ export default function TeacherDashboardPage() {
                         <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
                           {item.major}
                         </span>
-                        <span className="text-xs font-semibold text-zinc-500">{item.category}</span>
-                        <span className="text-zinc-300">•</span>
-                        <span className="text-xs text-zinc-400">Diajukan: {item.submittedAt}</span>
+                        <span className="text-xs font-semibold text-ink-600">{item.category}</span>
+                        <span className="text-ink-300">•</span>
+                        <span className="text-xs text-ink-300">Diajukan: {item.submittedAt}</span>
                       </div>
-                      <h2 className="font-heading text-lg font-bold text-zinc-900 pt-1">{item.title}</h2>
-                      <p className="text-xs text-zinc-600">
+                      <h2 className="font-heading text-lg font-bold text-ink pt-1">{item.title}</h2>
+                      <p className="text-xs text-ink-600">
                         Oleh: <strong>{item.studentName}</strong> ({item.classRoom})
                       </p>
                     </div>
@@ -492,25 +492,25 @@ export default function TeacherDashboardPage() {
                     </div>
                   </div>
 
-                  <p className="font-sans text-xs sm:text-sm text-zinc-600 leading-relaxed max-w-[65ch]">
+                  <p className="font-sans text-xs sm:text-sm text-ink-600 leading-relaxed max-w-[65ch]">
                     {item.summary}
                   </p>
 
                   <div className="flex flex-wrap gap-1.5">
                     {item.techStack.map((tech, idx) => (
-                      <span key={idx} className="px-2.5 py-1 rounded-md bg-zinc-100 text-zinc-700 text-xs font-mono">
+                      <span key={idx} className="px-2.5 py-1 rounded-md bg-ink-100 text-ink-700 text-xs font-mono">
                         {tech}
                       </span>
                     ))}
                   </div>
 
-                  <div className="pt-4 border-t border-zinc-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <span className="text-xs text-zinc-500">Standar Rubrik: ISO 9001 / BNSP SMKN 13</span>
+                  <div className="pt-4 border-t border-ink-150 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <span className="text-xs text-ink-600">Standar Rubrik: ISO 9001 / BNSP SMKN 13</span>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => handleRevision(item.id)}
-                        className="px-4 py-2 border border-zinc-200 text-zinc-700 hover:bg-zinc-100 rounded-xl text-xs font-bold transition cursor-pointer"
+                        className="px-4 py-2 border border-ink-150 text-ink-700 hover:bg-ink-100 rounded-xl text-xs font-bold transition cursor-pointer"
                       >
                         Minta Revisi Siswa
                       </button>
@@ -534,19 +534,19 @@ export default function TeacherDashboardPage() {
       {/* ──────────────── TAB 3: SISWA BIMBINGAN ──────────────── */}
       {activeTab === "siswa-bimbingan" && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          <div className="p-6 bg-white rounded-3xl border border-zinc-200/90 shadow-xs">
-            <h1 className="font-heading text-xl sm:text-2xl font-extrabold text-zinc-900">
+          <div className="p-6 bg-white rounded-2xl border border-ink-150 shadow-xs">
+            <h1 className="font-heading text-xl sm:text-2xl font-extrabold text-ink">
               Daftar Siswa Bimbingan Tugas Akhir
             </h1>
-            <p className="font-sans text-xs sm:text-sm text-zinc-500 mt-1 max-w-[65ch]">
+            <p className="font-sans text-xs sm:text-sm text-ink-600 mt-1 max-w-[65ch]">
               Monitoring progres portofolio dan kelayakan karya siswa bimbingan akademik Anda.
             </p>
           </div>
 
-          <div className="bg-white rounded-3xl border border-zinc-200/90 p-6 shadow-xs overflow-x-auto">
+          <div className="bg-white rounded-2xl border border-ink-150 p-6 shadow-xs overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-zinc-200 text-zinc-400 font-bold uppercase tracking-wider">
+                <tr className="border-b border-ink-150 text-ink-300 font-bold uppercase tracking-wider">
                   <th className="pb-3 px-3">Nama Siswa</th>
                   <th className="pb-3 px-3">Kelas / Jurusan</th>
                   <th className="pb-3 px-3">Judul Proyek Tugas Akhir</th>
@@ -554,10 +554,10 @@ export default function TeacherDashboardPage() {
                   <th className="pb-3 px-3">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-ink-150">
                 {siswa.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="py-10 text-center text-zinc-500">
+                    <td colSpan={5} className="py-10 text-center text-ink-600">
                       Belum ada siswa terdaftar di jurusan Anda.
                     </td>
                   </tr>
@@ -571,12 +571,12 @@ export default function TeacherDashboardPage() {
                       : [{ id: `${s.id}-kosong`, title: "Belum mengajukan karya", status: "", score: null }];
 
                   return karya.map((k) => (
-                    <tr key={k.id} className="hover:bg-zinc-50 transition">
-                      <td className="py-3 px-3 font-bold text-zinc-900">{s.name}</td>
-                      <td className="py-3 px-3 text-zinc-600 font-mono">{s.class}</td>
-                      <td className="py-3 px-3 text-zinc-800">{k.title}</td>
+                    <tr key={k.id} className="hover:bg-ink-100 transition">
+                      <td className="py-3 px-3 font-bold text-ink">{s.name}</td>
+                      <td className="py-3 px-3 text-ink-600 font-mono">{s.class}</td>
+                      <td className="py-3 px-3 text-ink">{k.title}</td>
                       <td className="py-3 px-3">
-                        <span className="px-2.5 py-1 bg-zinc-100 text-zinc-800 rounded-md font-semibold text-[11px]">
+                        <span className="px-2.5 py-1 bg-ink-100 text-ink rounded-md font-semibold text-[11px]">
                           {STATUS_KURASI[k.status] ?? k.status}
                           {typeof k.score === "number" ? ` • Nilai ${k.score}` : ""}
                         </span>
@@ -602,18 +602,18 @@ export default function TeacherDashboardPage() {
       {/* ──────────────── TAB 4: RIWAYAT KURASI ──────────────── */}
       {activeTab === "riwayat" && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          <div className="p-6 bg-white rounded-3xl border border-zinc-200/90 shadow-xs">
-            <h1 className="font-heading text-xl sm:text-2xl font-extrabold text-zinc-900">
+          <div className="p-6 bg-white rounded-2xl border border-ink-150 shadow-xs">
+            <h1 className="font-heading text-xl sm:text-2xl font-extrabold text-ink">
               Riwayat Karya yang Telah Disetujui
             </h1>
-            <p className="font-sans text-xs sm:text-sm text-zinc-500 mt-1 max-w-[65ch]">
+            <p className="font-sans text-xs sm:text-sm text-ink-600 mt-1 max-w-[65ch]">
               Arsip karya portofolio siswa yang telah Anda setujui dan berhasil dipublikasikan di Galeri Utama Kandaga.
             </p>
           </div>
 
           <div className="space-y-3">
             {verifiedHistory.map((item) => (
-              <div key={item.id} className="p-5 bg-white rounded-2xl border border-zinc-200/90 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div key={item.id} className="p-5 bg-white rounded-2xl border border-ink-150 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
@@ -623,9 +623,9 @@ export default function TeacherDashboardPage() {
                       {item.major}
                     </span>
                   </div>
-                  <h3 className="font-heading text-base font-bold text-zinc-900">{item.title}</h3>
-                  <p className="text-xs text-zinc-500 mt-0.5">Siswa: {item.studentName} • Nilai: <strong className="text-emerald-700">{item.score} / 100</strong></p>
-                  <p className="text-xs text-zinc-600 mt-1 italic">&ldquo;{item.notes}&rdquo;</p>
+                  <h3 className="font-heading text-base font-bold text-ink">{item.title}</h3>
+                  <p className="text-xs text-ink-600 mt-0.5">Siswa: {item.studentName} • Nilai: <strong className="text-emerald-700">{item.score} / 100</strong></p>
+                  <p className="text-xs text-ink-600 mt-1 italic">&ldquo;{item.notes}&rdquo;</p>
                 </div>
 
                 <span className="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full self-start sm:self-center shrink-0">
@@ -638,30 +638,30 @@ export default function TeacherDashboardPage() {
       )}
       {/* ──────────────── DIALOG KURASI ──────────────── */}
       {review && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/50 backdrop-blur-sm">
-          <div className="w-full max-w-lg bg-white rounded-3xl border border-zinc-200 shadow-2xl p-6 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/50 backdrop-blur-sm">
+          <div className="w-full max-w-lg bg-white rounded-2xl border border-ink-150 shadow-2xl p-6 space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="font-heading text-lg font-bold text-zinc-900">
+                <h2 className="font-heading text-lg font-bold text-ink">
                   {review.action === "approve"
                     ? "Setujui & Publikasikan Karya"
                     : "Minta Revisi Karya"}
                 </h2>
-                <p className="text-xs text-zinc-500 mt-1 max-w-[65ch]">{review.item.title}</p>
+                <p className="text-xs text-ink-600 mt-1 max-w-[65ch]">{review.item.title}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setReview(null)}
                 aria-label="Tutup dialog"
-                className="p-1.5 rounded-lg hover:bg-zinc-100 cursor-pointer shrink-0"
+                className="p-1.5 rounded-lg hover:bg-ink-100 cursor-pointer shrink-0"
               >
-                <X className="w-4 h-4 text-zinc-500" />
+                <X className="w-4 h-4 text-ink-600" />
               </button>
             </div>
 
             {review.action === "approve" && (
               <div className="space-y-1.5">
-                <label htmlFor="nilai-kurasi" className="text-xs font-bold text-zinc-700">
+                <label htmlFor="nilai-kurasi" className="text-xs font-bold text-ink-700">
                   Nilai kurasi (opsional, 0-100)
                 </label>
                 <input
@@ -672,13 +672,13 @@ export default function TeacherDashboardPage() {
                   value={score}
                   onChange={(e) => setScore(e.target.value)}
                   placeholder="mis. 92"
-                  className="w-full rounded-xl border border-zinc-200 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                  className="w-full rounded-xl border border-ink-150 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
                 />
               </div>
             )}
 
             <div className="space-y-1.5">
-              <label htmlFor="catatan-kurasi" className="text-xs font-bold text-zinc-700">
+              <label htmlFor="catatan-kurasi" className="text-xs font-bold text-ink-700">
                 Catatan {review.action === "revisi" ? "(wajib, min. 10 karakter)" : "(opsional)"}
               </label>
               <textarea
@@ -691,10 +691,10 @@ export default function TeacherDashboardPage() {
                     ? "Jelaskan bagian yang perlu diperbaiki…"
                     : "Catatan penilaian untuk siswa…"
                 }
-                className="w-full rounded-xl border border-zinc-200 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                className="w-full rounded-xl border border-ink-150 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
               />
               {review.action === "revisi" && (
-                <p className="text-[11px] text-zinc-500">
+                <p className="text-[11px] text-ink-600">
                   Siswa akan menerima notifikasi berisi catatan ini.
                 </p>
               )}
@@ -710,7 +710,7 @@ export default function TeacherDashboardPage() {
               <button
                 type="button"
                 onClick={() => setReview(null)}
-                className="px-4 py-2 rounded-xl border border-zinc-200 text-xs font-bold text-zinc-700 hover:bg-zinc-50 cursor-pointer"
+                className="px-4 py-2 rounded-xl border border-ink-150 text-xs font-bold text-ink-700 hover:bg-ink-100 cursor-pointer"
               >
                 Batal
               </button>

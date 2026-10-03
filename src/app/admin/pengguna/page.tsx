@@ -179,34 +179,34 @@ export default function AdminPenggunaPage() {
     <AdminLayout>
       <div className="space-y-6 animate-in fade-in duration-200 relative">
         {/* Page Header & Filters */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white border border-ink-150 shadow-xs">
           <div>
-            <h1 className="font-heading text-lg font-bold text-slate-900">
+            <h1 className="font-heading text-lg font-bold text-ink">
               Manajemen Pengguna
             </h1>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-ink-600">
               Kelola dan atur kredensial akun dari 5 role di Kandaga ({filteredUsers.length} pengguna).
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-ink-300 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Cari user / email..."
                 value={userSearch}
                 onChange={(e) => setUserSearch(e.target.value)}
-                className="pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#891337]/15 focus:border-[#891337] transition"
+                className="pl-8 pr-3 py-1.5 rounded-xl border border-ink-150 text-xs bg-ink-100 focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary transition"
               />
             </div>
 
             <div className="flex items-center gap-2">
-              <Filter className="w-3.5 h-3.5 text-slate-400" />
+              <Filter className="w-3.5 h-3.5 text-ink-300" />
               <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
-                className="text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#891337]/15 cursor-pointer"
+                className="text-xs px-3 py-1.5 rounded-xl border border-ink-150 bg-white text-ink-700 focus:outline-none focus:ring-2 focus:ring-primary/15 cursor-pointer"
               >
                 <option value="all">Semua Role</option>
                 <option value="student">Student</option>
@@ -220,11 +220,11 @@ export default function AdminPenggunaPage() {
         </div>
 
         {/* Users Table */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs">
+        <div className="bg-white rounded-2xl border border-ink-150 p-5 shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-100 text-[10px] text-slate-400 uppercase tracking-wider">
+                <tr className="border-b border-ink-150 text-[10px] text-ink-300 uppercase tracking-wider">
                   <th className="pb-3 font-bold">Username</th>
                   <th className="pb-3 font-bold">Email</th>
                   <th className="pb-3 font-bold">Role</th>
@@ -232,27 +232,27 @@ export default function AdminPenggunaPage() {
                   <th className="pb-3 font-bold text-right pr-2">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-ink-100">
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-slate-400 text-xs">
+                    <td colSpan={5} className="py-8 text-center text-ink-300 text-xs">
                       Tidak ada pengguna yang sesuai dengan filter pencarian.
                     </td>
                   </tr>
                 ) : (
                   filteredUsers.map((u) => (
-                    <tr key={u.id} className="hover:bg-slate-50/60 transition group">
-                      <td className="py-3.5 font-bold text-slate-900">
+                    <tr key={u.id} className="hover:bg-ink-100/60 transition group">
+                      <td className="py-3.5 font-bold text-ink">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-full bg-ink-100 text-ink-700 font-bold text-xs flex items-center justify-center">
                             {u.username.slice(0, 2).toUpperCase()}
                           </div>
                           <span>{u.username}</span>
                         </div>
                       </td>
-                      <td className="py-3.5 text-slate-500 font-mono text-[11px]">{u.email}</td>
+                      <td className="py-3.5 text-ink-600 font-mono text-[11px]">{u.email}</td>
                       <td className="py-3.5">
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#891337]/10 text-[#891337] uppercase">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary uppercase">
                           {u.role}
                         </span>
                       </td>
@@ -269,7 +269,7 @@ export default function AdminPenggunaPage() {
                               type="button"
                               disabled
                               title={`Akun ${u.role === "student" ? "siswa" : "perusahaan"} dilindungi (tidak dapat diedit)`}
-                              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-300 cursor-not-allowed opacity-40"
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-ink-300 cursor-not-allowed opacity-40"
                               aria-disabled="true"
                             >
                               <Pencil className="w-3.5 h-3.5" />
@@ -279,7 +279,7 @@ export default function AdminPenggunaPage() {
                               type="button"
                               onClick={() => handleOpenEdit(u)}
                               title="Edit Pengguna"
-                              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-[#891337] hover:bg-[#891337]/10 transition cursor-pointer"
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-ink-300 hover:text-primary hover:bg-primary/10 transition cursor-pointer"
                             >
                               <Pencil className="w-3.5 h-3.5" />
                             </button>
@@ -288,7 +288,7 @@ export default function AdminPenggunaPage() {
                             type="button"
                             onClick={() => handleOpenDelete(u)}
                             title="Hapus Pengguna"
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-ink-300 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -304,20 +304,20 @@ export default function AdminPenggunaPage() {
 
         {/* ─────────────── MODAL EDIT PENGGUNA ─────────────── */}
         {isEditModalOpen && editingUser && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/50 backdrop-blur-xs animate-in fade-in duration-200">
             <div
-              className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-200"
+              className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-ink-150 overflow-hidden animate-in zoom-in-95 duration-200"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
+              <div className="flex items-center justify-between p-5 border-b border-ink-150 bg-ink-100/50">
                 <div className="flex items-center gap-2.5">
-                  <Pencil className="w-4 h-4 text-[#891337] shrink-0" />
+                  <Pencil className="w-4 h-4 text-primary shrink-0" />
                   <div>
-                    <h2 className="font-heading text-sm font-bold text-slate-900">
+                    <h2 className="font-heading text-sm font-bold text-ink">
                       Edit Data Pengguna
                     </h2>
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-[11px] text-ink-300">
                       Perbarui informasi kredensial dan hak akses akun.
                     </p>
                   </div>
@@ -325,7 +325,7 @@ export default function AdminPenggunaPage() {
                 <button
                   type="button"
                   onClick={handleCloseEdit}
-                  className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 transition cursor-pointer"
+                  className="w-7 h-7 rounded-lg bg-ink-100 hover:bg-ink-150 flex items-center justify-center text-ink-300 hover:text-ink-700 transition cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -342,51 +342,51 @@ export default function AdminPenggunaPage() {
 
                 {/* Username Field */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  <label className="block text-xs font-bold text-ink-700 mb-1.5">
                     Username
                   </label>
                   <div className="relative">
-                    <User className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <User className="w-3.5 h-3.5 text-ink-300 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
                       value={formUsername}
                       onChange={(e) => setFormUsername(e.target.value)}
                       required
                       placeholder="Masukkan username..."
-                      className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-slate-50/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#891337]/15 focus:border-[#891337] transition"
+                      className="w-full pl-9 pr-3 py-2 rounded-lg border border-ink-150 text-xs text-ink bg-ink-100/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary transition"
                     />
                   </div>
                 </div>
 
                 {/* Email Field */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  <label className="block text-xs font-bold text-ink-700 mb-1.5">
                     Email Terdaftar
                   </label>
                   <div className="relative">
-                    <Mail className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Mail className="w-3.5 h-3.5 text-ink-300 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="email"
                       value={formEmail}
                       onChange={(e) => setFormEmail(e.target.value)}
                       required
                       placeholder="nama@domain.com"
-                      className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-slate-50/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#891337]/15 focus:border-[#891337] transition"
+                      className="w-full pl-9 pr-3 py-2 rounded-lg border border-ink-150 text-xs text-ink bg-ink-100/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary transition"
                     />
                   </div>
                 </div>
 
                 {/* Role Field */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  <label className="block text-xs font-bold text-ink-700 mb-1.5">
                     Hak Akses (Role)
                   </label>
                   <div className="relative">
-                    <Shield className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Shield className="w-3.5 h-3.5 text-ink-300 absolute left-3 top-1/2 -translate-y-1/2" />
                     <select
                       value={formRole}
                       onChange={(e) => setFormRole(e.target.value as Role)}
-                      className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-slate-50/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#891337]/15 focus:border-[#891337] transition capitalize cursor-pointer"
+                      className="w-full pl-9 pr-3 py-2 rounded-lg border border-ink-150 text-xs text-ink bg-ink-100/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary transition capitalize cursor-pointer"
                     >
                       <option value="student">Student (Siswa)</option>
                       <option value="teacher">Teacher (Guru Pembimbing)</option>
@@ -399,20 +399,20 @@ export default function AdminPenggunaPage() {
 
                 {/* Password Field (Optional) */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  <label className="block text-xs font-bold text-ink-700 mb-1.5">
                     Ganti Password{" "}
-                    <span className="font-normal text-slate-400 text-[10px]">
+                    <span className="font-normal text-ink-300 text-[10px]">
                       (Kosongkan jika tidak diubah)
                     </span>
                   </label>
                   <div className="relative">
-                    <KeyRound className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <KeyRound className="w-3.5 h-3.5 text-ink-300 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="password"
                       value={formPassword}
                       onChange={(e) => setFormPassword(e.target.value)}
                       placeholder="Ketik password baru..."
-                      className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-slate-50/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#891337]/15 focus:border-[#891337] transition placeholder:text-slate-400"
+                      className="w-full pl-9 pr-3 py-2 rounded-lg border border-ink-150 text-xs text-ink bg-ink-100/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary transition placeholder:text-ink-300"
                     />
                   </div>
                 </div>
@@ -422,13 +422,13 @@ export default function AdminPenggunaPage() {
                   <button
                     type="button"
                     onClick={handleCloseEdit}
-                    className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                    className="px-4 py-2 rounded-lg text-xs font-semibold text-ink-600 hover:bg-ink-100 transition cursor-pointer"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#891337] hover:bg-[#70102d] text-white shadow-xs transition cursor-pointer flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-lg text-xs font-semibold bg-primary hover:bg-primary-dark text-white shadow-xs transition cursor-pointer flex items-center gap-1.5"
                   >
                     <Check className="w-3.5 h-3.5" />
                     Simpan Perubahan
@@ -441,34 +441,34 @@ export default function AdminPenggunaPage() {
 
         {/* ─────────────── MODAL KONFIRMASI HAPUS ─────────────── */}
         {isDeleteModalOpen && deletingUser && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/50 backdrop-blur-xs animate-in fade-in duration-200">
             <div
-              className="bg-white rounded-2xl max-w-sm w-full shadow-2xl border border-slate-100 p-6 animate-in zoom-in-95 duration-200 text-center"
+              className="bg-white rounded-2xl max-w-sm w-full shadow-2xl border border-ink-150 p-6 animate-in zoom-in-95 duration-200 text-center"
               onClick={(e) => e.stopPropagation()}
             >
               <AlertTriangle className="w-7 h-7 text-rose-600 mx-auto mb-3" />
 
-              <h2 className="font-heading text-base font-bold text-slate-900 mb-1.5">
+              <h2 className="font-heading text-base font-bold text-ink mb-1.5">
                 Hapus Akun Pengguna?
               </h2>
-              <p className="text-xs text-slate-500 leading-relaxed mb-4">
+              <p className="text-xs text-ink-600 leading-relaxed mb-4">
                 Apakah Anda yakin ingin menghapus akun ini? Tindakan ini bersifat permanen dan tidak dapat dibatalkan.
               </p>
 
               {/* Target User Summary Card */}
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-3 text-left mb-5">
-                <div className="w-8 h-8 rounded-lg bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">
+              <div className="p-3 rounded-xl bg-ink-100 border border-ink-150 flex items-center gap-3 text-left mb-5">
+                <div className="w-8 h-8 rounded-lg bg-ink-150 text-ink-700 font-bold text-xs flex items-center justify-center shrink-0">
                   {deletingUser.username.slice(0, 2).toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold text-slate-900 truncate">
+                  <p className="text-xs font-bold text-ink truncate">
                     {deletingUser.username}
                   </p>
-                  <p className="text-[10px] text-slate-400 font-mono truncate">
+                  <p className="text-[10px] text-ink-300 font-mono truncate">
                     {deletingUser.email}
                   </p>
                 </div>
-                <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-[#891337]/10 text-[#891337] uppercase shrink-0">
+                <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-primary/10 text-primary uppercase shrink-0">
                   {deletingUser.role}
                 </span>
               </div>
@@ -478,7 +478,7 @@ export default function AdminPenggunaPage() {
                 <button
                   type="button"
                   onClick={handleCloseDelete}
-                  className="w-1/2 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                  className="w-1/2 py-2 rounded-lg border border-ink-150 text-xs font-semibold text-ink-600 hover:bg-ink-100 transition cursor-pointer"
                 >
                   Batal
                 </button>
@@ -501,7 +501,7 @@ export default function AdminPenggunaPage() {
             <div
               className={`px-4 py-3 rounded-2xl shadow-xl border flex items-center gap-2.5 text-xs font-bold ${
                 toast.type === "success"
-                  ? "bg-slate-900 text-white border-slate-800"
+                  ? "bg-ink text-white border-ink-700"
                   : "bg-rose-600 text-white border-rose-700"
               }`}
             >

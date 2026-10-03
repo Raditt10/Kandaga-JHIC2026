@@ -94,7 +94,7 @@ export default function AjukanMinatModal({ project, onClose, onSuccess }: Props)
       className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 backdrop-blur-sm p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="w-full max-w-md bg-white rounded-3xl border border-ink-150 shadow-xl overflow-hidden">
+      <div className="w-full max-w-md bg-white rounded-2xl border border-ink-150 shadow-xl overflow-hidden">
 
         {/* Header */}
         <div className="px-6 pt-6 pb-4 border-b border-ink-150">

@@ -99,11 +99,11 @@ export default function StudentProjectDetailModal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-ink-150 overflow-hidden flex flex-col max-h-[90vh] my-auto">
+      <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-ink-150 overflow-hidden flex flex-col max-h-[90vh] my-auto">
         {/* ── Sticky Modal Header ── */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-ink-150 bg-[#FBF9F6] shrink-0">
           <div className="flex items-center gap-3">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#8B1A2F]/10 text-[#8B1A2F] border border-[#8B1A2F]/20">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/20">
               {majorName}
             </span>
             <span
@@ -130,7 +130,7 @@ export default function StudentProjectDetailModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-full text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/60 transition cursor-pointer"
+            className="p-1.5 rounded-full text-ink-600 hover:text-ink hover:bg-ink-150/60 transition cursor-pointer"
             aria-label="Tutup modal detail karya"
           >
             <X className="w-5 h-5" />
@@ -142,10 +142,10 @@ export default function StudentProjectDetailModal({
           {/* 1. Header Information & Title */}
           <div>
             <div className="flex items-center gap-2 text-xs text-ink-600 mb-2 font-mono">
-              <Calendar className="w-3.5 h-3.5 text-ink-400" />
+              <Calendar className="w-3.5 h-3.5 text-ink-300" />
               <span>Diterbitkan: {formattedDate}</span>
               <span>·</span>
-              <Eye className="w-3.5 h-3.5 text-ink-400" />
+              <Eye className="w-3.5 h-3.5 text-ink-300" />
               <span>{project.metrics?.views || 0} tayangan</span>
             </div>
 
@@ -210,8 +210,8 @@ export default function StudentProjectDetailModal({
                     onClick={() => setActiveImageIndex(idx)}
                     className={`relative w-20 h-14 rounded-xl overflow-hidden shrink-0 border-2 transition cursor-pointer ${
                       activeImageIndex === idx
-                        ? "border-[#8B1A2F] ring-2 ring-[#8B1A2F]/20 scale-105"
-                        : "border-ink-200 opacity-70 hover:opacity-100"
+                        ? "border-primary ring-2 ring-primary/20 scale-105"
+                        : "border-ink-150 opacity-70 hover:opacity-100"
                     }`}
                   >
                     <Image src={img} alt={`Preview ${idx + 1}`} fill className="object-cover" />
@@ -224,7 +224,7 @@ export default function StudentProjectDetailModal({
           {/* 3. Deskripsi & Latar Belakang Masalah */}
           <div className="pt-6">
             <h3 className="font-heading text-base font-bold text-ink mb-3 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#8B1A2F]" />
+              <Sparkles className="w-4 h-4 text-primary" />
               <span>Deskripsi & Gambaran Umum Solusi</span>
             </h3>
             <p className="text-sm text-ink-700 leading-relaxed whitespace-pre-line">
@@ -263,7 +263,7 @@ export default function StudentProjectDetailModal({
                 {project.tools.map((tool, idx) => (
                   <span
                     key={idx}
-                    className="px-3 py-1.5 rounded-xl bg-cream border border-ink-150 text-ink-800 text-xs font-semibold"
+                    className="px-3 py-1.5 rounded-xl bg-cream border border-ink-150 text-ink-700 text-xs font-semibold"
                   >
                     {tool}
                   </span>
@@ -298,7 +298,7 @@ export default function StudentProjectDetailModal({
                 className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer border ${
                   isPrivate
                     ? "bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100"
-                    : "bg-white text-zinc-700 border-ink-200 hover:bg-zinc-100"
+                    : "bg-white text-ink-700 border-ink-150 hover:bg-ink-100"
                 }`}
               >
                 {isPrivate ? (
@@ -308,7 +308,7 @@ export default function StudentProjectDetailModal({
                   </>
                 ) : (
                   <>
-                    <Lock className="w-3.5 h-3.5 text-zinc-600" />
+                    <Lock className="w-3.5 h-3.5 text-ink-600" />
                     <span>Jadikan Privat</span>
                   </>
                 )}
@@ -322,7 +322,7 @@ export default function StudentProjectDetailModal({
                   onClose();
                   onEdit(project);
                 }}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-ink-200 text-xs font-bold text-ink hover:border-[#8B1A2F] hover:text-[#8B1A2F] transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-ink-150 text-xs font-bold text-ink hover:border-primary hover:text-primary transition cursor-pointer"
               >
                 <Pencil className="w-3.5 h-3.5" />
                 <span>Edit Informasi</span>
@@ -333,7 +333,7 @@ export default function StudentProjectDetailModal({
           <div className="flex items-center gap-2">
             <Link
               href={`/student/my-projects/${project.id}`}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#8B1A2F] text-white text-xs font-bold hover:bg-[#6B1424] transition shadow-xs"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-[#6B1424] transition shadow-xs"
             >
               <span>Buka Halaman Penuh</span>
               <ExternalLink className="w-3.5 h-3.5" />
@@ -342,7 +342,7 @@ export default function StudentProjectDetailModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-ink-200 text-xs font-bold text-zinc-600 hover:bg-zinc-100 transition cursor-pointer"
+              className="px-4 py-2 rounded-xl border border-ink-150 text-xs font-bold text-ink-600 hover:bg-ink-100 transition cursor-pointer"
             >
               Tutup
             </button>

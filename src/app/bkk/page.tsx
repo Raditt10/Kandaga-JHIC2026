@@ -45,7 +45,7 @@ export default function BKKDashboardPage() {
   return (
     <BKKLayout>
       {/* Welcome */}
-      <div className="mb-8 rounded-3xl bg-gradient-to-br from-ink via-zinc-900 to-[#0f2518] text-white p-6 sm:p-8 relative overflow-hidden">
+      <div className="mb-8 rounded-3xl bg-gradient-to-r from-primary-dark to-primary text-white p-7 sm:p-9 relative overflow-hidden shadow-xl shadow-primary/15">
         <div className="pointer-events-none absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/5 blur-3xl" aria-hidden="true" />
         <div className="relative z-10">
           <p className="text-xs font-mono text-white/50 mb-1 uppercase tracking-widest">Koordinator BKK</p>

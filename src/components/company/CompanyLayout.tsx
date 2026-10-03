@@ -6,8 +6,8 @@
  * Sebelumnya layout ini memakai navbar atas setinggi 56px dengan token warna
  * Kandaga (ink/primary), berbeda dari dashboard Administrator. Sekarang
  * chromenya memakai `DashboardShell` agar seragam dengan dashboard lain:
- * sidebar terang yang bisa dilipat + header putih + palet `slate` dengan
- * aksen #891337.
+ * sidebar terang yang bisa dilipat + header putih + token Kandaga (`ink`
+ * untuk warna netral, `primary` untuk aksen).
  *
  * API komponen dipertahankan (`children`, `pageTitle`) supaya keempat halaman
  * /company/* tidak perlu diubah. Menu berisi 5 item: Dashboard (`/company`),

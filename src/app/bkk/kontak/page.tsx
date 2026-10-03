@@ -132,7 +132,7 @@ function DetailModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 backdrop-blur-sm p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="w-full max-w-xl bg-white rounded-3xl border border-ink-150 shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="w-full max-w-xl bg-white rounded-2xl border border-ink-150 shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
 
         {/* Header */}
         <div className="px-6 pt-6 pb-4 border-b border-ink-150">

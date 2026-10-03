@@ -111,13 +111,13 @@ export default function AdminPendaftaranMitraPage() {
     <AdminLayout>
       <div className="space-y-6 animate-in fade-in duration-200">
         {/* Header */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="p-5 rounded-2xl bg-white border border-ink-150 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="font-heading text-lg font-bold text-slate-900 flex items-center gap-2">
-              <UserPlus className="w-5 h-5 text-[#891337]" />
+            <h1 className="font-heading text-lg font-bold text-ink flex items-center gap-2">
+              <UserPlus className="w-5 h-5 text-primary" />
               <span>Pendaftaran & Onboarding Mitra Industri</span>
             </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-ink-600 mt-0.5">
               Kelola pengajuan akun perusahaan baru, verifikasi berkas legalitas, dan aktivasi kemitraan DUDI.
             </p>
           </div>
@@ -126,7 +126,7 @@ export default function AdminPendaftaranMitraPage() {
             <Link
               href="/mitra/daftar"
               target="_blank"
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-ink-100 hover:bg-ink-150 text-ink-700 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0"
             >
               <span>Formulir Publik Mitra</span>
               <ExternalLink className="w-3.5 h-3.5" />
@@ -162,13 +162,13 @@ export default function AdminPendaftaranMitraPage() {
         )}
 
         {/* Step Guide Banner */}
-        <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-900 to-zinc-900 text-white shadow-xs">
+        <div className="p-5 rounded-2xl bg-gradient-to-r from-ink to-ink text-white shadow-xs">
           <h2 className="text-xs font-mono uppercase tracking-wider text-rose-300 font-bold mb-3">
             Alur Pendaftaran & Verifikasi Kemitraan (DUDI)
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
             <div className="p-3 rounded-xl bg-white/10 backdrop-blur-xs border border-white/10">
-              <span className="w-5 h-5 rounded-full bg-[#891337] text-white flex items-center justify-center font-bold text-[10px] mb-1.5">
+              <span className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center font-bold text-[10px] mb-1.5">
                 1
               </span>
               <h3 className="font-bold">Pengisian Form</h3>
@@ -178,7 +178,7 @@ export default function AdminPendaftaranMitraPage() {
             </div>
 
             <div className="p-3 rounded-xl bg-white/10 backdrop-blur-xs border border-white/10">
-              <span className="w-5 h-5 rounded-full bg-[#891337] text-white flex items-center justify-center font-bold text-[10px] mb-1.5">
+              <span className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center font-bold text-[10px] mb-1.5">
                 2
               </span>
               <h3 className="font-bold">Kurasi Legalitas</h3>
@@ -188,7 +188,7 @@ export default function AdminPendaftaranMitraPage() {
             </div>
 
             <div className="p-3 rounded-xl bg-white/10 backdrop-blur-xs border border-white/10">
-              <span className="w-5 h-5 rounded-full bg-[#891337] text-white flex items-center justify-center font-bold text-[10px] mb-1.5">
+              <span className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center font-bold text-[10px] mb-1.5">
                 3
               </span>
               <h3 className="font-bold">Persetujuan Akun</h3>
@@ -198,7 +198,7 @@ export default function AdminPendaftaranMitraPage() {
             </div>
 
             <div className="p-3 rounded-xl bg-white/10 backdrop-blur-xs border border-white/10">
-              <span className="w-5 h-5 rounded-full bg-[#891337] text-white flex items-center justify-center font-bold text-[10px] mb-1.5">
+              <span className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center font-bold text-[10px] mb-1.5">
                 4
               </span>
               <h3 className="font-bold">Rekrutmen PKL</h3>
@@ -210,10 +210,10 @@ export default function AdminPendaftaranMitraPage() {
         </div>
 
         {/* Antrian Pendaftaran Masuk */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4">
+        <div className="bg-white rounded-2xl border border-ink-150 p-5 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="font-heading text-sm font-bold text-slate-900 flex items-center gap-2">
+              <h2 className="font-heading text-sm font-bold text-ink flex items-center gap-2">
                 <Clock className="w-4 h-4 text-amber-500" />
                 <span>Antrian Pendaftaran Mitra Masuk</span>
                 {items.length > 0 && (
@@ -222,7 +222,7 @@ export default function AdminPendaftaranMitraPage() {
                   </span>
                 )}
               </h2>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <p className="text-[11px] text-ink-300 mt-0.5">
                 Tinjau berkas pendaftaran calon mitra industri baru sebelum memberikan akses sistem.
               </p>
             </div>
@@ -230,22 +230,22 @@ export default function AdminPendaftaranMitraPage() {
             <button
               type="button"
               onClick={fetchQueue}
-              className="text-xs font-bold text-[#891337] hover:underline"
+              className="text-xs font-bold text-primary hover:underline"
             >
               Segarkan Antrian
             </button>
           </div>
 
           {loading ? (
-            <div className="py-12 flex flex-col items-center justify-center text-slate-400 gap-2">
-              <Loader2 className="w-6 h-6 animate-spin text-[#891337]" />
+            <div className="py-12 flex flex-col items-center justify-center text-ink-300 gap-2">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
               <span className="text-xs">Memuat pengajuan mitra baru...</span>
             </div>
           ) : items.length === 0 ? (
-            <div className="py-12 text-center text-slate-400">
+            <div className="py-12 text-center text-ink-300">
               <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-2 opacity-80" />
-              <p className="text-xs font-bold text-slate-700">Tidak Ada Pendaftaran Tertunda</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <p className="text-xs font-bold text-ink-700">Tidak Ada Pendaftaran Tertunda</p>
+              <p className="text-[11px] text-ink-300 mt-0.5">
                 Semua pengajuan pendaftaran mitra industri baru telah selesai diproses.
               </p>
             </div>
@@ -253,7 +253,7 @@ export default function AdminPendaftaranMitraPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-slate-100 text-[10px] text-slate-400 uppercase tracking-wider">
+                  <tr className="border-b border-ink-150 text-[10px] text-ink-300 uppercase tracking-wider">
                     <th className="pb-2.5 font-bold">NAMA PERUSAHAAN</th>
                     <th className="pb-2.5 font-bold">KONTAK PIC</th>
                     <th className="pb-2.5 font-bold">BIDANG INDUSTRI</th>
@@ -262,11 +262,11 @@ export default function AdminPendaftaranMitraPage() {
                     <th className="pb-2.5 font-bold text-right">AKSI VERIFIKASI</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-50">
+                <tbody className="divide-y divide-ink-100">
                   {items.map((item) => (
-                    <tr key={item.userId} className="hover:bg-slate-50/60 transition">
+                    <tr key={item.userId} className="hover:bg-ink-100/60 transition">
                       <td className="py-3.5 pr-3">
-                        <span className="font-bold text-slate-900 block leading-tight">
+                        <span className="font-bold text-ink block leading-tight">
                           {item.namaPerusahaan}
                         </span>
                         <span className="text-[10px] text-amber-600 font-semibold block mt-0.5">
@@ -274,10 +274,10 @@ export default function AdminPendaftaranMitraPage() {
                         </span>
                       </td>
                       <td className="py-3.5 pr-3">
-                        <span className="font-semibold text-slate-800 block">{item.namaKontak}</span>
-                        <span className="text-[11px] text-slate-400 block font-mono">{item.email}</span>
+                        <span className="font-semibold text-ink block">{item.namaKontak}</span>
+                        <span className="text-[11px] text-ink-300 block font-mono">{item.email}</span>
                       </td>
-                      <td className="py-3.5 pr-3 text-slate-600">
+                      <td className="py-3.5 pr-3 text-ink-600">
                         {item.bidang || "—"}
                       </td>
                       <td className="py-3.5 pr-3">
@@ -286,16 +286,16 @@ export default function AdminPendaftaranMitraPage() {
                             href={item.dokumenUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#891337] hover:underline"
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                             <span>Lihat Berkas</span>
                           </a>
                         ) : (
-                          <span className="text-slate-300 italic text-[11px]">Tidak ada berkas</span>
+                          <span className="text-ink-300 italic text-[11px]">Tidak ada berkas</span>
                         )}
                       </td>
-                      <td className="py-3.5 pr-3 text-slate-500 font-mono text-[11px]">
+                      <td className="py-3.5 pr-3 text-ink-600 font-mono text-[11px]">
                         {formatDate(item.terdaftarPada)}
                       </td>
                       <td className="py-3.5 text-right">
@@ -303,7 +303,7 @@ export default function AdminPendaftaranMitraPage() {
                           <button
                             type="button"
                             onClick={() => setSelectedItem(item)}
-                            className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 text-[11px] font-semibold transition cursor-pointer"
+                            className="px-2.5 py-1.5 rounded-lg border border-ink-150 hover:bg-ink-100 text-ink-700 text-[11px] font-semibold transition cursor-pointer"
                           >
                             <Eye className="w-3.5 h-3.5 inline mr-1" />
                             Detail
@@ -343,12 +343,12 @@ export default function AdminPendaftaranMitraPage() {
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4"
             onClick={(e) => e.target === e.currentTarget && setSelectedItem(null)}
           >
-            <div className="w-full max-w-lg bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden animate-in zoom-in-95 duration-150">
-              <div className="px-6 pt-6 pb-4 border-b border-slate-100">
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+            <div className="w-full max-w-lg bg-white rounded-2xl border border-ink-150 shadow-xl overflow-hidden animate-in zoom-in-95 duration-150">
+              <div className="px-6 pt-6 pb-4 border-b border-ink-150">
+                <p className="text-[11px] font-bold text-ink-300 uppercase tracking-wider mb-1">
                   Verifikasi Berkas Kemitraan
                 </p>
-                <h2 className="font-heading text-lg font-bold text-slate-900">
+                <h2 className="font-heading text-lg font-bold text-ink">
                   {selectedItem.namaPerusahaan}
                 </h2>
               </div>
@@ -356,43 +356,43 @@ export default function AdminPendaftaranMitraPage() {
               <div className="px-6 py-5 space-y-4 text-xs">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <span className="text-[11px] text-slate-400 block font-medium">Nama Kontak PIC</span>
-                    <span className="font-semibold text-slate-800 block mt-0.5">{selectedItem.namaKontak}</span>
+                    <span className="text-[11px] text-ink-300 block font-medium">Nama Kontak PIC</span>
+                    <span className="font-semibold text-ink block mt-0.5">{selectedItem.namaKontak}</span>
                   </div>
                   <div>
-                    <span className="text-[11px] text-slate-400 block font-medium">Email Kontak</span>
-                    <span className="font-semibold text-slate-800 block mt-0.5 font-mono truncate">
+                    <span className="text-[11px] text-ink-300 block font-medium">Email Kontak</span>
+                    <span className="font-semibold text-ink block mt-0.5 font-mono truncate">
                       {selectedItem.email}
                     </span>
                   </div>
                   <div>
-                    <span className="text-[11px] text-slate-400 block font-medium">Bidang Usaha</span>
-                    <span className="font-semibold text-slate-800 block mt-0.5">
+                    <span className="text-[11px] text-ink-300 block font-medium">Bidang Usaha</span>
+                    <span className="font-semibold text-ink block mt-0.5">
                       {selectedItem.bidang || "—"}
                     </span>
                   </div>
                   <div>
-                    <span className="text-[11px] text-slate-400 block font-medium">Waktu Registrasi</span>
-                    <span className="font-semibold text-slate-800 block mt-0.5">
+                    <span className="text-[11px] text-ink-300 block font-medium">Waktu Registrasi</span>
+                    <span className="font-semibold text-ink block mt-0.5">
                       {formatDate(selectedItem.terdaftarPada)}
                     </span>
                   </div>
                 </div>
 
                 <div>
-                  <span className="text-[11px] text-slate-400 block font-medium mb-1">Berkas Dokumen Pendukung</span>
+                  <span className="text-[11px] text-ink-300 block font-medium mb-1">Berkas Dokumen Pendukung</span>
                   {selectedItem.dokumenUrl ? (
                     <a
                       href={selectedItem.dokumenUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#891337] hover:underline"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline"
                     >
                       <ExternalLink className="w-4 h-4" />
                       Buka Dokumen Legalitas (PDF / Dokumen)
                     </a>
                   ) : (
-                    <span className="text-slate-400 italic">Tidak ada dokumen diunggah</span>
+                    <span className="text-ink-300 italic">Tidak ada dokumen diunggah</span>
                   )}
                 </div>
 
@@ -416,7 +416,7 @@ export default function AdminPendaftaranMitraPage() {
                 )}
               </div>
 
-              <div className="px-6 pb-6 pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
+              <div className="px-6 pb-6 pt-2 flex items-center justify-end gap-2 border-t border-ink-150">
                 <button
                   type="button"
                   onClick={() => {
@@ -424,7 +424,7 @@ export default function AdminPendaftaranMitraPage() {
                     setShowTolakInput(false)
                     setCatatanTolak("")
                   }}
-                  className="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-semibold transition cursor-pointer"
+                  className="px-4 py-2 rounded-xl border border-ink-150 hover:bg-ink-100 text-ink-600 text-xs font-semibold transition cursor-pointer"
                 >
                   Tutup
                 </button>

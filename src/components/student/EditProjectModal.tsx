@@ -165,7 +165,7 @@ export default function EditProjectModal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-ink-150 overflow-hidden flex flex-col max-h-[90vh] my-auto">
+      <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-ink-150 overflow-hidden flex flex-col max-h-[90vh] my-auto">
         {/* ── Sticky Header ── */}
         <div className="flex items-center justify-between p-6 border-b border-ink-150 bg-[#FBF9F6] shrink-0">
           <div>
@@ -179,7 +179,7 @@ export default function EditProjectModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-full text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/60 transition cursor-pointer"
+            className="p-2 rounded-full text-ink-600 hover:text-ink hover:bg-ink-150/60 transition cursor-pointer"
             aria-label="Tutup modal edit karya"
           >
             <X className="w-5 h-5" />
@@ -198,7 +198,7 @@ export default function EditProjectModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
-              className="w-full px-4 py-2.5 rounded-xl border border-ink-300 focus:border-[#8B1A2F] focus:ring-2 focus:ring-[#8B1A2F]/20 text-sm font-sans outline-hidden transition"
+              className="w-full px-4 py-2.5 rounded-xl border border-ink-300 focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-sans outline-hidden transition"
               placeholder="Contoh: EduClass — LMS & Presensi QR Cerdas"
             />
           </div>
@@ -212,7 +212,7 @@ export default function EditProjectModal({
               type="text"
               value={tagline}
               onChange={(e) => setTagline(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-ink-300 focus:border-[#8B1A2F] focus:ring-2 focus:ring-[#8B1A2F]/20 text-sm font-sans outline-hidden transition"
+              className="w-full px-4 py-2.5 rounded-xl border border-ink-300 focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-sans outline-hidden transition"
               placeholder="Satu kalimat ringkas tentang solusi karya ini"
             />
           </div>
@@ -226,7 +226,7 @@ export default function EditProjectModal({
               <select
                 value={major}
                 onChange={(e) => setMajor(e.target.value as JurusanSlug)}
-                className="w-full px-3 py-2.5 rounded-xl border border-ink-300 focus:border-[#8B1A2F] text-xs sm:text-sm font-medium outline-hidden bg-white cursor-pointer"
+                className="w-full px-3 py-2.5 rounded-xl border border-ink-300 focus:border-primary text-xs sm:text-sm font-medium outline-hidden bg-white cursor-pointer"
               >
                 <option value="rpl">Rekayasa Perangkat Lunak (RPL)</option>
                 <option value="tkj">Teknik Komputer Jaringan (TKJ)</option>
@@ -245,7 +245,7 @@ export default function EditProjectModal({
                   className={`py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
                     !isPrivate
                       ? "bg-emerald-50 text-emerald-800 border-emerald-300 shadow-2xs"
-                      : "bg-white text-zinc-600 border-ink-200 hover:bg-zinc-50"
+                      : "bg-white text-ink-600 border-ink-150 hover:bg-ink-100"
                   }`}
                 >
                   <Globe className="w-3.5 h-3.5 text-emerald-600" />
@@ -257,7 +257,7 @@ export default function EditProjectModal({
                   className={`py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
                     isPrivate
                       ? "bg-amber-50 text-amber-900 border-amber-300 shadow-2xs"
-                      : "bg-white text-zinc-600 border-ink-200 hover:bg-zinc-50"
+                      : "bg-white text-ink-600 border-ink-150 hover:bg-ink-100"
                   }`}
                 >
                   <Lock className="w-3.5 h-3.5 text-amber-600" />
@@ -290,22 +290,22 @@ export default function EditProjectModal({
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploadingCover}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-ink-200 hover:border-[#8B1A2F] text-xs font-bold text-ink hover:text-[#8B1A2F] transition cursor-pointer shadow-xs disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-ink-150 hover:border-primary text-xs font-bold text-ink hover:text-primary transition cursor-pointer shadow-xs disabled:opacity-50"
                 >
                   {isUploadingCover ? (
                     <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#8B1A2F]" />
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
                       <span>Mengunggah ke /public/assets/uploads/...</span>
                     </>
                   ) : (
                     <>
-                      <Upload className="w-3.5 h-3.5 text-[#8B1A2F]" />
+                      <Upload className="w-3.5 h-3.5 text-primary" />
                       <span>Unggah Gambar Lokal</span>
                     </>
                   )}
                 </button>
 
-                <span className="text-xs text-ink-400">atau pilih preset di bawah:</span>
+                <span className="text-xs text-ink-300">atau pilih preset di bawah:</span>
               </div>
 
               {/* Preset Chips */}
@@ -317,8 +317,8 @@ export default function EditProjectModal({
                     onClick={() => setCoverImage(preset.url)}
                     className={`px-3 py-1 rounded-full text-xs font-medium border transition cursor-pointer ${
                       coverImage === preset.url
-                        ? "bg-[#8B1A2F] text-white border-[#8B1A2F]"
-                        : "bg-white text-zinc-700 border-zinc-200 hover:bg-zinc-100"
+                        ? "bg-primary text-white border-primary"
+                        : "bg-white text-ink-700 border-ink-150 hover:bg-ink-100"
                     }`}
                   >
                     {preset.label}
@@ -328,7 +328,7 @@ export default function EditProjectModal({
 
               {/* Live Preview */}
               {coverImage && (
-                <div className="relative aspect-[16/9] w-full max-w-xs rounded-xl overflow-hidden border border-ink-200 mt-1 shadow-2xs">
+                <div className="relative aspect-[16/9] w-full max-w-xs rounded-xl overflow-hidden border border-ink-150 mt-1 shadow-2xs">
                   <Image src={coverImage} alt="Pratinjau Sampul" fill className="object-cover" />
                 </div>
               )}
@@ -344,7 +344,7 @@ export default function EditProjectModal({
               rows={4}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-ink-300 focus:border-[#8B1A2F] focus:ring-2 focus:ring-[#8B1A2F]/20 text-sm font-sans outline-hidden transition leading-relaxed"
+              className="w-full px-4 py-2.5 rounded-xl border border-ink-300 focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-sans outline-hidden transition leading-relaxed"
               placeholder="Ceritakan latar belakang, arsitektur, dan cara kerja karya ini..."
             />
           </div>
@@ -358,7 +358,7 @@ export default function EditProjectModal({
               type="text"
               value={toolsInput}
               onChange={(e) => setToolsInput(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-ink-300 focus:border-[#8B1A2F] focus:ring-2 focus:ring-[#8B1A2F]/20 text-sm font-sans outline-hidden transition"
+              className="w-full px-4 py-2.5 rounded-xl border border-ink-300 focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-sans outline-hidden transition"
               placeholder="Contoh: Next.js, TypeScript, Tailwind CSS, Prisma"
             />
           </div>
@@ -374,7 +374,7 @@ export default function EditProjectModal({
                 value={demoUrl}
                 onChange={(e) => setDemoUrl(e.target.value)}
                 placeholder="https://proyek-anda.com"
-                className="w-full px-3 py-2 rounded-xl border border-ink-300 text-xs sm:text-sm outline-hidden focus:border-[#8B1A2F]"
+                className="w-full px-3 py-2 rounded-xl border border-ink-300 text-xs sm:text-sm outline-hidden focus:border-primary"
               />
             </div>
             <div>
@@ -386,7 +386,7 @@ export default function EditProjectModal({
                 value={githubUrl}
                 onChange={(e) => setGithubUrl(e.target.value)}
                 placeholder="https://github.com/username/repo"
-                className="w-full px-3 py-2 rounded-xl border border-ink-300 text-xs sm:text-sm outline-hidden focus:border-[#8B1A2F]"
+                className="w-full px-3 py-2 rounded-xl border border-ink-300 text-xs sm:text-sm outline-hidden focus:border-primary"
               />
             </div>
           </div>
@@ -397,7 +397,7 @@ export default function EditProjectModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-ink-200 text-xs font-bold text-zinc-600 hover:bg-zinc-100 transition cursor-pointer"
+            className="px-4 py-2 rounded-xl border border-ink-150 text-xs font-bold text-ink-600 hover:bg-ink-100 transition cursor-pointer"
           >
             Batal
           </button>
@@ -405,7 +405,7 @@ export default function EditProjectModal({
             type="submit"
             form="edit-project-form"
             disabled={isSubmitting}
-            className="px-6 py-2 rounded-xl bg-[#8B1A2F] text-white text-xs font-bold hover:bg-[#6B1424] transition shadow-xs cursor-pointer flex items-center gap-2 disabled:opacity-50"
+            className="px-6 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-[#6B1424] transition shadow-xs cursor-pointer flex items-center gap-2 disabled:opacity-50"
           >
             {isSubmitting ? (
               <>

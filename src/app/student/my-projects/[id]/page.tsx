@@ -187,14 +187,14 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
                 <Link href="/" className="hover:text-ink transition-colors">
                   Beranda
                 </Link>
-                <ChevronRight className="w-3.5 h-3.5 text-ink-400" />
+                <ChevronRight className="w-3.5 h-3.5 text-ink-300" />
                 <Link
                   href="/student/my-projects"
                   className="hover:text-ink transition-colors"
                 >
                   Karya Saya
                 </Link>
-                <ChevronRight className="w-3.5 h-3.5 text-ink-400" />
+                <ChevronRight className="w-3.5 h-3.5 text-ink-300" />
                 <span className="font-semibold text-ink truncate max-w-[200px] sm:max-w-xs">
                   {project.title}
                 </span>
@@ -202,7 +202,7 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
 
               <Link
                 href="/student/my-projects"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-600 hover:text-black transition"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-ink-600 hover:text-black transition"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Kembali ke Karya Saya</span>
@@ -211,7 +211,7 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
           </div>
 
           {/* ── Creator Action & Visibility Control Bar ── */}
-          <div className="bg-zinc-900 text-white border-b border-zinc-800">
+          <div className="bg-ink text-white border-b border-ink-700">
             <div className="mx-auto max-w-7xl px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
               {/* Visibility status indicator */}
               <div className="flex items-center gap-3">
@@ -234,7 +234,7 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
                     </>
                   )}
                 </span>
-                <span className="text-xs text-zinc-400 hidden sm:inline">
+                <span className="text-xs text-ink-300 hidden sm:inline">
                   {isPrivate
                     ? "Karya ini tersembunyi dari publik."
                     : "Karya ini dapat ditemukan oleh industri & publik."}
@@ -249,7 +249,7 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
                   className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer border ${
                     isPrivate
                       ? "bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500"
-                      : "bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700"
+                      : "bg-ink hover:bg-ink-700 text-ink-300 border-ink-700"
                   }`}
                 >
                   {isPrivate ? (
@@ -268,7 +268,7 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#8B1A2F] hover:bg-[#6B1424] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-[#6B1424] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
                 >
                   <Pencil className="w-3.5 h-3.5" />
                   <span>Edit Informasi Karya</span>
@@ -278,7 +278,7 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
                   <Link
                     href={`/gallery/${project.id}`}
                     target="_blank"
-                    className="inline-flex items-center gap-1.5 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-xs font-medium transition"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 bg-ink hover:bg-ink-700 text-ink-300 rounded-xl text-xs font-medium transition"
                     title="Buka halaman etalase publik galeri"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -289,7 +289,7 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
                 <button
                   type="button"
                   onClick={handleDelete}
-                  className="p-2 rounded-xl text-zinc-400 hover:text-rose-400 hover:bg-rose-950/40 transition cursor-pointer"
+                  className="p-2 rounded-xl text-ink-300 hover:text-rose-400 hover:bg-rose-950/40 transition cursor-pointer"
                   title="Hapus karya ini"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -314,11 +314,11 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
             <div className="mb-8">
               {/* Badges */}
               <div className="flex flex-wrap items-center gap-2 mb-4">
-                <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#8B1A2F]/10 text-[#8B1A2F] border border-[#8B1A2F]/20">
+                <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
                   {currentMajorLabel}
                 </span>
 
-                <span className="px-3 py-1 rounded-full text-xs font-medium bg-zinc-100 text-zinc-700 border border-zinc-200">
+                <span className="px-3 py-1 rounded-full text-xs font-medium bg-ink-100 text-ink-700 border border-ink-150">
                   Tahun {project.year}
                 </span>
 
@@ -343,7 +343,7 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
 
             {/* Media Showcase (Hero aspect 16/9) */}
             <div className="mb-12">
-              <div className="relative aspect-[16/9] w-full rounded-3xl overflow-hidden bg-ink-100 border border-ink-150 shadow-md">
+              <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-ink-100 border border-ink-150 shadow-md">
                 <Image
                   src={images[activeImageIndex] || project.coverImage}
                   alt={project.title}
@@ -363,7 +363,7 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
                       onClick={() => setActiveImageIndex(idx)}
                       className={`relative w-24 h-16 rounded-xl overflow-hidden shrink-0 border-2 transition cursor-pointer ${
                         activeImageIndex === idx
-                          ? "border-[#8B1A2F] ring-2 ring-[#8B1A2F]/30"
+                          ? "border-primary ring-2 ring-primary/30"
                           : "border-transparent opacity-70 hover:opacity-100"
                       }`}
                     >
@@ -409,12 +409,12 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
 
                 {/* Review Pembimbing */}
                 {project.advisor && (
-                  <div className="p-6 sm:p-8 rounded-3xl bg-[#FBF9F6] border border-ink-150">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#8B1A2F]/10 text-[#8B1A2F] mb-3">
+                  <div className="p-6 sm:p-8 rounded-2xl bg-[#FBF9F6] border border-ink-150">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary mb-3">
                       <ShieldCheck className="w-3.5 h-3.5" />
                       <span>Catatan Pembimbing Sekolah</span>
                     </span>
-                    <blockquote className="text-base text-ink-800 italic leading-relaxed">
+                    <blockquote className="text-base text-ink-700 italic leading-relaxed">
                       &ldquo;{project.advisor.reviewNotes}&rdquo;
                     </blockquote>
                     <div className="mt-4 pt-4 border-t border-ink-150 text-xs text-ink-600">
@@ -428,9 +428,9 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
               {/* Kolom Kanan: Sidebar Metadata & Links */}
               <div className="lg:col-span-4 space-y-6">
                 {/* Tech Stack Box */}
-                <div className="p-6 rounded-3xl bg-white border border-ink-150 shadow-xs">
+                <div className="p-6 rounded-2xl bg-white border border-ink-150 shadow-xs">
                   <h3 className="font-heading text-base font-bold text-ink mb-3 flex items-center gap-2">
-                    <FileCode className="w-4 h-4 text-[#8B1A2F]" />
+                    <FileCode className="w-4 h-4 text-primary" />
                     <span>Teknologi Digunakan</span>
                   </h3>
                   <div className="flex flex-wrap gap-2">
@@ -438,19 +438,19 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
                       project.tools.map((tool) => (
                         <span
                           key={tool}
-                          className="px-3 py-1 rounded-lg bg-ink-100 text-ink-800 text-xs font-medium"
+                          className="px-3 py-1 rounded-lg bg-ink-100 text-ink-700 text-xs font-medium"
                         >
                           {tool}
                         </span>
                       ))
                     ) : (
-                      <span className="text-xs text-zinc-500 italic">Belum ada tools ditambahkan.</span>
+                      <span className="text-xs text-ink-600 italic">Belum ada tools ditambahkan.</span>
                     )}
                   </div>
                 </div>
 
                 {/* Tautan Proyek */}
-                <div className="p-6 rounded-3xl bg-white border border-ink-150 shadow-xs space-y-3">
+                <div className="p-6 rounded-2xl bg-white border border-ink-150 shadow-xs space-y-3">
                   <h3 className="font-heading text-base font-bold text-ink mb-1">
                     Tautan Proyek
                   </h3>
@@ -460,7 +460,7 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
                       href={project.links.demoUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full flex items-center justify-between p-3 rounded-2xl bg-[#8B1A2F] text-white text-xs font-bold hover:bg-[#6B1424] transition shadow-xs"
+                      className="w-full flex items-center justify-between p-3 rounded-2xl bg-primary text-white text-xs font-bold hover:bg-[#6B1424] transition shadow-xs"
                     >
                       <span className="flex items-center gap-2">
                         <ExternalLink className="w-4 h-4" />
@@ -475,7 +475,7 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
                       href={project.links.githubUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full flex items-center justify-between p-3 rounded-2xl bg-zinc-900 text-white text-xs font-bold hover:bg-black transition shadow-xs"
+                      className="w-full flex items-center justify-between p-3 rounded-2xl bg-ink text-white text-xs font-bold hover:bg-black transition shadow-xs"
                     >
                       <span className="flex items-center gap-2">
                         <FileCode className="w-4 h-4" />
@@ -486,7 +486,7 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
                   ) : null}
 
                   {!project.links?.demoUrl && !project.links?.githubUrl && (
-                    <p className="text-xs text-zinc-500 italic">
+                    <p className="text-xs text-ink-600 italic">
                       Belum ada tautan demo atau repositori yang disertakan.
                     </p>
                   )}
@@ -496,7 +496,7 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(true)}
-                  className="w-full py-3 px-4 rounded-2xl border-2 border-dashed border-ink-300 text-xs font-bold text-zinc-700 hover:border-[#8B1A2F] hover:text-[#8B1A2F] transition cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-3 px-4 rounded-2xl border-2 border-dashed border-ink-300 text-xs font-bold text-ink-700 hover:border-primary hover:text-primary transition cursor-pointer flex items-center justify-center gap-2"
                 >
                   <Pencil className="w-4 h-4" />
                   <span>Ubah Data Karya Ini</span>

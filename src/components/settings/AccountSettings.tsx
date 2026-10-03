@@ -4,8 +4,8 @@
  * AccountSettings — pengaturan akun yang dipakai bersama oleh dashboard
  * Siswa, Guru, Perusahaan, dan BKK.
  *
- * Gaya visualnya sengaja mengikuti halaman admin (palet slate, kartu
- * rounded-2xl, aksen #891337) supaya kelima dashboard terlihat satu aplikasi.
+ * Gaya visualnya sengaja mengikuti halaman admin (token `ink`/`primary`, kartu
+ * rounded-2xl) supaya kelima dashboard terlihat satu aplikasi.
  *
  * Backend: GET/PATCH /api/akun (src/app/api/akun/route.ts)
  */
@@ -129,7 +129,7 @@ export default function AccountSettings() {
   const kartu = "p-6 rounded-2xl bg-white border border-ink-150 shadow-xs space-y-4"
   const label = "block text-xs font-semibold text-ink-700 mb-1.5"
   const input =
-    "w-full rounded-xl border border-ink-150 px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-600 focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-[#891337] transition"
+    "w-full rounded-xl border border-ink-150 px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-600 focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary transition"
 
   if (loading) {
     return (

@@ -37,8 +37,8 @@ export default function StudentProjectCard({
   // Department color schemes
   const majorStyles: Record<string, { badge: string; border: string }> = {
     rpl: {
-      badge: "bg-[#8B1A2F]/10 text-[#8B1A2F] border-[#8B1A2F]/20",
-      border: "hover:border-[#8B1A2F]/40",
+      badge: "bg-primary/10 text-primary border-primary/20",
+      border: "hover:border-primary/40",
     },
     tkj: {
       badge: "bg-blue-50 text-blue-700 border-blue-200",
@@ -166,7 +166,7 @@ export default function StudentProjectCard({
       <div className="flex flex-col flex-1 p-5 sm:p-6">
         {/* Project Title */}
         <div onClick={handleDetailClick} className="cursor-pointer">
-          <h3 className="font-heading text-lg font-bold text-ink group-hover:text-[#8B1A2F] transition-colors line-clamp-1">
+          <h3 className="font-heading text-lg font-bold text-ink group-hover:text-primary transition-colors line-clamp-1">
             {project.title}
           </h3>
         </div>
@@ -204,7 +204,7 @@ export default function StudentProjectCard({
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer border ${
               isPrivate
                 ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-                : "bg-zinc-100 text-zinc-700 border-zinc-200 hover:bg-zinc-200"
+                : "bg-ink-100 text-ink-700 border-ink-150 hover:bg-ink-150"
             }`}
             title={isPrivate ? "Ubah jadi publik" : "Ubah jadi privat"}
           >
@@ -215,7 +215,7 @@ export default function StudentProjectCard({
               </>
             ) : (
               <>
-                <Lock className="w-3.5 h-3.5 text-zinc-600" />
+                <Lock className="w-3.5 h-3.5 text-ink-600" />
                 <span>Jadikan Privat</span>
               </>
             )}
@@ -228,7 +228,7 @@ export default function StudentProjectCard({
               <button
                 type="button"
                 onClick={handleDetailClick}
-                className="p-2 rounded-xl text-zinc-600 hover:text-black hover:bg-zinc-100 transition cursor-pointer"
+                className="p-2 rounded-xl text-ink-600 hover:text-black hover:bg-ink-100 transition cursor-pointer"
                 title="Pratinjau detail karya (Modal)"
                 aria-label="Lihat modal detail karya"
               >
@@ -239,7 +239,7 @@ export default function StudentProjectCard({
             <button
               type="button"
               onClick={handleEditClick}
-              className="p-2 rounded-xl text-zinc-600 hover:text-[#8B1A2F] hover:bg-[#8B1A2F]/10 transition cursor-pointer"
+              className="p-2 rounded-xl text-ink-600 hover:text-primary hover:bg-primary/10 transition cursor-pointer"
               title="Edit informasi karya"
               aria-label="Edit karya"
             >
@@ -248,7 +248,7 @@ export default function StudentProjectCard({
 
             <Link
               href={`/student/my-projects/${project.id}`}
-              className="p-2 rounded-xl text-zinc-600 hover:text-black hover:bg-zinc-100 transition"
+              className="p-2 rounded-xl text-ink-600 hover:text-black hover:bg-ink-100 transition"
               title="Buka halaman kelola & detail karya"
               aria-label="Halaman detail karya"
             >
