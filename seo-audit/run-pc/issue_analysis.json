@@ -1,0 +1,388 @@
+{
+ "domain": "localhost:8080",
+ "total_pages": 18,
+ "generated_at": "2026-10-02 17:32:19",
+ "issues": {
+  "No Breadcrumb Schema": {
+   "label": "Missing Breadcrumb Schema",
+   "priority": "P0",
+   "count": 18,
+   "pct": 100.0,
+   "severity": "High",
+   "examples": [
+    "http://localhost:8080",
+    "http://localhost:8080/komunitas",
+    "http://localhost:8080/auth/login",
+    "http://localhost:8080/galeri",
+    "http://localhost:8080/leaderboard",
+    "http://localhost:8080/etalase/absensi-iot",
+    "http://localhost:8080/kontak",
+    "http://localhost:8080/jurusan/rpl"
+   ]
+  },
+  "No Json Ld": {
+   "label": "No Json Ld",
+   "priority": "P0",
+   "count": 18,
+   "pct": 100.0,
+   "severity": "High",
+   "examples": [
+    "http://localhost:8080",
+    "http://localhost:8080/komunitas",
+    "http://localhost:8080/auth/login",
+    "http://localhost:8080/galeri",
+    "http://localhost:8080/leaderboard",
+    "http://localhost:8080/etalase/absensi-iot",
+    "http://localhost:8080/kontak",
+    "http://localhost:8080/jurusan/rpl"
+   ]
+  },
+  "Canonical Not Self Ref": {
+   "label": "Canonical Points to Another Page",
+   "priority": "P0",
+   "count": 18,
+   "pct": 100.0,
+   "severity": "High",
+   "examples": [
+    "http://localhost:8080",
+    "http://localhost:8080/komunitas",
+    "http://localhost:8080/auth/login",
+    "http://localhost:8080/galeri",
+    "http://localhost:8080/leaderboard",
+    "http://localhost:8080/etalase/absensi-iot",
+    "http://localhost:8080/kontak",
+    "http://localhost:8080/jurusan/rpl"
+   ]
+  },
+  "No Canonical": {
+   "label": "No Canonical",
+   "priority": "P0",
+   "count": 18,
+   "pct": 100.0,
+   "severity": "High",
+   "examples": [
+    "http://localhost:8080",
+    "http://localhost:8080/komunitas",
+    "http://localhost:8080/auth/login",
+    "http://localhost:8080/galeri",
+    "http://localhost:8080/leaderboard",
+    "http://localhost:8080/etalase/absensi-iot",
+    "http://localhost:8080/kontak",
+    "http://localhost:8080/jurusan/rpl"
+   ]
+  },
+  "No Twitter Card": {
+   "label": "Missing Twitter Card Tags",
+   "priority": "P0",
+   "count": 18,
+   "pct": 100.0,
+   "severity": "High",
+   "examples": [
+    "http://localhost:8080",
+    "http://localhost:8080/komunitas",
+    "http://localhost:8080/auth/login",
+    "http://localhost:8080/galeri",
+    "http://localhost:8080/leaderboard",
+    "http://localhost:8080/etalase/absensi-iot",
+    "http://localhost:8080/kontak",
+    "http://localhost:8080/jurusan/rpl"
+   ]
+  },
+  "Hreflang Missing": {
+   "label": "Missing hreflang Tags",
+   "priority": "P0",
+   "count": 18,
+   "pct": 100.0,
+   "severity": "High",
+   "examples": [
+    "http://localhost:8080",
+    "http://localhost:8080/komunitas",
+    "http://localhost:8080/auth/login",
+    "http://localhost:8080/galeri",
+    "http://localhost:8080/leaderboard",
+    "http://localhost:8080/etalase/absensi-iot",
+    "http://localhost:8080/kontak",
+    "http://localhost:8080/jurusan/rpl"
+   ]
+  },
+  "No Og Desc": {
+   "label": "Missing og:description",
+   "priority": "P0",
+   "count": 18,
+   "pct": 100.0,
+   "severity": "High",
+   "examples": [
+    "http://localhost:8080",
+    "http://localhost:8080/komunitas",
+    "http://localhost:8080/auth/login",
+    "http://localhost:8080/galeri",
+    "http://localhost:8080/leaderboard",
+    "http://localhost:8080/etalase/absensi-iot",
+    "http://localhost:8080/kontak",
+    "http://localhost:8080/jurusan/rpl"
+   ]
+  },
+  "No Og Title": {
+   "label": "No Og Title",
+   "priority": "P0",
+   "count": 18,
+   "pct": 100.0,
+   "severity": "High",
+   "examples": [
+    "http://localhost:8080",
+    "http://localhost:8080/komunitas",
+    "http://localhost:8080/auth/login",
+    "http://localhost:8080/galeri",
+    "http://localhost:8080/leaderboard",
+    "http://localhost:8080/etalase/absensi-iot",
+    "http://localhost:8080/kontak",
+    "http://localhost:8080/jurusan/rpl"
+   ]
+  },
+  "Title Duplicate": {
+   "label": "Duplicate Title Tags",
+   "priority": "P0",
+   "count": 16,
+   "pct": 88.9,
+   "severity": "High",
+   "examples": [
+    "http://localhost:8080",
+    "http://localhost:8080/komunitas",
+    "http://localhost:8080/auth/login",
+    "http://localhost:8080/galeri",
+    "http://localhost:8080/leaderboard",
+    "http://localhost:8080/etalase/absensi-iot",
+    "http://localhost:8080/kontak",
+    "http://localhost:8080/akademi"
+   ]
+  },
+  "Meta Desc Duplicate": {
+   "label": "Duplicate Meta Descriptions",
+   "priority": "P0",
+   "count": 16,
+   "pct": 88.9,
+   "severity": "High",
+   "examples": [
+    "http://localhost:8080",
+    "http://localhost:8080/komunitas",
+    "http://localhost:8080/auth/login",
+    "http://localhost:8080/galeri",
+    "http://localhost:8080/leaderboard",
+    "http://localhost:8080/etalase/absensi-iot",
+    "http://localhost:8080/kontak",
+    "http://localhost:8080/akademi"
+   ]
+  },
+  "No External Links": {
+   "label": "No External Links",
+   "priority": "P0",
+   "count": 15,
+   "pct": 83.3,
+   "severity": "High",
+   "examples": [
+    "http://localhost:8080/komunitas",
+    "http://localhost:8080/auth/login",
+    "http://localhost:8080/galeri",
+    "http://localhost:8080/leaderboard",
+    "http://localhost:8080/etalase/absensi-iot",
+    "http://localhost:8080/kontak",
+    "http://localhost:8080/akademi",
+    "http://localhost:8080/mitra"
+   ]
+  },
+  "Content Grade Poor": {
+   "label": "Poor Content Quality Grade",
+   "priority": "P0",
+   "count": 15,
+   "pct": 83.3,
+   "severity": "High",
+   "examples": [
+    "http://localhost:8080/komunitas",
+    "http://localhost:8080/auth/login",
+    "http://localhost:8080/galeri",
+    "http://localhost:8080/leaderboard",
+    "http://localhost:8080/etalase/absensi-iot",
+    "http://localhost:8080/kontak",
+    "http://localhost:8080/akademi",
+    "http://localhost:8080/mitra"
+   ]
+  },
+  "Few Internal Links": {
+   "label": "Too Few Internal Links",
+   "priority": "P0",
+   "count": 15,
+   "pct": 83.3,
+   "severity": "High",
+   "examples": [
+    "http://localhost:8080/komunitas",
+    "http://localhost:8080/auth/login",
+    "http://localhost:8080/galeri",
+    "http://localhost:8080/leaderboard",
+    "http://localhost:8080/etalase/absensi-iot",
+    "http://localhost:8080/kontak",
+    "http://localhost:8080/akademi",
+    "http://localhost:8080/mitra"
+   ]
+  },
+  "Robots Noindex": {
+   "label": "Page Marked noindex (meta)",
+   "priority": "P0",
+   "count": 13,
+   "pct": 72.2,
+   "severity": "High",
+   "examples": [
+    "http://localhost:8080/komunitas",
+    "http://localhost:8080/galeri",
+    "http://localhost:8080/leaderboard",
+    "http://localhost:8080/etalase/absensi-iot",
+    "http://localhost:8080/kontak",
+    "http://localhost:8080/akademi",
+    "http://localhost:8080/mitra",
+    "http://localhost:8080/verifikasi"
+   ]
+  },
+  "Thin Content": {
+   "label": "Thin Content",
+   "priority": "P0",
+   "count": 13,
+   "pct": 72.2,
+   "severity": "High",
+   "examples": [
+    "http://localhost:8080/komunitas",
+    "http://localhost:8080/galeri",
+    "http://localhost:8080/leaderboard",
+    "http://localhost:8080/etalase/absensi-iot",
+    "http://localhost:8080/kontak",
+    "http://localhost:8080/akademi",
+    "http://localhost:8080/mitra",
+    "http://localhost:8080/verifikasi"
+   ]
+  },
+  "No Internal Links": {
+   "label": "No Internal Links",
+   "priority": "P0",
+   "count": 13,
+   "pct": 72.2,
+   "severity": "High",
+   "examples": [
+    "http://localhost:8080/komunitas",
+    "http://localhost:8080/galeri",
+    "http://localhost:8080/leaderboard",
+    "http://localhost:8080/etalase/absensi-iot",
+    "http://localhost:8080/kontak",
+    "http://localhost:8080/akademi",
+    "http://localhost:8080/mitra",
+    "http://localhost:8080/verifikasi"
+   ]
+  },
+  "Duplicate Content Cluster": {
+   "label": "Duplicate Content Cluster",
+   "priority": "P0",
+   "count": 13,
+   "pct": 72.2,
+   "severity": "High",
+   "examples": [
+    "http://localhost:8080/komunitas",
+    "http://localhost:8080/galeri",
+    "http://localhost:8080/leaderboard",
+    "http://localhost:8080/etalase/absensi-iot",
+    "http://localhost:8080/kontak",
+    "http://localhost:8080/akademi",
+    "http://localhost:8080/mitra",
+    "http://localhost:8080/verifikasi"
+   ]
+  },
+  "Needs Js Render": {
+   "label": "Needs Js Render",
+   "priority": "P0",
+   "count": 13,
+   "pct": 72.2,
+   "severity": "High",
+   "examples": [
+    "http://localhost:8080/komunitas",
+    "http://localhost:8080/galeri",
+    "http://localhost:8080/leaderboard",
+    "http://localhost:8080/etalase/absensi-iot",
+    "http://localhost:8080/kontak",
+    "http://localhost:8080/akademi",
+    "http://localhost:8080/mitra",
+    "http://localhost:8080/verifikasi"
+   ]
+  },
+  "Near Duplicate Content": {
+   "label": "Near-Duplicate Content",
+   "priority": "P0",
+   "count": 13,
+   "pct": 72.2,
+   "severity": "High",
+   "examples": [
+    "http://localhost:8080/komunitas",
+    "http://localhost:8080/galeri",
+    "http://localhost:8080/leaderboard",
+    "http://localhost:8080/etalase/absensi-iot",
+    "http://localhost:8080/kontak",
+    "http://localhost:8080/akademi",
+    "http://localhost:8080/mitra",
+    "http://localhost:8080/verifikasi"
+   ]
+  },
+  "H1 Duplicate": {
+   "label": "Duplicate H1 Tags",
+   "priority": "P0",
+   "count": 13,
+   "pct": 72.2,
+   "severity": "High",
+   "examples": [
+    "http://localhost:8080/komunitas",
+    "http://localhost:8080/galeri",
+    "http://localhost:8080/leaderboard",
+    "http://localhost:8080/etalase/absensi-iot",
+    "http://localhost:8080/kontak",
+    "http://localhost:8080/akademi",
+    "http://localhost:8080/mitra",
+    "http://localhost:8080/verifikasi"
+   ]
+  },
+  "Meta Desc Too Long": {
+   "label": "Meta Description Too Long",
+   "priority": "P1",
+   "count": 1,
+   "pct": 5.6,
+   "severity": "Low",
+   "examples": [
+    "http://localhost:8080/jurusan/rpl"
+   ]
+  },
+  "Images No Lazy": {
+   "label": "Images Without Lazy Loading",
+   "priority": "P1",
+   "count": 1,
+   "pct": 5.6,
+   "severity": "Low",
+   "examples": [
+    "http://localhost:8080/auth/register"
+   ]
+  },
+  "No Video Schema": {
+   "label": "Missing Video Schema",
+   "priority": "P2",
+   "count": 2,
+   "pct": 11.1,
+   "severity": "Medium",
+   "examples": [
+    "http://localhost:8080",
+    "http://localhost:8080/jurusan/rpl"
+   ]
+  },
+  "Heading Hierarchy Gap": {
+   "label": "Heading Hierarchy Gap",
+   "priority": "P2",
+   "count": 1,
+   "pct": 5.6,
+   "severity": "Low",
+   "examples": [
+    "http://localhost:8080/auth/register"
+   ]
+  }
+ }
+}
