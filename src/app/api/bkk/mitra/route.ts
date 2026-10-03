@@ -23,9 +23,9 @@ export async function GET(req: Request) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Tidak terautentikasi." }, { status: 401 })
     }
-    const role = session.user.role?.toLowerCase()
-    if (role !== "bkk" && role !== "admin") {
-      return NextResponse.json({ error: "Hanya Koordinator BKK dan Admin yang berwenang mengakses." }, { status: 403 })
+    const userRole = session.user.role?.toLowerCase()
+    if (userRole !== "bkk" && userRole !== "admin") {
+      return NextResponse.json({ error: "Hanya Koordinator BKK atau Admin yang dapat mengakses." }, { status: 403 })
     }
 
     const { searchParams } = new URL(req.url)

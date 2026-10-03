@@ -1,0 +1,52 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 1462 >>
+stream
+BT /F1 19 Tf 64 780 Td (LAPORAN AKHIR & DOKUMENTASI TEKNIS) Tj ET
+BT /F1 10 Tf 64 758 Td (KANDAGA - SMKN 13 BANDUNG | Berkas Kurasi Karya Siswa) Tj ET
+0.537 0.075 0.216 RG 2 w 64 744 m 531 744 l S
+BT /F1 12 Tf 64 714 Td (1. Ringkasan Eksekutif) Tj ET
+BT /F1 10.5 Tf 64 695 Td (Laporan ini memuat hasil akhir pelaksanaan karya, hasil pengujian, serta evaluasi.) Tj ET
+BT /F1 10.5 Tf 64 676 Td () Tj ET
+BT /F1 12 Tf 64 657 Td (2. Metodologi) Tj ET
+BT /F1 10.5 Tf 64 638 Td (Pendekatan prototipe iteratif dengan validasi berkala bersama guru pembimbing.) Tj ET
+BT /F1 10.5 Tf 64 619 Td () Tj ET
+BT /F1 12 Tf 64 600 Td (3. Hasil Implementasi) Tj ET
+BT /F1 10.5 Tf 64 581 Td (- Modul utama beserta fungsi dan tanggung jawabnya.) Tj ET
+BT /F1 10.5 Tf 64 562 Td (- Konfigurasi perangkat / parameter pengujian laboratorium.) Tj ET
+BT /F1 10.5 Tf 64 543 Td (- Dokumentasi antarmuka dan alur penggunaan oleh pengguna akhir.) Tj ET
+BT /F1 10.5 Tf 64 524 Td () Tj ET
+BT /F1 12 Tf 64 505 Td (4. Hasil Pengujian) Tj ET
+BT /F1 10.5 Tf 64 486 Td (Seluruh skenario uji fungsional dinyatakan lulus pada lingkungan uji sekolah.) Tj ET
+BT /F1 10.5 Tf 64 467 Td () Tj ET
+BT /F1 12 Tf 64 448 Td (5. Rekomendasi Pengembangan) Tj ET
+BT /F1 10.5 Tf 64 429 Td (Penyempurnaan integrasi data dan penambahan modul pelaporan berkala.) Tj ET
+BT /F1 10.5 Tf 64 410 Td () Tj ET
+BT /F1 10.5 Tf 64 391 Td (Catatan: Berkas ini adalah contoh \(placeholder\) untuk keperluan peninjauan admin.) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000001754 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1824
+%%EOF

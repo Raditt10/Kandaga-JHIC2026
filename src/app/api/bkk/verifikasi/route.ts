@@ -16,9 +16,9 @@ export async function GET(req: Request) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Tidak terautentikasi." }, { status: 401 })
     }
-    const role = session.user.role?.toLowerCase()
-    if (role !== "bkk" && role !== "admin") {
-      return NextResponse.json({ error: "Hanya Koordinator BKK dan Admin yang berwenang mengakses." }, { status: 403 })
+    const userRole = session.user.role?.toLowerCase()
+    if (userRole !== "bkk" && userRole !== "admin") {
+      return NextResponse.json({ error: "Hanya Koordinator BKK atau Admin yang dapat mengakses." }, { status: 403 })
     }
 
     const { searchParams } = new URL(req.url)
@@ -93,15 +93,13 @@ export async function PATCH(req: Request) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Tidak terautentikasi." }, { status: 401 })
     }
-    const role = session.user.role?.toLowerCase()
-    if (role !== "bkk" && role !== "admin") {
+    const userRole = session.user.role?.toLowerCase()
+    if (userRole !== "bkk" && userRole !== "admin") {
       return NextResponse.json({ error: "Hanya Koordinator BKK dan Admin yang berwenang memverifikasi." }, { status: 403 })
     }
-
     const { userId, action, catatan } = await req.json()
 
     if (!userId) {
-      return NextResponse.json({ error: "userId wajib diisi." }, { status: 400 })
     }
     if (!["setujui", "tolak"].includes(action)) {
       return NextResponse.json({ error: "action harus 'setujui' atau 'tolak'." }, { status: 400 })

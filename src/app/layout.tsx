@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { Poppins, Inter, Tangerine, Montserrat, Bebas_Neue } from "next/font/google";
+import { Poppins, Plus_Jakarta_Sans, Tangerine, Montserrat, Bebas_Neue } from "next/font/google";
 import SmoothScrollProvider from "@/lib/SmoothScrollProvider";
 import AuthProvider from "@/lib/AuthProvider";
-import ChatWidget from "@/components/chat/ChatWidget";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -11,10 +10,11 @@ const poppins = Poppins({
   variable: "--font-poppins",
 });
 
-const inter = Inter({
+const jakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-inter",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-jakarta",
+  display: "swap",
 });
 
 const tangerine = Tangerine({
@@ -50,12 +50,11 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${poppins.variable} ${inter.variable} ${tangerine.variable} ${montserrat.variable} ${bebasNeue.variable}`}
+      className={`${poppins.variable} ${jakartaSans.variable} ${tangerine.variable} ${montserrat.variable} ${bebasNeue.variable}`}
     >
       <body suppressHydrationWarning>
         <AuthProvider>
           <SmoothScrollProvider>{children}</SmoothScrollProvider>
-          <ChatWidget />
         </AuthProvider>
       </body>
     </html>
