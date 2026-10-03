@@ -20,6 +20,30 @@ async function getVerifiedCompanyId(req: Request): Promise<string | null> {
   return session.user.id
 }
 
+/**
+ * GET /api/company/bookmark → { total }
+ *
+ * Sebelumnya hanya POST/DELETE, sehingga dashboard perusahaan tidak punya
+ * cara menghitung berapa karya yang sudah disimpannya.
+ */
+export async function GET(req: Request) {
+  try {
+    const companyId = await getVerifiedCompanyId(req)
+    if (!companyId) {
+      return NextResponse.json(
+        { error: "Tidak terautentikasi atau akun belum diverifikasi." },
+        { status: 401 }
+      )
+    }
+
+    const total = await prisma.bookmarks.count({ where: { companyId } })
+    return NextResponse.json({ total })
+  } catch (err) {
+    console.error("[GET /api/company/bookmark]", err)
+    return NextResponse.json({ error: "Terjadi kesalahan server." }, { status: 500 })
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const companyId = await getVerifiedCompanyId(req)

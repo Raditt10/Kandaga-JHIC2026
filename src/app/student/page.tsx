@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import DashboardLayout, { DashboardTab } from "@/components/DashboardLayout"
 import AccountSettings from "@/components/settings/AccountSettings"
 import { useSession } from "next-auth/react"
@@ -49,75 +49,62 @@ export interface StudentProject {
   demo: string | null
 }
 
-// Mock Data Karya Siswa
-const initialProjects: StudentProject[] = [
-  {
-    id: "1",
-    title: "EduClass — LMS & Presensi QR Cerdas",
-    description: "Sistem manajemen kelas digital terintegrasi presensi QR code geolokasi dan modul penilaian otomatis berbasis kurikulum merdeka.",
-    major: "RPL",
-    category: "Web & Mobile App",
-    techStack: ["Next.js", "TypeScript", "Tailwind CSS", "PostgreSQL"],
-    views: 1240,
-    status: "verified", // verified | review | draft
-    mentor: "Drs. Ahmad Hidayat, M.Kom",
-    submittedAt: "18 Sep 2026",
-    verifiedAt: "22 Sep 2026",
-    score: 95,
-    github: "https://github.com/smkn13/educlass-lms",
-    demo: "https://educlass.smkn13bandung.sch.id",
-  },
-  {
-    id: "2",
-    title: "Smart Green Energy Microcontroller IoT",
-    description: "Sistem monitoring daya panel surya laboratorium sekolah secara real-time via MQTT protocol dan dashboard telemetry.",
-    major: "TKJ",
-    category: "IoT & Network System",
-    techStack: ["ESP32", "MicroPython", "MQTT", "Grafana"],
-    views: 890,
-    status: "verified",
-    mentor: "Budi Santoso, S.T.",
-    submittedAt: "10 Sep 2026",
-    verifiedAt: "15 Sep 2026",
-    score: 92,
-    github: "https://github.com/smkn13/iot-green-energy",
-    demo: "https://iot.smkn13bandung.sch.id",
-  },
-  {
-    id: "3",
-    title: "Formulasi Indikator Asam-Basa Antosianin Alami",
-    description: "Ekstraksi pigmen bunga telang dan kubis ungu terstandarisasi spektrofotometri sebagai alternatif ramah lingkungan indikator titrasi.",
-    major: "Analis Kimia",
-    category: "Riset Laboratorium ISO",
-    techStack: ["Spektrofotometri UV-Vis", "Ekstraksi Pelarut", "Uji Presisi ISO 17025"],
-    views: 450,
-    status: "review",
-    mentor: "Dra. Siti Nurhaliza, M.Si",
-    submittedAt: "26 Sep 2026",
-    verifiedAt: null,
-    score: null,
+// ── Data karya dari database ────────────────────────────────────────────
+// Halaman ini sebelumnya memakai `initialProjects` (data mock di dalam file)
+// sehingga kartu statistik dan daftar "Karya Saya" tidak mencerminkan isi
+// database. Sekarang datanya diambil dari GET /api/student/projects.
+//
+// Database memakai status: pending | approved | revisi | private.
+// UI ini memakai istilah: verified | review | draft.
+const STATUS_UI: Record<string, "verified" | "review" | "draft"> = {
+  approved: "verified",
+  pending: "review",
+  revisi: "review",
+  private: "draft",
+}
+
+type ApiProject = {
+  id: string
+  title: string
+  description?: string
+  majorLabel?: string
+  tools?: string[]
+  status?: string
+  score?: number | null
+  createdAt?: string
+  updatedAt?: string | null
+  metrics?: { views?: number }
+  advisor?: { name?: string; reviewNotes?: string }
+}
+
+function dariApi(p: ApiProject): StudentProject {
+  const tgl = (iso?: string | null) =>
+    iso
+      ? new Date(iso).toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        })
+      : "—"
+
+  return {
+    id: p.id,
+    title: p.title,
+    description: p.description || "Belum ada deskripsi.",
+    major: p.majorLabel || "—",
+    category: p.majorLabel || "Karya Siswa",
+    techStack: p.tools ?? [],
+    views: p.metrics?.views ?? 0,
+    status: STATUS_UI[p.status ?? ""] ?? "review",
+    mentor: p.advisor?.name || "—",
+    submittedAt: tgl(p.createdAt),
+    verifiedAt: p.status === "approved" ? tgl(p.updatedAt) : null,
+    score: p.score ?? null,
     github: null,
     demo: null,
-  },
-  {
-    id: "4",
-    title: "Kandaga Asset Hub — Inventory Jaringan Sekolah",
-    description: "Modul pelacakan perangkat switch, router, dan workstation lab berbasis barcode scanner PWA.",
-    major: "TKJ",
-    category: "Network Infrastructure",
-    techStack: ["React", "Node.js", "SQLite"],
-    views: 310,
-    status: "verified",
-    mentor: "Budi Santoso, S.T.",
-    submittedAt: "05 Agu 2026",
-    verifiedAt: "12 Agu 2026",
-    score: 89,
-    github: "https://github.com/smkn13/asset-hub",
-    demo: null,
-  },
-]
+  }
+}
 
-// Mock Peluang Magang dari BKK & Industri
 const internshipOpportunities = [
   {
     id: "m-1",
@@ -154,7 +141,9 @@ const internshipOpportunities = [
 export default function StudentDashboardPage() {
   const { data: session } = useSession()
   const [activeTab, setActiveTab] = useState("dashboard")
-  const [projects, setProjects] = useState<StudentProject[]>(initialProjects)
+  const [projects, setProjects] = useState<StudentProject[]>([])
+  const [memuatKarya, setMemuatKarya] = useState(true)
+  const [galatKarya, setGalatKarya] = useState<string | null>(null)
   const [filterStatus, setFilterStatus] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
@@ -167,6 +156,30 @@ export default function StudentDashboardPage() {
   const [newTechStack, setNewTechStack] = useState("")
   const [newGithub, setNewGithub] = useState("")
   const [newDemo, setNewDemo] = useState("")
+
+  // ── Ambil karya milik siswa dari database ─────────────────────────────
+  const muatKarya = async () => {
+    setMemuatKarya(true)
+    setGalatKarya(null)
+    try {
+      const res = await fetch("/api/student/projects", { cache: "no-store" })
+      const data = await res.json()
+      if (!res.ok) {
+        setGalatKarya(data.error || "Gagal memuat karya dari database.")
+      } else {
+        setProjects((data.projects ?? []).map(dariApi))
+      }
+    } catch {
+      setGalatKarya("Terjadi kesalahan koneksi saat memuat karya.")
+    }
+    setMemuatKarya(false)
+  }
+
+  useEffect(() => {
+    muatKarya()
+    // sengaja hanya sekali saat halaman dibuka
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleCreateProject = (e: React.FormEvent) => {
     e.preventDefault()
@@ -252,6 +265,18 @@ export default function StudentDashboardPage() {
       activeTab={activeTab}
       onTabChange={setActiveTab}
     >
+      {/* ── Status pemuatan karya dari database ── */}
+      {memuatKarya && (
+        <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 text-xs font-semibold text-zinc-600">
+          Memuat karya Anda dari database…
+        </div>
+      )}
+      {galatKarya && (
+        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs font-semibold text-amber-800">
+          {galatKarya}
+        </div>
+      )}
+
       {/* ──────────────── TAB 1: DASHBOARD ──────────────── */}
       {activeTab === "dashboard" && (
         <div className="space-y-8 animate-in fade-in duration-200">

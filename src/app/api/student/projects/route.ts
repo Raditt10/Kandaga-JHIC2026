@@ -84,7 +84,10 @@ function mapDatabaseProject(p: any) {
     galleryImages: gallery,
     status: p.status || "pending",
     isPrivate: Boolean(p.isPrivate),
+    // Nilai & waktu kurasi dari guru, supaya siswa bisa melihat hasil penilaian.
+    score: p.score ?? null,
     createdAt: p.createdAt ? new Date(p.createdAt).toISOString() : new Date().toISOString(),
+    updatedAt: p.updatedAt ? new Date(p.updatedAt).toISOString() : null,
     tools: (p.tools || []).map((t: any) => t.name || t.tool?.name).filter(Boolean),
     studentId: p.studentId,
     studentName: p.student?.user?.name || "Siswa SMKN 13",
