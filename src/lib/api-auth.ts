@@ -14,6 +14,9 @@
  *   const auth = await requireStudent();
  *   if (auth.error) return auth.error;   // sudah berisi NextResponse
  *   ...auth.userId
+ *
+ * Tersedia: requireRole(["teacher", "bkk"]) — atau pintasan requireStudent()
+ * dan requireTeacher().
  */
 
 import { NextResponse } from "next/server"
@@ -21,10 +24,15 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth-options"
 import { normalizeRole } from "@/lib/auth"
 
-type AuthOk = { userId: string; error?: undefined }
-type AuthFail = { userId?: undefined; error: NextResponse }
+type AuthOk = { userId: string; role: string; error?: undefined }
+type AuthFail = { userId?: undefined; role?: undefined; error: NextResponse }
 
-export async function requireStudent(): Promise<AuthOk | AuthFail> {
+/**
+ * Guard umum: sesi wajib ada, dan role harus salah satu yang diizinkan.
+ * Role di session bisa PascalCase (enum Prisma) maupun lowercase, jadi
+ * dinormalisasi dulu — sama seperti di seluruh aplikasi.
+ */
+export async function requireRole(allowed: string[]): Promise<AuthOk | AuthFail> {
   const session = await getServerSession(authOptions)
 
   if (!session?.user?.id) {
@@ -33,16 +41,25 @@ export async function requireStudent(): Promise<AuthOk | AuthFail> {
     }
   }
 
-  // Role di session bisa berupa PascalCase (enum Prisma) maupun lowercase,
-  // jadi dinormalisasi dulu — sama seperti di seluruh aplikasi.
-  if (normalizeRole(String(session.user.role)) !== "student") {
+  const role = normalizeRole(String(session.user.role))
+
+  if (!allowed.includes(role)) {
     return {
       error: NextResponse.json(
-        { error: "Endpoint ini hanya untuk akun siswa" },
+        { error: `Endpoint ini hanya untuk: ${allowed.join(", ")}` },
         { status: 403 }
       ),
     }
   }
 
-  return { userId: session.user.id }
+  return { userId: session.user.id, role }
 }
+
+export async function requireStudent(): Promise<AuthOk | AuthFail> {
+  return requireRole(["student"])
+}
+
+export async function requireTeacher(): Promise<AuthOk | AuthFail> {
+  return requireRole(["teacher"])
+}
+
