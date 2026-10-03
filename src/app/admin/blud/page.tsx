@@ -4,18 +4,8 @@ import React, { useState } from "react"
 import Link from "next/link"
 import {
   Landmark,
-  Briefcase,
-  Layers,
-  Building2,
-  DollarSign,
-  Users,
-  CheckCircle2,
-  Clock,
-  ArrowUpRight,
-  Plus,
+  ExternalLink,
   Search,
-  Filter,
-  FileCheck2,
 } from "lucide-react"
 import AdminLayout from "@/components/admin/AdminLayout"
 
@@ -42,7 +32,6 @@ export default function AdminBludPage() {
       desc: "Pengujian parameter COD, BOD, pH, dan logam berat bersertifikasi ISO 17025 untuk industri manufaktur & tekstil.",
       priceRange: "Mulai Rp 1.500.000 / batch",
       activeProjects: 5,
-      color: "bg-emerald-50 text-emerald-700 border-emerald-200",
     },
     {
       title: "Pengembangan Web App & Sistem Informasi",
@@ -50,7 +39,6 @@ export default function AdminBludPage() {
       desc: "Pembuatan aplikasi web kustom (Next.js, Laravel), portal pegawai, dashboard analitik, dan sistem absensi QR dinamis.",
       priceRange: "Mulai Rp 8.000.000 / sistem",
       activeProjects: 4,
-      color: "bg-rose-50 text-[#891337] border-rose-200",
     },
     {
       title: "Instalasi Jaringan Fiber Optic & Server",
@@ -58,7 +46,6 @@ export default function AdminBludPage() {
       desc: "Penataan kabel terstruktur, konfigurasi routerboard MikroTik, setup firewall keamanan, dan integrasi cloud VPS.",
       priceRange: "Mulai Rp 3.500.000 / titik",
       activeProjects: 3,
-      color: "bg-blue-50 text-blue-700 border-blue-200",
     },
   ]
 
@@ -124,8 +111,11 @@ export default function AdminBludPage() {
         {/* Header */}
         <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="font-heading text-lg font-bold text-slate-900 flex items-center gap-2">
-              <Landmark className="w-5 h-5 text-[#891337]" />
+            <h1 className="font-heading text-lg font-bold text-slate-900 flex items-center gap-2.5">
+              <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#891337]/10 border border-[#891337]/15">
+                <span className="absolute inset-0 rounded-xl bg-[#891337]/25 animate-blud-glow" aria-hidden="true" />
+                <Landmark className="relative w-5 h-5 text-[#891337] animate-blud-pop" />
+              </span>
               <span>Badan Layanan Umum Daerah (BLUD) & Teaching Factory</span>
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -133,55 +123,15 @@ export default function AdminBludPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => alert("Form pendaftaran proyek jasa BLUD baru")}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#891337] hover:bg-[#6b1426] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer shrink-0"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Tambah Kontrak Layanan</span>
-            </button>
-          </div>
-        </div>
-
-        {/* 4 Metric Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] text-slate-400 font-medium">Kontrak Aktif</span>
-              <FileCheck2 className="w-4 h-4 text-emerald-600" />
-            </div>
-            <span className="text-2xl font-extrabold text-slate-900 block mt-2">12 Proyek</span>
-            <span className="text-[11px] text-emerald-600 font-bold block mt-1">Sedang dikerjakan</span>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] text-slate-400 font-medium">Pendapatan BLUD 2026</span>
-              <DollarSign className="w-4 h-4 text-amber-500" />
-            </div>
-            <span className="text-2xl font-extrabold text-slate-900 block mt-2">Rp 148,5 Jt</span>
-            <span className="text-[11px] text-emerald-600 font-bold block mt-1">+18.2% vs 2025</span>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] text-slate-400 font-medium">Siswa Terlibat TEFA</span>
-              <Users className="w-4 h-4 text-indigo-500" />
-            </div>
-            <span className="text-2xl font-extrabold text-slate-900 block mt-2">45 Siswa</span>
-            <span className="text-[11px] text-slate-500 block mt-1">Mendapat honor jasa</span>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] text-slate-400 font-medium">Mitra Industri Klien</span>
-              <Building2 className="w-4 h-4 text-blue-500" />
-            </div>
-            <span className="text-2xl font-extrabold text-slate-900 block mt-2">18 Perusahaan</span>
-            <span className="text-[11px] text-slate-500 block mt-1">Klien repeat order</span>
-          </div>
+          <Link
+            href="/blud"
+            target="_blank"
+            title="Masuk ke portal BLUD"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0"
+          >
+            <span>Masuk BLUD</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </Link>
         </div>
 
         {/* Section: Layanan Komersial BLUD */}
@@ -197,7 +147,7 @@ export default function AdminBludPage() {
               >
                 <div>
                   <div className="flex items-center justify-between mb-2.5">
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${svc.color}`}>
+                    <span className="text-[10px] font-bold text-slate-900 uppercase tracking-wider">
                       {svc.jurusan}
                     </span>
                     <span className="text-[11px] font-bold text-slate-500">

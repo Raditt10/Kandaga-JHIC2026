@@ -163,8 +163,7 @@ export default function AdminDashboardPage() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="font-heading text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-[#891337]" />
+              <h2 className="font-heading text-sm sm:text-base font-extrabold text-slate-900">
                 <span>Mitra Industri Baru & Pengajuan Siswa PKL</span>
               </h2>
               <p className="text-[11px] text-slate-400 mt-0.5">

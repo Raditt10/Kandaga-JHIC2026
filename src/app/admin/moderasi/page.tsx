@@ -7,7 +7,6 @@ import { projectShowcases } from "@/lib/adminData"
 import {
   Search,
   Filter,
-  Heart,
   X,
   FolderGit2,
   ChevronLeft,
@@ -30,11 +29,8 @@ export default function AdminModerasiPage() {
         categoryFilter === "all"
           ? true
           : proj.category.toLowerCase().includes(categoryFilter.toLowerCase())
-      const matchSearch =
-        proj.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        proj.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        proj.authorRole.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        proj.description.toLowerCase().includes(searchQuery.toLowerCase())
+      // Pencarian hanya berdasarkan nama karya (bukan nama siswa).
+      const matchSearch = proj.title.toLowerCase().includes(searchQuery.trim().toLowerCase())
       return matchCategory && matchSearch
     })
     .sort((a, b) => (a.uploadOrder ?? 0) - (b.uploadOrder ?? 0))
@@ -67,7 +63,7 @@ export default function AdminModerasiPage() {
           <div>
             <h1 className="font-heading text-lg font-bold text-slate-900 flex items-center gap-2">
               <FolderGit2 className="w-5 h-5 text-[#891337]" />
-              <span>Kurasi Karya & Moderasi Galeri</span>
+              <span>Kurasi Karya Galeri</span>
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
               Daftar karya inovasi dan portofolio siswa Kandaga ({filteredProjects.length} karya). Hover kartu untuk melihat detail di halaman kurasi.
@@ -81,7 +77,7 @@ export default function AdminModerasiPage() {
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Cari karya / siswa..."
+                placeholder="Cari nama karya..."
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-slate-50/70 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#891337]/15 focus:border-[#891337] transition"
@@ -162,8 +158,8 @@ export default function AdminModerasiPage() {
                       className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />
 
-                    {/* Kategori di Kanan Atas Gambar */}
-                    <span className="absolute top-2.5 right-2.5 z-10 bg-slate-950/70 backdrop-blur-md text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border border-white/10">
+                    {/* Kategori di Kanan Atas Gambar (Sama dengan Dashboard) */}
+                    <span className="absolute top-2.5 right-2.5 z-10 bg-white text-slate-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-sm tracking-wide">
                       {proj.category}
                     </span>
                   </div>
@@ -176,7 +172,7 @@ export default function AdminModerasiPage() {
                   </p>
                 </div>
 
-                <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                <div className="pt-3 mt-3 border-t border-slate-100 flex items-center text-xs">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-full bg-[#891337]/10 text-[#891337] font-bold text-[9px] flex items-center justify-center shrink-0">
                       {proj.author.slice(0, 1)}
@@ -189,10 +185,6 @@ export default function AdminModerasiPage() {
                         {proj.authorRole}
                       </span>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-1 text-slate-500 font-medium text-xs shrink-0">
-                    <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
-                    <span>{proj.likes}</span>
                   </div>
                 </div>
               </div>

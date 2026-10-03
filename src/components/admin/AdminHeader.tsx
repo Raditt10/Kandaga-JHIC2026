@@ -1,9 +1,8 @@
 "use client"
 
 import React, { useState } from "react"
-import Link from "next/link"
 import { useSession } from "next-auth/react"
-import { Search, Mail, Bell, Globe } from "lucide-react"
+import { Search, Mail, Bell } from "lucide-react"
 
 export default function AdminHeader() {
   const { data: session } = useSession()
@@ -25,16 +24,8 @@ export default function AdminHeader() {
         />
       </div>
 
-      {/* Actions: Website, Mail, Notification, User Profile */}
+      {/* Actions: Mail, Notification, User Profile */}
       <div className="flex items-center gap-3">
-        <Link
-          href="/"
-          target="_blank"
-          title="Lihat Website"
-          className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-500 hover:text-slate-800 transition cursor-pointer"
-        >
-          <Globe className="w-4 h-4" />
-        </Link>
         <button
           type="button"
           className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-500 hover:text-slate-800 transition cursor-pointer"

@@ -33,12 +33,12 @@ export default function AdminSidebar() {
 
   const navItems: NavItem[] = [
     { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-    { name: "Kelola Pengguna", href: "/admin/pengguna", icon: Users, badge: `${usersDatabase.length}` },
     { name: "Kurasi Karya", href: "/admin/moderasi", icon: FileCheck2 },
     { name: "Trend Karya", href: "/admin/trend-karya", icon: TrendingUp },
     { name: "BLUD", href: "/admin/blud", icon: Landmark },
     { name: "BKK & Mitra", href: "/admin/bkk", icon: Briefcase },
-    { name: "Pendaftaran Mitra", href: "/admin/pendaftaran-mitra", icon: UserPlus },
+    { name: "Rekrutmen PKL/Magang", href: "/admin/pendaftaran-mitra", icon: UserPlus },
+    { name: "Kelola Pengguna", href: "/admin/pengguna", icon: Users, badge: `${usersDatabase.length}` },
   ]
 
   return (

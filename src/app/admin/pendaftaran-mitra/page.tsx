@@ -1,22 +1,14 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import {
-  UserPlus,
-  Building2,
-  FileCheck2,
-  ExternalLink,
   ShieldCheck,
+  ExternalLink,
   CheckCircle2,
-  XCircle,
-  Clock,
-  Search,
   Eye,
-  Plus,
   Loader2,
-  AlertCircle,
-  FileText,
+  RefreshCw,
 } from "lucide-react"
 import AdminLayout from "@/components/admin/AdminLayout"
 
@@ -42,19 +34,36 @@ function formatDate(iso: string) {
   }
 }
 
+/** Langkah alur approval rekrutmen PKL/magang. */
+const approvalSteps = [
+  {
+    title: "Pengajuan Kuota",
+    description:
+      "Mitra mengajukan permohonan rekrutmen PKL/magang beserta rincian posisi dan jumlah kuota yang dibutuhkan.",
+  },
+  {
+    title: "Verifikasi Berkas",
+    description:
+      "Admin atau Tim BKK memeriksa keabsahan berkas permohonan dan kesesuaian bidang dengan jurusan siswa.",
+  },
+  {
+    title: "Approval Rekrutmen",
+    description:
+      "Permohonan disetujui atau ditolak; kuota rekrutmen dinyatakan terbuka setelah disetujui admin.",
+  },
+  {
+    title: "Penempatan Siswa",
+    description:
+      "Siswa melamar pada kuota yang telah disetujui hingga proses penempatan PKL/magang selesai.",
+  },
+]
 export default function AdminPendaftaranMitraPage() {
   const [items, setItems] = useState<RegistrationItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [actionLoading, setActionLoading] = useState<string | null>(null)
-  const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
 
-  // Modal review
-  const [selectedItem, setSelectedItem] = useState<RegistrationItem | null>(null)
-  const [catatanTolak, setCatatanTolak] = useState("")
-  const [showTolakInput, setShowTolakInput] = useState(false)
-
-  const fetchQueue = useCallback(async () => {
-    setLoading(true)
+  const loadQueue = async (mode: "initial" | "manual" = "manual") => {
+    if (mode === "manual") setRefreshing(true)
     try {
       const res = await fetch("/api/bkk/verifikasi")
       if (res.ok) {
@@ -62,160 +71,87 @@ export default function AdminPendaftaranMitraPage() {
         setItems(data.items || [])
       }
     } catch (err) {
-      console.error(err)
+      console.error("Gagal memuat antrian approval rekrutmen:", err)
     } finally {
       setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchQueue()
-  }, [fetchQueue])
-
-  const handleAction = async (userId: string, action: "setujui" | "tolak", catatan?: string) => {
-    if (action === "tolak" && (!catatan || catatan.trim().length < 10)) {
-      setNotification({ type: "error", message: "Alasan penolakan minimal 10 karakter." })
-      return
-    }
-
-    setActionLoading(userId)
-    try {
-      const res = await fetch("/api/bkk/verifikasi", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, action, catatan }),
-      })
-      const result = await res.json()
-
-      if (res.ok) {
-        setNotification({
-          type: "success",
-          message: action === "setujui" ? "Pendaftaran mitra berhasil disetujui!" : "Pendaftaran mitra ditolak.",
-        })
-        setSelectedItem(null)
-        setShowTolakInput(false)
-        setCatatanTolak("")
-        await fetchQueue()
-      } else {
-        setNotification({ type: "error", message: result.error || "Gagal memproses pendaftaran." })
-      }
-    } catch {
-      setNotification({ type: "error", message: "Terjadi kesalahan jaringan." })
-    } finally {
-      setActionLoading(null)
-      setTimeout(() => setNotification(null), 4000)
+      setRefreshing(false)
     }
   }
+
+  useEffect(() => {
+    let active = true
+
+    const load = async () => {
+      try {
+        const res = await fetch("/api/bkk/verifikasi")
+        if (!active) return
+        if (res.ok) {
+          const data = await res.json()
+          if (active) setItems(data.items || [])
+        }
+      } catch (err) {
+        console.error("Gagal memuat antrian approval rekrutmen:", err)
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    load()
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   return (
     <AdminLayout>
       <div className="space-y-6 animate-in fade-in duration-200">
         {/* Header */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="font-heading text-lg font-bold text-slate-900 flex items-center gap-2">
-              <UserPlus className="w-5 h-5 text-[#891337]" />
-              <span>Pendaftaran & Onboarding Mitra Industri</span>
-            </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Kelola pengajuan akun perusahaan baru, verifikasi berkas legalitas, dan aktivasi kemitraan DUDI.
-            </p>
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
+          <h1 className="font-heading text-lg font-bold text-slate-900 flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-[#891337]" />
+            <span>Approval Rekrutmen PKL & Magang</span>
+          </h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Verifikasi dan setujui permohonan rekrutmen PKL/magang dari mitra industri sebelum kuota dibuka ke siswa.
+          </p>
+        </div>
+
+        {/* Panduan Alur Approval */}
+        <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-zinc-800 text-white shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.16em] text-rose-300">
+              Alur Approval Rekrutmen PKL / Magang
+            </h2>
+            <span className="hidden sm:block text-[10px] font-medium text-slate-400">
+              4 langkah verifikasi
+            </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Link
-              href="/mitra/daftar"
-              target="_blank"
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0"
-            >
-              <span>Formulir Publik Mitra</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </Link>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mt-4">
+            {approvalSteps.map((step, index) => (
+              <div
+                key={step.title}
+                className="h-full p-4 rounded-xl border border-white/10 bg-white/[0.04] transition-colors hover:border-white/20 hover:bg-white/[0.07]"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="w-7 h-7 shrink-0 rounded-lg bg-[#891337] text-white text-[11px] font-bold flex items-center justify-center ring-1 ring-inset ring-white/20">
+                    {index + 1}
+                  </span>
+                  <h3 className="text-[13px] font-bold leading-tight text-white">{step.title}</h3>
+                </div>
+                <p className="text-[11px] leading-relaxed text-slate-400 mt-2.5">{step.description}</p>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Notification */}
-        {notification && (
-          <div
-            className={`p-4 rounded-xl text-xs font-semibold flex items-center justify-between gap-3 animate-in fade-in ${
-              notification.type === "success"
-                ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                : "bg-rose-50 text-rose-800 border border-rose-200"
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              {notification.type === "success" ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              ) : (
-                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-              )}
-              <span>{notification.message}</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setNotification(null)}
-              className="text-xs underline cursor-pointer"
-            >
-              Tutup
-            </button>
-          </div>
-        )}
-
-        {/* Step Guide Banner */}
-        <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-900 to-zinc-900 text-white shadow-xs">
-          <h2 className="text-xs font-mono uppercase tracking-wider text-rose-300 font-bold mb-3">
-            Alur Pendaftaran & Verifikasi Kemitraan (DUDI)
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
-            <div className="p-3 rounded-xl bg-white/10 backdrop-blur-xs border border-white/10">
-              <span className="w-5 h-5 rounded-full bg-[#891337] text-white flex items-center justify-center font-bold text-[10px] mb-1.5">
-                1
-              </span>
-              <h3 className="font-bold">Pengisian Form</h3>
-              <p className="text-[11px] text-white/70 mt-0.5">
-                Perusahaan mengisi profil dan melampirkan berkas legalitas (SIUP/NIB/Company Profile).
-              </p>
-            </div>
-
-            <div className="p-3 rounded-xl bg-white/10 backdrop-blur-xs border border-white/10">
-              <span className="w-5 h-5 rounded-full bg-[#891337] text-white flex items-center justify-center font-bold text-[10px] mb-1.5">
-                2
-              </span>
-              <h3 className="font-bold">Kurasi Legalitas</h3>
-              <p className="text-[11px] text-white/70 mt-0.5">
-                Admin atau Tim BKK memverifikasi keabsahan dokumen dan bidang industri.
-              </p>
-            </div>
-
-            <div className="p-3 rounded-xl bg-white/10 backdrop-blur-xs border border-white/10">
-              <span className="w-5 h-5 rounded-full bg-[#891337] text-white flex items-center justify-center font-bold text-[10px] mb-1.5">
-                3
-              </span>
-              <h3 className="font-bold">Persetujuan Akun</h3>
-              <p className="text-[11px] text-white/70 mt-0.5">
-                Akun diaktifkan, kredensial login dikirim otomatis via email ke kontak PIC perusahaan.
-              </p>
-            </div>
-
-            <div className="p-3 rounded-xl bg-white/10 backdrop-blur-xs border border-white/10">
-              <span className="w-5 h-5 rounded-full bg-[#891337] text-white flex items-center justify-center font-bold text-[10px] mb-1.5">
-                4
-              </span>
-              <h3 className="font-bold">Rekrutmen PKL</h3>
-              <p className="text-[11px] text-white/70 mt-0.5">
-                Mitra membuka kuota magang dan dapat mem-bookmark karya siswa di galeri.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Antrian Pendaftaran Masuk */}
+        {/* Antrian Approval Rekrutmen */}
         <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-heading text-sm font-bold text-slate-900 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-amber-500" />
-                <span>Antrian Pendaftaran Mitra Masuk</span>
+                <span>Antrian Approval Rekrutmen</span>
                 {items.length > 0 && (
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
                     {items.length} Baru
@@ -223,30 +159,33 @@ export default function AdminPendaftaranMitraPage() {
                 )}
               </h2>
               <p className="text-[11px] text-slate-400 mt-0.5">
-                Tinjau berkas pendaftaran calon mitra industri baru sebelum memberikan akses sistem.
+                Tinjau permohonan rekrutmen PKL/magang dari mitra industri sebelum kuota dibuka ke siswa.
               </p>
             </div>
 
             <button
               type="button"
-              onClick={fetchQueue}
-              className="text-xs font-bold text-[#891337] hover:underline"
+              onClick={() => loadQueue("manual")}
+              disabled={refreshing}
+              title="Segarkan antrian"
+              aria-label="Segarkan antrian"
+              className="w-8 h-8 rounded-lg border border-slate-200 bg-white text-[#891337] hover:bg-[#891337]/5 hover:border-[#891337]/30 flex items-center justify-center transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
             >
-              Segarkan Antrian
+              <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
             </button>
           </div>
 
           {loading ? (
             <div className="py-12 flex flex-col items-center justify-center text-slate-400 gap-2">
               <Loader2 className="w-6 h-6 animate-spin text-[#891337]" />
-              <span className="text-xs">Memuat pengajuan mitra baru...</span>
+              <span className="text-xs">Memuat permohonan rekrutmen...</span>
             </div>
           ) : items.length === 0 ? (
             <div className="py-12 text-center text-slate-400">
               <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-2 opacity-80" />
-              <p className="text-xs font-bold text-slate-700">Tidak Ada Pendaftaran Tertunda</p>
+              <p className="text-xs font-bold text-slate-700">Tidak Ada Permohonan Tertunda</p>
               <p className="text-[11px] text-slate-400 mt-0.5">
-                Semua pengajuan pendaftaran mitra industri baru telah selesai diproses.
+                Semua permohonan rekrutmen PKL/magang telah selesai diproses.
               </p>
             </div>
           ) : (
@@ -254,12 +193,12 @@ export default function AdminPendaftaranMitraPage() {
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-slate-100 text-[10px] text-slate-400 uppercase tracking-wider">
-                    <th className="pb-2.5 font-bold">NAMA PERUSAHAAN</th>
+                    <th className="pb-2.5 font-bold">PERUSAHAAN MITRA</th>
                     <th className="pb-2.5 font-bold">KONTAK PIC</th>
-                    <th className="pb-2.5 font-bold">BIDANG INDUSTRI</th>
-                    <th className="pb-2.5 font-bold">DOKUMEN LEGALITAS</th>
-                    <th className="pb-2.5 font-bold">TANGGAL SUBMIT</th>
-                    <th className="pb-2.5 font-bold text-right">AKSI VERIFIKASI</th>
+                    <th className="pb-2.5 font-bold">POSISI / BIDANG PKL</th>
+                    <th className="pb-2.5 font-bold">BERKAS PERMOHONAN</th>
+                    <th className="pb-2.5 font-bold">TANGGAL PENGAJUAN</th>
+                    <th className="pb-2.5 font-bold text-right">AKSI APPROVAL</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
@@ -270,7 +209,7 @@ export default function AdminPendaftaranMitraPage() {
                           {item.namaPerusahaan}
                         </span>
                         <span className="text-[10px] text-amber-600 font-semibold block mt-0.5">
-                          Menunggu Persetujuan
+                          Menunggu Approval
                         </span>
                       </td>
                       <td className="py-3.5 pr-3">
@@ -299,35 +238,14 @@ export default function AdminPendaftaranMitraPage() {
                         {formatDate(item.terdaftarPada)}
                       </td>
                       <td className="py-3.5 text-right">
-                        <div className="inline-flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedItem(item)}
-                            className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 text-[11px] font-semibold transition cursor-pointer"
-                          >
-                            <Eye className="w-3.5 h-3.5 inline mr-1" />
-                            Detail
-                          </button>
-                          <button
-                            type="button"
-                            disabled={actionLoading === item.userId}
-                            onClick={() => handleAction(item.userId, "setujui")}
-                            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition cursor-pointer disabled:opacity-50"
-                          >
-                            Setujui
-                          </button>
-                          <button
-                            type="button"
-                            disabled={actionLoading === item.userId}
-                            onClick={() => {
-                              setSelectedItem(item)
-                              setShowTolakInput(true)
-                            }}
-                            className="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-bold transition cursor-pointer disabled:opacity-50"
-                          >
-                            Tolak
-                          </button>
-                        </div>
+                        <Link
+                          href={`/admin/pendaftaran-mitra/${item.userId}`}
+                          title="Buka halaman review permohonan"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 text-[11px] font-semibold transition cursor-pointer"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          Review
+                        </Link>
                       </td>
                     </tr>
                   ))}
@@ -337,130 +255,6 @@ export default function AdminPendaftaranMitraPage() {
           )}
         </div>
 
-        {/* Modal Review */}
-        {selectedItem && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4"
-            onClick={(e) => e.target === e.currentTarget && setSelectedItem(null)}
-          >
-            <div className="w-full max-w-lg bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden animate-in zoom-in-95 duration-150">
-              <div className="px-6 pt-6 pb-4 border-b border-slate-100">
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                  Verifikasi Berkas Kemitraan
-                </p>
-                <h2 className="font-heading text-lg font-bold text-slate-900">
-                  {selectedItem.namaPerusahaan}
-                </h2>
-              </div>
-
-              <div className="px-6 py-5 space-y-4 text-xs">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-[11px] text-slate-400 block font-medium">Nama Kontak PIC</span>
-                    <span className="font-semibold text-slate-800 block mt-0.5">{selectedItem.namaKontak}</span>
-                  </div>
-                  <div>
-                    <span className="text-[11px] text-slate-400 block font-medium">Email Kontak</span>
-                    <span className="font-semibold text-slate-800 block mt-0.5 font-mono truncate">
-                      {selectedItem.email}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-[11px] text-slate-400 block font-medium">Bidang Usaha</span>
-                    <span className="font-semibold text-slate-800 block mt-0.5">
-                      {selectedItem.bidang || "—"}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-[11px] text-slate-400 block font-medium">Waktu Registrasi</span>
-                    <span className="font-semibold text-slate-800 block mt-0.5">
-                      {formatDate(selectedItem.terdaftarPada)}
-                    </span>
-                  </div>
-                </div>
-
-                <div>
-                  <span className="text-[11px] text-slate-400 block font-medium mb-1">Berkas Dokumen Pendukung</span>
-                  {selectedItem.dokumenUrl ? (
-                    <a
-                      href={selectedItem.dokumenUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#891337] hover:underline"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      Buka Dokumen Legalitas (PDF / Dokumen)
-                    </a>
-                  ) : (
-                    <span className="text-slate-400 italic">Tidak ada dokumen diunggah</span>
-                  )}
-                </div>
-
-                {showTolakInput && (
-                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 space-y-2">
-                    <label className="block text-xs font-bold text-rose-800">
-                      Alasan Penolakan Pendaftaran <span className="text-rose-600">*</span>
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={catatanTolak}
-                      onChange={(e) => setCatatanTolak(e.target.value)}
-                      placeholder="Jelaskan alasan penolakan secara jelas untuk perusahaan (min. 10 karakter)..."
-                      className="w-full p-2.5 rounded-lg border border-rose-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-rose-500/20"
-                    />
-                    <div className="flex justify-between items-center text-[10px] text-rose-600">
-                      <span>Wajib diisi</span>
-                      <span>{catatanTolak.trim().length} / 10 karakter</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="px-6 pb-6 pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedItem(null)
-                    setShowTolakInput(false)
-                    setCatatanTolak("")
-                  }}
-                  className="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-semibold transition cursor-pointer"
-                >
-                  Tutup
-                </button>
-
-                {!showTolakInput ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => setShowTolakInput(true)}
-                      className="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition cursor-pointer"
-                    >
-                      Tolak
-                    </button>
-                    <button
-                      type="button"
-                      disabled={actionLoading === selectedItem.userId}
-                      onClick={() => handleAction(selectedItem.userId, "setujui")}
-                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition cursor-pointer disabled:opacity-50"
-                    >
-                      Setujui Kemitraan
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    disabled={actionLoading === selectedItem.userId || catatanTolak.trim().length < 10}
-                    onClick={() => handleAction(selectedItem.userId, "tolak", catatanTolak)}
-                    className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition cursor-pointer disabled:opacity-50"
-                  >
-                    Konfirmasi Tolak
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </AdminLayout>
   )
