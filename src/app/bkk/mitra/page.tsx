@@ -16,9 +16,11 @@
 
 import { useCallback, useEffect, useState, useTransition } from "react";
 import BKKLayout from "@/components/bkk/BKKLayout";
+import Link from "next/link";
 import {
   Building2, Search, Loader2, AlertCircle,
   Clock, CheckCircle2, XCircle, ExternalLink, Filter,
+  FileText, UserCheck, ArrowRight, MapPin, Phone
 } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────
@@ -29,6 +31,21 @@ type MitraItem = {
   email:             string;
   namaPerusahaan:    string;
   bidang:            string | null;
+  deskripsi:         string | null;
+  alamat:            string | null;
+  kota:              string | null;
+  provinsi:          string | null;
+  telepon:           string | null;
+  website:           string | null;
+  nib:               string | null;
+  npwp:              string | null;
+  skalaKaryawan:     string | null;
+  tahunBerdiri:      number | null;
+  logoUrl:           string | null;
+  picName:           string | null;
+  picJabatan:        string | null;
+  picEmail:          string | null;
+  picPhone:          string | null;
   dokumenUrl:        string | null;
   status:            "pending" | "disetujui" | "ditolak";
   catatanVerifikasi: string | null;
@@ -100,7 +117,7 @@ function MitraRow({ item }: { item: MitraItem }) {
 
         {/* Kontak */}
         <td className="px-5 py-4 hidden sm:table-cell">
-          <p className="text-sm text-ink-700">{item.namaKontak}</p>
+          <p className="text-sm text-ink-700">{item.picName ?? item.namaKontak}</p>
           {item.bidang && (
             <p className="text-xs text-ink-600 mt-0.5">{item.bidang}</p>
           )}
@@ -119,11 +136,21 @@ function MitraRow({ item }: { item: MitraItem }) {
           {formatDate(item.terdaftarPada)}
         </td>
 
-        {/* Expand chevron */}
+        {/* Action + Expand chevron */}
         <td className="px-5 py-4 text-right">
-          <span className={`text-ink-300 transition-transform inline-block ${expanded ? "rotate-180" : ""}`} aria-hidden="true">
-            ▾
-          </span>
+          <div className="flex items-center justify-end gap-2">
+            <Link
+              href={`/bkk/mitra/${item.userId}`}
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-ink-150 hover:border-primary/50 text-xs font-semibold text-ink-700 hover:text-primary transition"
+            >
+              <span>Profil</span>
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+            <span className={`text-ink-300 transition-transform inline-block ${expanded ? "rotate-180" : ""}`} aria-hidden="true">
+              ▾
+            </span>
+          </div>
         </td>
       </tr>
 
@@ -131,38 +158,57 @@ function MitraRow({ item }: { item: MitraItem }) {
       {expanded && (
         <tr className="bg-ink-100/30">
           <td colSpan={5} className="px-5 py-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
 
-              {/* Dokumen */}
+              {/* NIB & Legalitas */}
               <div>
-                <p className="text-xs font-mono text-ink-600 mb-1">Dokumen legalitas</p>
+                <p className="text-xs font-mono text-ink-600 mb-1">Identitas Legalitas</p>
+                <p className="text-xs font-mono font-bold text-ink">
+                  NIB: {item.nib ?? "Belum diisi"}
+                </p>
+                <p className="text-xs font-mono text-ink-600 mt-0.5">
+                  NPWP: {item.npwp ?? "Belum diisi"}
+                </p>
                 {item.dokumenUrl ? (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 mt-1.5">
                     <a
                       href={item.dokumenUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary-dark transition-colors"
                     >
-                      <ExternalLink className="w-4 h-4" aria-hidden="true" />
-                      Lihat dokumen
+                      <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
+                      Lihat Berkas Legalitas
                     </a>
-                    <span className="text-xs text-ink-300">(mode demo)</span>
                   </div>
                 ) : (
-                  <p className="text-ink-300">Tidak ada dokumen.</p>
+                  <p className="text-xs text-ink-600 mt-1">Tidak ada dokumen diunggah.</p>
                 )}
               </div>
 
-              {/* Diverifikasi oleh */}
-              {item.verifiedBy && (
+              {/* PIC & Lokasi */}
+              <div>
+                <p className="text-xs font-mono text-ink-600 mb-1">PIC & Domisili</p>
+                <p className="text-xs font-semibold text-ink">
+                  {item.picName ? `${item.picName} (${item.picJabatan ?? "PIC"})` : item.namaKontak}
+                </p>
+                <p className="text-xs text-ink-600 font-mono mt-0.5">
+                  {item.picPhone ?? item.telepon ?? "Tidak ada no telepon"}
+                </p>
+                <p className="text-xs text-ink-600 mt-0.5">
+                  {item.kota ? `${item.kota}, ${item.provinsi ?? ""}` : "Domisili belum diisi"}
+                </p>
+              </div>
+
+              {/* Status & Link Verifikasi */}
+              <div className="flex flex-col justify-between">
                 <div>
                   <p className="text-xs font-mono text-ink-600 mb-1">
-                    {item.status === "disetujui" ? "Disetujui oleh" : "Ditolak oleh"}
+                    {item.status === "disetujui" ? "Disetujui oleh" : item.status === "ditolak" ? "Ditolak oleh" : "Status"}
                   </p>
-                  <p className="font-medium text-ink">
-                    {item.verifiedBy}
+                  <p className="text-xs font-medium text-ink">
+                    {item.verifiedBy ?? (item.status === "pending" ? "Belum ditinjau" : "—")}
                     {item.verifiedAt && (
                       <span className="text-ink-600 font-normal ml-1">
                         pada {formatDate(item.verifiedAt)}
@@ -170,12 +216,23 @@ function MitraRow({ item }: { item: MitraItem }) {
                     )}
                   </p>
                 </div>
-              )}
+
+                <div className="pt-2">
+                  <Link
+                    href={`/bkk/mitra/${item.userId}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary hover:bg-primary-dark text-white text-xs font-bold transition shadow-xs"
+                  >
+                    <span>Buka Halaman Verifikasi & Profil Lengkap</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </div>
 
               {/* Catatan verifikasi — tampil untuk ditolak */}
               {item.status === "ditolak" && item.catatanVerifikasi && (
-                <div className="sm:col-span-2">
-                  <p className="text-xs font-mono text-ink-600 mb-1">Catatan penolakan</p>
+                <div className="sm:col-span-3">
+                  <p className="text-xs font-mono text-ink-600 mb-1">Catatan penolakan / revisi:</p>
                   <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3">
                     <p className="text-sm text-rose-800 leading-relaxed max-w-[65ch]">
                       {item.catatanVerifikasi}

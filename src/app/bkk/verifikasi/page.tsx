@@ -16,9 +16,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import BKKLayout from "@/components/bkk/BKKLayout";
+import Link from "next/link";
 import {
   ShieldCheck, Clock, Loader2, AlertCircle,
   CheckCircle2, XCircle, Eye, ExternalLink,
+  Building2, UserCheck, FileText, ArrowRight,
 } from "lucide-react";
 
 type AntrianItem = {
@@ -27,6 +29,21 @@ type AntrianItem = {
   email:          string;
   namaPerusahaan: string;
   bidang:         string | null;
+  deskripsi:      string | null;
+  alamat:         string | null;
+  kota:           string | null;
+  provinsi:       string | null;
+  telepon:        string | null;
+  website:        string | null;
+  nib:            string | null;
+  npwp:           string | null;
+  skalaKaryawan:  string | null;
+  tahunBerdiri:   number | null;
+  logoUrl:        string | null;
+  picName:        string | null;
+  picJabatan:     string | null;
+  picEmail:       string | null;
+  picPhone:       string | null;
   dokumenUrl:     string | null;
   terdaftarPada:  string;
 };
@@ -79,39 +96,63 @@ function DetailModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 backdrop-blur-sm p-4 overflow-y-auto"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="w-full max-w-lg bg-white rounded-3xl border border-ink-150 shadow-xl overflow-hidden">
+      <div className="w-full max-w-lg bg-white rounded-3xl border border-ink-150 shadow-xl overflow-hidden my-8">
 
         {/* Header */}
-        <div className="px-6 pt-6 pb-4 border-b border-ink-150">
-          <p className="text-xs font-mono text-ink-600 mb-0.5">Detail Pengajuan Akun Mitra</p>
-          <h2 className="font-heading text-xl font-bold text-ink">{item.namaPerusahaan}</h2>
+        <div className="px-6 pt-6 pb-4 border-b border-ink-150 flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-mono text-ink-600 mb-0.5">Tinjauan Pengajuan Akun Mitra</p>
+            <h2 className="font-heading text-xl font-bold text-ink">{item.namaPerusahaan}</h2>
+          </div>
+          <Link
+            href={`/bkk/mitra/${item.userId}`}
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold transition shrink-0"
+            title="Buka halaman profil lengkap"
+          >
+            <span>Halaman Penuh</span>
+            <ExternalLink className="w-3 h-3" />
+          </Link>
         </div>
 
         {/* Detail */}
-        <div className="px-6 py-5 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs font-mono text-ink-600 mb-1">Nama kontak</p>
-              <p className="text-sm font-semibold text-ink">{item.namaKontak}</p>
+        <div className="px-6 py-5 space-y-4 max-h-[60vh] overflow-y-auto">
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="p-3 rounded-xl bg-ink-100/30 border border-ink-150">
+              <p className="text-xs font-mono text-ink-600 mb-0.5">Sektor Industri</p>
+              <p className="font-semibold text-ink">{item.bidang ?? "—"}</p>
             </div>
-            <div>
-              <p className="text-xs font-mono text-ink-600 mb-1">Email</p>
-              <p className="text-sm font-semibold text-ink font-mono truncate">{item.email}</p>
+            <div className="p-3 rounded-xl bg-ink-100/30 border border-ink-150">
+              <p className="text-xs font-mono text-ink-600 mb-0.5">Tanggal Daftar</p>
+              <p className="font-semibold text-ink">{formatDate(item.terdaftarPada)}</p>
             </div>
-            <div>
-              <p className="text-xs font-mono text-ink-600 mb-1">Bidang usaha</p>
-              <p className="text-sm text-ink">{item.bidang ?? "—"}</p>
+            <div className="p-3 rounded-xl bg-ink-100/30 border border-ink-150">
+              <p className="text-xs font-mono text-ink-600 mb-0.5">NIB OSS (13 Digit)</p>
+              <p className="font-mono font-bold text-ink">{item.nib ?? "Belum diisi"}</p>
             </div>
-            <div>
-              <p className="text-xs font-mono text-ink-600 mb-1">Tanggal daftar</p>
-              <p className="text-sm text-ink">{formatDate(item.terdaftarPada)}</p>
+            <div className="p-3 rounded-xl bg-ink-100/30 border border-ink-150">
+              <p className="text-xs font-mono text-ink-600 mb-0.5">NPWP Perusahaan</p>
+              <p className="font-mono font-bold text-ink">{item.npwp ?? "Belum diisi"}</p>
             </div>
           </div>
 
-          {/* Dokumen — sesuai §3: tampilkan apa adanya (mock) */}
+          {/* PIC */}
+          {(item.picName || item.namaKontak) && (
+            <div className="p-3.5 rounded-2xl border border-ink-150 bg-ink-100/20 text-xs space-y-1">
+              <p className="font-mono text-ink-600">Penanggung Jawab (PIC) & Narahubung:</p>
+              <p className="font-semibold text-ink text-sm">
+                {item.picName ? `${item.picName} (${item.picJabatan ?? "PIC"})` : item.namaKontak}
+              </p>
+              <div className="flex gap-3 text-ink-600 font-mono pt-0.5">
+                <span>{item.picEmail ?? item.email}</span>
+                {item.picPhone && <span>• {item.picPhone}</span>}
+              </div>
+            </div>
+          )}
+
+          {/* Dokumen */}
           <div>
             <p className="text-xs font-mono text-ink-600 mb-1">Dokumen legalitas</p>
             {item.dokumenUrl ? (
@@ -123,12 +164,12 @@ function DetailModal({
                   className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
                 >
                   <ExternalLink className="w-4 h-4" aria-hidden="true" />
-                  Lihat dokumen
+                  Lihat dokumen legalitas
                 </a>
-                <span className="text-xs text-ink-300">(mode demo — pratinjau mungkin tidak tersedia)</span>
+                <span className="text-xs text-ink-600">(Google Drive / Cloud URL)</span>
               </div>
             ) : (
-              <p className="text-sm text-ink-300">Tidak ada dokumen diunggah.</p>
+              <p className="text-sm text-ink-600">Tidak ada dokumen diunggah.</p>
             )}
           </div>
 
@@ -314,14 +355,23 @@ export default function VerifikasiPage() {
                     </div>
                   </td>
                   <td className="px-5 py-4 text-right">
-                    <button
-                      type="button"
-                      onClick={() => setSelected(item)}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-ink-150 text-sm font-semibold text-ink-700 hover:bg-ink-100 transition-colors"
-                    >
-                      <Eye className="w-4 h-4" aria-hidden="true" />
-                      Tinjau
-                    </button>
+                    <div className="inline-flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelected(item)}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-ink-150 text-xs font-semibold text-ink-700 hover:bg-ink-100 transition-colors"
+                      >
+                        <Eye className="w-3.5 h-3.5" aria-hidden="true" />
+                        <span>Tinjau Cepat</span>
+                      </button>
+                      <Link
+                        href={`/bkk/mitra/${item.userId}`}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary hover:bg-primary-dark text-white text-xs font-bold transition-colors shadow-xs"
+                      >
+                        <span>Profil Lengkap</span>
+                        <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))}

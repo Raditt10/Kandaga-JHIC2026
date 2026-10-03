@@ -66,12 +66,19 @@ export default function AdminBkkPage() {
           Kelola verifikasi profil perusahaan mitra, buka lowongan magang atau rekrutmen kerja, dan pantau status penerimaan siswa SMK Negeri 13 Bandung.
         </p>
 
-        <div className="pt-2 flex justify-center gap-3">
+        <div className="pt-2 flex flex-wrap justify-center gap-3">
           <Link
-            href="/bkk"
+            href="/bkk/verifikasi"
             className="px-5 py-2.5 bg-[#891337] hover:bg-[#72102e] text-white rounded-xl text-xs font-bold transition inline-flex items-center gap-2 shadow-xs cursor-pointer"
           >
-            <span>Masuk ke Manajemen BKK</span>
+            <span>Antrian Verifikasi Mitra</span>
+            <ExternalLink className="w-4 h-4" />
+          </Link>
+          <Link
+            href="/bkk/mitra"
+            className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition inline-flex items-center gap-2 shadow-xs cursor-pointer"
+          >
+            <span>Direktori & Profil Mitra</span>
             <ExternalLink className="w-4 h-4" />
           </Link>
         </div>

@@ -244,6 +244,32 @@ export async function POST(req: NextRequest) {
 
     const mapped = mapDatabaseProject(created);
 
+    // Broadcast real-time activity notification to admin via Socket.IO
+    try {
+      const io = (global as unknown as { io?: any }).io;
+      if (io) {
+        io.to("admin_channel").emit("admin_notification", {
+          id: `notif-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          type: "project_created",
+          category: "project",
+          title: "Karya Siswa Baru Diunggah",
+          message: `${created.student?.user?.name || "Siswa"} mengunggah karya baru "${created.title}" (${mapped.majorLabel}).`,
+          timestamp: new Date().toISOString(),
+          read: false,
+          priority: "normal",
+          metadata: {
+            projectId: created.id,
+            projectTitle: created.title,
+            studentName: created.student?.user?.name || "Siswa SMKN 13",
+            url: `/gallery/${created.id}`,
+            badgeText: mapped.majorLabel,
+          },
+        });
+      }
+    } catch (sockErr) {
+      console.warn("Socket broadcast error:", sockErr);
+    }
+
     return NextResponse.json(
       {
         success: true,

@@ -33,15 +33,20 @@ async function main() {
 
   // ── Demo Users — username sesuai login page demo accounts ──────────
   const userdata = [
-    { name: "siswa13",    email: "siswa13@gmail.com",   passwordHash: "password123", role: "student"  },
-    { name: "guru13",      email: "guru13@gmail.com",     passwordHash: "password123", role: "teacher"  },
-    { name: "mitra_perusahaan",  email: "mitra_perusahaan@gmail.com", passwordHash: "password123", role: "company"  },
-    { name: "admin13",   email: "admin13@gmail.com",  passwordHash: "password123", role: "admin"    },
-    { name: "bkk13",   email: "bkk13@gmail.com",  passwordHash: "password123", role: "bkk"      },
+    { name: "siswa13",           email: "siswa13@gmail.com",           passwordHash: "password123", role: "student" },
+    { name: "guru13",            email: "guru13@gmail.com",            passwordHash: "password123", role: "teacher" },
+    { name: "mitra_perusahaan",  email: "mitra_perusahaan@gmail.com",  passwordHash: "password123", role: "company" },
+    { name: "inovasisiber",      email: "inovasisiber@gmail.com",      passwordHash: "password123", role: "company" },
+    { name: "nusantaraanalitika",email: "nusantaraanalitika@gmail.com",passwordHash: "password123", role: "company" },
+    { name: "logistikpratama",   email: "logistikpratama@gmail.com",   passwordHash: "password123", role: "company" },
+    { name: "admin13",           email: "admin13@gmail.com",           passwordHash: "password123", role: "admin"   },
+    { name: "bkk13",             email: "bkk13@gmail.com",             passwordHash: "password123", role: "bkk"     },
   ]
 
+  const userMap: Record<string, { id: string; name: string; email: string }> = {}
+
   for (const user of userdata) {
-    await prisma.users.create({
+    const created = await prisma.users.create({
       data: {
         name:         user.name,
         email:        user.email,
@@ -50,6 +55,7 @@ async function main() {
         status:       'aktif',
       },
     })
+    userMap[user.name] = created
     console.log(`  ✓ Created: ${user.name} (${user.role})`)
   }
 
@@ -82,6 +88,176 @@ async function main() {
   for (const major of majorsdata) {
     await prisma.major.create({ data: major })
     console.log(`  ✓ Major: ${major.name}`)
+  }
+
+  // ── Student & Teacher Profiles ──────────────────────────────────────
+  const rplMajor = await prisma.major.findUnique({ where: { name: 'RPL' } })
+
+  if (rplMajor && userMap['siswa13']) {
+    await prisma.student.create({
+      data: {
+        userId:     userMap['siswa13'].id,
+        majorId:    rplMajor.id,
+        nis:        '1324001',
+        class:      'XII RPL 1',
+        generation: 2024,
+        status:     'aktif',
+        bio:        'Siswa Rekayasa Perangkat Lunak SMKN 13 Bandung berfokus pada Fullstack Web & UI/UX.',
+      },
+    })
+    console.log('  ✓ Profile: Student siswa13')
+  }
+
+  if (rplMajor && userMap['guru13']) {
+    await prisma.teacher.create({
+      data: {
+        userId:  userMap['guru13'].id,
+        majorId: rplMajor.id,
+        nip:     '198001012005011003',
+        bio:     'Guru Pengampu Rekayasa Perangkat Lunak SMKN 13 Bandung.',
+      },
+    })
+    console.log('  ✓ Profile: Teacher guru13')
+  }
+
+  // ── Company Profiles (Metadata Kaya untuk Verifikasi BKK / Admin) ────
+  const bkkUser = userMap['bkk13']
+
+  const companiesToSeed = [
+    {
+      userKey:            'mitra_perusahaan',
+      name:               'PT Sintesis Digital Nusantara',
+      field:              'Teknologi Informasi & Software',
+      description:        'Perusahaan software house dan transformasi digital yang berfokus pada pengembangan sistem enterprise, arsitektur cloud modern, dan platform edukasi interaktif. Telah menjadi mitra industri SMKN 13 Bandung dalam program magang kerja dan penyerapan lulusan unggul.',
+      address:            'Jl. Terusan Buah Batu No. 42A, Batununggal',
+      city:               'Kota Bandung',
+      province:           'Jawa Barat',
+      phone:              '+62 22 7564120',
+      website:            'https://sintesisdigital.id',
+      nib:                '9120304918291',
+      npwp:               '01.345.678.9-422.000',
+      employeeCount:      '51-200 karyawan',
+      foundedYear:        2018,
+      logoUrl:            'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=240&h=240&q=80',
+      picName:            'Raden Arya Pratama, S.Kom.',
+      picPosition:        'Head of People & Engineering Culture',
+      picEmail:           'arya.pratama@sintesisdigital.id',
+      picPhone:           '+62 812-2345-6789',
+      documentUrl:        'https://drive.google.com/file/d/demo-legalitas-nib-sintesis/view',
+      verificationStatus: 'disetujui',
+      verifiedBy:         bkkUser ? bkkUser.id : null,
+      verifiedAt:         new Date(Date.now() - 14 * 86400000),
+      catatanVerifikasi:  null,
+    },
+    {
+      userKey:            'inovasisiber',
+      name:               'PT Inovasi Siber Kreasi',
+      field:              'Telekomunikasi & Jaringan',
+      description:        'Penyedia infrastruktur jaringan fiber optic, managed network security, dan audit cybersecurity untuk korporasi serta institusi pendidikan di Jawa Barat. Menawarkan program magang Network Engineer dan Cyber Defense untuk siswa TKJ.',
+      address:            'Kawasan Niaga Metro Trade Center Blok D-15, Soekarno-Hatta',
+      city:               'Kota Bandung',
+      province:           'Jawa Barat',
+      phone:              '+62 22 8734910',
+      website:            'https://inovasisiber.co.id',
+      nib:                '1284920194827',
+      npwp:               '02.891.234.5-429.000',
+      employeeCount:      '1-50 karyawan',
+      foundedYear:        2021,
+      logoUrl:            'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=240&h=240&q=80',
+      picName:            'Dewi Lestari, S.T.',
+      picPosition:        'Talent Acquisition & Partnership Lead',
+      picEmail:           'dewi.lestari@inovasisiber.co.id',
+      picPhone:           '+62 813-9876-5432',
+      documentUrl:        'https://drive.google.com/file/d/demo-legalitas-siber/view',
+      verificationStatus: 'pending',
+      verifiedBy:         null,
+      verifiedAt:         null,
+      catatanVerifikasi:  null,
+    },
+    {
+      userKey:            'nusantaraanalitika',
+      name:               'PT Lab Nusantara Analitika',
+      field:              'Kimia & Farmasi',
+      description:        'Laboratorium pengujian mutu industri, kalibrasi instrumen analitik canggih, dan analisis kimia lingkungan bersertifikasi KAN ISO/IEC 17025. Membuka kuota PKL industri kimia untuk siswa kompetensi keahlian Analisis Kimia.',
+      address:            'Jl. Soekarno-Hatta No. 112, Babakan Ciparay',
+      city:               'Kota Bandung',
+      province:           'Jawa Barat',
+      phone:              '+62 22 6012948',
+      website:            'https://nusantaraanalitika.com',
+      nib:                '0294819284719',
+      npwp:               '03.456.789.0-421.000',
+      employeeCount:      '51-200 karyawan',
+      foundedYear:        2016,
+      logoUrl:            'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=240&h=240&q=80',
+      picName:            'Dr. Hendra Gunawan, M.Si.',
+      picPosition:        'Kepala Laboratorium & QA',
+      picEmail:           'hendra.gunawan@nusantaraanalitika.com',
+      picPhone:           '+62 811-3456-7890',
+      documentUrl:        'https://drive.google.com/file/d/demo-legalitas-lab/view',
+      verificationStatus: 'pending',
+      verifiedBy:         null,
+      verifiedAt:         null,
+      catatanVerifikasi:  null,
+    },
+    {
+      userKey:            'logistikpratama',
+      name:               'CV Karya Logistik Pratama',
+      field:              'Manufaktur & Industri',
+      description:        'Vendor logistik pergudangan dan suplai suku cadang mekanikal perakitan ringan untuk manufaktur kawasan industri Bandung Raya.',
+      address:            'Jl. Raya Kopo Sayati No. 209',
+      city:               'Kabupaten Bandung',
+      province:           'Jawa Barat',
+      phone:              '+62 22 5410982',
+      website:            'https://karyalogistik.co.id',
+      nib:                '9988776655443',
+      npwp:               '04.567.890.1-445.000',
+      employeeCount:      '1-50 karyawan',
+      foundedYear:        2022,
+      logoUrl:            'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=240&h=240&q=80',
+      picName:            'Budi Santoso',
+      picPosition:        'Operasional Gudang & Kemitraan',
+      picEmail:           'budi.santoso@karyalogistik.co.id',
+      picPhone:           '+62 856-7890-1234',
+      documentUrl:        'https://drive.google.com/file/d/demo-invalid-doc/view',
+      verificationStatus: 'ditolak',
+      verifiedBy:         bkkUser ? bkkUser.id : null,
+      verifiedAt:         new Date(Date.now() - 3 * 86400000),
+      catatanVerifikasi:  'Dokumen NIB yang dilampirkan belum mencakup KBLI sektor industri terkait dan masa berlaku SK Kemenkumham belum diperbarui. Mohon perbarui berkas legalitas pada profil Anda dan ajukan kembali verifikasi.',
+    },
+  ]
+
+  for (const c of companiesToSeed) {
+    const user = userMap[c.userKey]
+    if (user) {
+      await prisma.company.create({
+        data: {
+          userId:             user.id,
+          name:               c.name,
+          field:              c.field,
+          description:        c.description,
+          address:            c.address,
+          city:               c.city,
+          province:           c.province,
+          phone:              c.phone,
+          website:            c.website,
+          nib:                c.nib,
+          npwp:               c.npwp,
+          employeeCount:      c.employeeCount,
+          foundedYear:        c.foundedYear,
+          logoUrl:            c.logoUrl,
+          picName:            c.picName,
+          picPosition:        c.picPosition,
+          picEmail:           c.picEmail,
+          picPhone:           c.picPhone,
+          documentUrl:        c.documentUrl,
+          verificationStatus: c.verificationStatus,
+          verifiedBy:         c.verifiedBy,
+          verifiedAt:         c.verifiedAt,
+          catatanVerifikasi:  c.catatanVerifikasi,
+        },
+      })
+      console.log(`  ✓ Company: ${c.name} (${c.verificationStatus})`)
+    }
   }
 
   const galleryData = [

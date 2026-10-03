@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:socket": "tsx server.ts",
+    "server": "tsx server.ts",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

@@ -33,7 +33,8 @@ export interface DashboardTab {
 interface DashboardLayoutProps {
   roleTitle: string
   roleSlug: "student" | "admin" | "company" | "teacher" | "bkk"
-  badgeColor: string
+  badgeColor?: string
+  pageTitle?: string
   icon: React.ElementType
   tabs?: DashboardTab[]
   activeTab?: string
@@ -124,7 +125,7 @@ export default function DashboardLayout({
               className="w-full flex items-center justify-between p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition text-left cursor-pointer group"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${badgeColor} text-white flex items-center justify-center shrink-0 shadow-xs`}>
+                <div className={`w-8 h-8 rounded-xl bg-gradient-to-br  text-white flex items-center justify-center shrink-0 shadow-xs`}> {/* ${badgeColor} */}
                   <Icon className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">

@@ -25,8 +25,9 @@ model Users {
   status       String   @default("aktif")
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  role         Role     @default(Student)
+  avatarUrl    String?
 
-  role                    Role
   studentProfile          Student?
   teacherProfile          Teacher?
   companyProfile          Company?
@@ -65,7 +66,6 @@ model Student {
   status        String  @default("aktif")
   bio           String?
   currentCareer String?
-  photoUrl      String? @map("photo_url")
 
   user     Users      @relation(fields: [userId], references: [id], onDelete: Cascade)
   major    Major      @relation(fields: [majorId], references: [id])
@@ -83,7 +83,7 @@ model Teacher {
 
   user             Users      @relation(fields: [userId], references: [id], onDelete: Cascade)
   major            Major      @relation(fields: [majorId], references: [id])
-  advisedProjectss Projects[] @relation("ProjectsAdvisor")
+  advisedProjects Projects[]  @relation("ProjectsAdvisor")
 
   @@index([majorId], map: "teachers_majors_idx")
   @@map("teachers")
@@ -93,11 +93,26 @@ model Company {
   userId             String    @id @map("user_id") @db.Uuid
   name               String    @map("username")
   field              String?   @map("field")
+  description        String?   @map("description") @db.Text
+  address            String?   @map("address") @db.Text
+  city               String?   @map("city")
+  province           String?   @map("province")
+  phone              String?   @map("phone")
+  website            String?   @map("website")
+  nib                String?   @map("nib")
+  npwp               String?   @map("npwp")
+  employeeCount      String?   @map("employee_count")
+  foundedYear        Int?      @map("founded_year") @db.SmallInt
+  logoUrl            String?   @map("logo_url")
+  picName            String?   @map("pic_name")
+  picPosition        String?   @map("pic_position")
+  picEmail           String?   @map("pic_email")
+  picPhone           String?   @map("pic_phone")
   documentUrl        String?   @map("document_url")
   verificationStatus String    @default("pending") @map("verification_status")
   verifiedBy         String?   @map("verified_by") @db.Uuid
   verifiedAt         DateTime? @map("verified_at") @db.Timestamptz
-  catatanVerifikasi  String?   @map("catatan_verifikasi")
+  verifiedNotes      String?   @map("verivied_notes")
 
   user            Users             @relation(fields: [userId], references: [id], onDelete: Cascade)
   verifier        Users?            @relation("CompanyVerifiedBy", fields: [verifiedBy], references: [id])
@@ -152,7 +167,7 @@ model Projects {
   isPrivate    Boolean                  @default(false)
 
   student         Student           @relation(fields: [studentId], references: [userId])
-  advisor         Teacher?          @relation("ProjectsAdvisor", fields: [advisorId], references: [userId])
+  advisor         Teacher?            @relation("ProjectsAdvisor", fields: [advisorId], references: [userId])
   reviewer        Users?            @relation("ProjectsReviewedBy", fields: [reviewedBy], references: [id])
   media           ProjectsMedia[]
   tools           ProjectsTool[]
@@ -315,4 +330,40 @@ model FAQs {
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
   
   @@map("faqs")
+}
+
+model InternshipApplication {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  applicantType String    @map("applicant_type")
+  status         String    @default("pending")
+  studentId      String?   @map("student_id") @db.Uuid
+  studentName    String?   @map("student_name")
+  studentClass   String?   @map("student_class")
+  nis            String?
+  major          String?
+  cvUrl          String?   @map("cv_url")
+  portfolioUrl   String?   @map("portfolio_url")
+  companyId      String?   @map("company_id") @db.Uuid
+  companyName    String    @map("company_name")
+  companyField   String?   @map("company_field")
+  companyAddress String?   @map("company_address")
+  contactPerson  String?   @map("contact_person")
+  positionTitle  String    @map("position_title")
+  requiredMajor  String?   @map("required_major")
+  quota          Int?      @default(1)
+  description    String
+  requirements   String?
+  stipend        String?
+  durationMonths Int       @default(3) @map("duration_months")
+  startDate      DateTime? @map("start_date") @db.Date
+  endDate        DateTime? @map("end_date") @db.Date
+  contactEmail   String    @map("contact_email")
+  contactPhone   String    @map("contact_phone")
+  bkkNotes       String?   @map("bkk_notes")
+  reviewedBy     String?   @map("reviewed_by") @db.Uuid
+  reviewedAt     DateTime? @map("reviewed_at") @db.Timestamptz
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("internship_applications")
 }

@@ -13,14 +13,15 @@ import {
   History,
   Search,
   ExternalLink,
-  CheckCircle2,
+  Award,
+  CheckCircle,
   AlertCircle,
   ChevronRight,
   FileCode,
   FlaskConical,
   Wifi,
   Filter
-} from "lucide-react"
+} from "lucide-react";
 
 // Mock Antrean Verifikasi Karya Siswa
 const initialCurationQueue = [

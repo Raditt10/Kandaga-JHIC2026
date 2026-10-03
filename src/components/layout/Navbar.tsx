@@ -31,6 +31,7 @@ export default function Navbar({ onOpenLogin }: NavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const session = useSession();
 
   const navigateToSection = (id: string) => {
     if (pathname === "/") {
@@ -194,13 +195,13 @@ export default function Navbar({ onOpenLogin }: NavbarProps) {
             Mitra Perusahaan
           </button>
 
-              {/* Profile Dropdown Menu */}
+              {/* Profile Dropdown Menu
               {isProfileOpen && (
                 <div className="absolute right-0 top-full mt-2 w-64 bg-white/95 backdrop-blur-xl border border-zinc-200/90 rounded-2xl shadow-xl p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                   <div className="p-3 bg-zinc-50 rounded-xl mb-2 border border-zinc-100">
                     <div className="flex items-center justify-between mb-1">
                       <p className="text-xs font-bold text-zinc-900 truncate">
-                        {session.user.username || "Pengguna"}
+                        {session?.user?.username || "Pengguna"}
                       </p>
                       <span
                         className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase ${currentRoleMeta.badgeColor}`}
@@ -209,7 +210,7 @@ export default function Navbar({ onOpenLogin }: NavbarProps) {
                       </span>
                     </div>
                     <p className="text-[11px] text-zinc-500 font-mono truncate">
-                      {session.user.email}
+                      {session?.user?.email}
                     </p>
                   </div>
 
@@ -260,7 +261,7 @@ export default function Navbar({ onOpenLogin }: NavbarProps) {
                 </div>
               )}
             </div>
-          ) : (
+          ) : ( */}
             <Link
               href="/auth/login"
               onClick={(e) => {
@@ -273,7 +274,7 @@ export default function Navbar({ onOpenLogin }: NavbarProps) {
             >
               Masuk
             </Link>
-          )}
+          {/* )} */}
 
           {/* Mobile Hamburger toggle */}
           <button

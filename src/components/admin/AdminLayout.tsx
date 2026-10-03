@@ -1,22 +1,33 @@
-import React from "react"
-import AdminSidebar from "@/components/admin/AdminSidebar"
-import AdminHeader from "@/components/admin/AdminHeader"
+"use client";
+
+import React from "react";
+import AdminSidebar from "@/components/admin/AdminSidebar";
+import AdminHeader from "@/components/admin/AdminHeader";
+import { AdminNotificationProvider } from "@/context/AdminNotificationContext";
+import AdminNotificationModal from "@/components/admin/AdminNotificationModal";
+import AdminNotificationToast from "@/components/admin/AdminNotificationToast";
 
 export default function AdminLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen w-full bg-white flex flex-col xl:flex-row font-sans antialiased text-slate-800">
-      {/* ──────────────── 1. LEFT SIDEBAR ──────────────── */}
-      <AdminSidebar />
+    <AdminNotificationProvider>
+      <div className="min-h-screen w-full bg-white flex flex-col xl:flex-row font-sans antialiased text-slate-800">
+        {/* ──────────────── 1. LEFT SIDEBAR ──────────────── */}
+        <AdminSidebar />
 
-      {/* ──────────────── 2. MAIN CONTENT AREA ──────────────── */}
-      <main className="flex-1 p-6 sm:p-8 space-y-7 bg-white min-w-0">
-        <AdminHeader />
-        {children}
-      </main>
-    </div>
-  )
+        {/* ──────────────── 2. MAIN CONTENT AREA ──────────────── */}
+        <main className="flex-1 p-6 sm:p-8 space-y-7 bg-white min-w-0">
+          <AdminHeader />
+          {children}
+        </main>
+
+        {/* ──────────────── 3. REAL-TIME NOTIFICATION OVERLAYS ──────────────── */}
+        <AdminNotificationModal />
+        <AdminNotificationToast />
+      </div>
+    </AdminNotificationProvider>
+  );
 }

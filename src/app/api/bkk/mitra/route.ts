@@ -23,8 +23,9 @@ export async function GET(req: Request) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Tidak terautentikasi." }, { status: 401 })
     }
-    if (session.user.role?.toLowerCase() !== "bkk") {
-      return NextResponse.json({ error: "Hanya Koordinator BKK yang dapat mengakses." }, { status: 403 })
+    const role = session.user.role?.toLowerCase()
+    if (role !== "bkk" && role !== "admin") {
+      return NextResponse.json({ error: "Hanya Koordinator BKK dan Admin yang berwenang mengakses." }, { status: 403 })
     }
 
     const { searchParams } = new URL(req.url)
@@ -38,6 +39,9 @@ export async function GET(req: Request) {
           ? {
               OR: [
                 { name: { contains: keyword, mode: "insensitive" } },
+                { field: { contains: keyword, mode: "insensitive" } },
+                { city: { contains: keyword, mode: "insensitive" } },
+                { nib: { contains: keyword, mode: "insensitive" } },
                 { user: { name: { contains: keyword, mode: "insensitive" } } },
                 { user: { email: { contains: keyword, mode: "insensitive" } } },
               ],
@@ -55,7 +59,7 @@ export async function GET(req: Request) {
           },
         },
         verifier: {
-          select: { name: true },
+          select: { name: true, role: true },
         },
       },
     })
@@ -66,6 +70,21 @@ export async function GET(req: Request) {
       email:              c.user.email,
       namaPerusahaan:     c.name,
       bidang:             c.field,
+      deskripsi:          c.description,
+      alamat:             c.address,
+      kota:               c.city,
+      provinsi:           c.province,
+      telepon:            c.phone,
+      website:            c.website,
+      nib:                c.nib,
+      npwp:               c.npwp,
+      skalaKaryawan:      c.employeeCount,
+      tahunBerdiri:       c.foundedYear,
+      logoUrl:            c.logoUrl,
+      picName:            c.picName,
+      picJabatan:         c.picPosition,
+      picEmail:           c.picEmail,
+      picPhone:           c.picPhone,
       dokumenUrl:         c.documentUrl,
       status:             c.verificationStatus,
       catatanVerifikasi:  c.catatanVerifikasi,
