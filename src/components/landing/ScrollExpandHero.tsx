@@ -13,9 +13,10 @@ export default function ScrollExpandHero() {
       <section className="relative overflow-hidden bg-white">
         <div className="relative h-[70vh] w-full overflow-hidden">
           <Image
-            src="/images/smkn13.jpg"
+            src="/images/smkn13.webp"
             alt="Siswa SMKN 13 Bandung mengerjakan proyek bersama"
             fill
+            sizes="100vw"
             className="object-cover"
           />
           <div className="absolute inset-0 bg-ink/55" />
@@ -42,9 +43,10 @@ export default function ScrollExpandHero() {
         }}
       >
         <Image
-          src="/images/smkn13.jpg"
+          src="/images/smkn13.webp"
           alt="Siswa SMKN 13 Bandung mengerjakan proyek bersama"
           fill
+          sizes="100vw"
           className="object-cover"
         />
         <div className="absolute inset-0 bg-ink/55" />

@@ -25,8 +25,8 @@ export interface EditProjectModalProps {
 
 const PRESET_COVERS = [
   { label: "RPL Software Preview", url: "/images/preview-rpl.jpg" },
-  { label: "TKJ Network Infrastructure", url: "/images/preview-tkj.jpg" },
-  { label: "Analis Kimia Lab", url: "/images/preview-analis-kimia.jpg" },
+  { label: "TKJ Network Infrastructure", url: "/images/preview-iot.jpg" },
+  { label: "Analis Kimia Lab", url: "/images/preview-kimia.jpg" },
   { label: "Kolaborasi Riset", url: "/images/hero-kolaborasi.jpg" },
 ];
 

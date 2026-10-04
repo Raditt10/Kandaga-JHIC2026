@@ -271,7 +271,7 @@ export default function RegisterPage() {
           />
 
           <Image
-            src="/images/models.png"
+            src="/images/models.webp"
             alt="Ilustrasi siswa jurusan RPL, Analis Kimia, dan TKJ"
             fill
             priority
