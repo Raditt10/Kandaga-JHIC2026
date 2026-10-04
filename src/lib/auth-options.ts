@@ -101,8 +101,38 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     // Simpan id, role, username & status verifikasi ke JWT saat login
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
+        if (account?.provider === "google" && user.email) {
+          try {
+            let dbUser = await prisma.users.findUnique({
+              where: { email: user.email },
+              include: { companyProfile: true },
+            })
+            if (!dbUser) {
+              dbUser = await prisma.users.create({
+                data: {
+                  name: user.name || user.email.split("@")[0],
+                  email: user.email,
+                  passwordHash: "",
+                  role: "Student",
+                  status: "aktif",
+                },
+                include: { companyProfile: true },
+              })
+            }
+            token.id = dbUser.id
+            token.role = normalizeRole(dbUser.role)
+            token.email = dbUser.email
+            token.name = dbUser.name
+            token.username = dbUser.name
+            token.verificationStatus = dbUser.companyProfile?.verificationStatus ?? null
+            return token
+          } catch (err) {
+            console.error("Google OAuth DB sync error:", err)
+          }
+        }
+
         token.id                 = user.id
         token.role               = (user as { role?: string }).role ?? "student"
         token.email              = user.email

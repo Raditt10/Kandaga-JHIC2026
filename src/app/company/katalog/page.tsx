@@ -19,8 +19,9 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 import Image from "next/image";
 import CompanyLayout from "@/components/company/CompanyLayout";
 import AjukanMinatModal, { type MinatProject } from "@/components/company/AjukanMinatModal";
+import EmptyState from "@/components/ui/EmptyState";
 import {
-  Search, Bookmark, BookmarkCheck, ArrowRight,
+  Search, SearchX, Bookmark, BookmarkCheck, ArrowRight,
   Eye, Loader2, AlertCircle, FlaskConical, Network, Code2,
 } from "lucide-react";
 
@@ -322,12 +323,12 @@ export default function KatalogPage() {
           <Loader2 className="w-8 h-8 text-ink-300 animate-spin" aria-hidden="true" />
         </div>
       ) : items.length === 0 ? (
-        <div className="flex flex-col items-center py-24 text-center">
-          <Search className="w-10 h-10 text-ink-300 mb-3" aria-hidden="true" />
-          <p className="font-heading text-base font-semibold text-ink-600">
-            Tidak ada karya yang cocok.
-          </p>
-          <p className="text-sm text-ink-300 mt-1">Coba ubah filter atau kata kunci pencarian.</p>
+        <div className="py-12 flex justify-center">
+          <EmptyState
+            icon={<SearchX className="w-7 h-7 text-[#8B1A2F]" />}
+            title="Tidak Ada Karya yang Cocok"
+            description="Tidak ditemukan karya dengan filter atau kata kunci tersebut. Coba ubah kata kunci atau setel ulang filter jurusan."
+          />
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">

@@ -107,19 +107,19 @@ export default function TersimpanPage() {
         </div>
       ) : items.length === 0 ? (
         /* Empty state */
-        <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-ink-150 py-20 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-violet-50 flex items-center justify-center mb-4">
-            <Bookmark className="w-8 h-8 text-violet-400" aria-hidden="true" />
+        <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-ink-200 bg-[#FBF9F6]/80 py-16 px-6 text-center max-w-md mx-auto">
+          <div className="w-14 h-14 rounded-2xl bg-white border border-ink-200/80 shadow-xs flex items-center justify-center mb-4">
+            <Bookmark className="w-7 h-7 text-[#8B1A2F]" aria-hidden="true" />
           </div>
-          <p className="font-heading text-base font-semibold text-ink-600">
-            Belum ada karya yang disimpan.
-          </p>
-          <p className="text-sm text-ink-300 mt-1 max-w-xs">
-            Kunjungi katalog dan klik ikon bookmark pada karya yang menarik.
+          <h3 className="font-heading text-lg font-bold text-ink">
+            Belum Ada Karya yang Disimpan
+          </h3>
+          <p className="text-sm text-ink-700 mt-2 max-w-xs leading-relaxed">
+            Kunjungi katalog karya siswa dan simpan proyek favorit Anda untuk ditinjau nanti.
           </p>
           <Link
             href="/company/katalog"
-            className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-white hover:bg-primary-dark transition-colors"
+            className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-white hover:bg-primary-dark transition-colors shadow-xs"
           >
             Jelajahi Katalog
             <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />

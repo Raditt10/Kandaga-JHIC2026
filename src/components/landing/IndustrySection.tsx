@@ -185,22 +185,8 @@ export default function IndustrySection() {
               transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
             >
               <Link href="/mitra/daftar"
-                className="rounded-full bg-primary px-7 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-dark">
+                className="rounded-xl bg-primary px-7 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-dark">
                 Daftar Sebagai Mitra Industri
-              </Link>
-              <Link
-                href="/faq#bkk"
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-700 hover:text-primary group"
-              >
-                <span>Pelajari cara kerja BKK</span>
-                <Image
-                  src="/icons/arrowright.svg"
-                  alt="Arrow"
-                  width={14}
-                  height={14}
-                  unoptimized
-                  className="w-3.5 h-3.5 object-contain transition-transform group-hover:translate-x-1"
-                />
               </Link>
             </motion.div>
           </div>

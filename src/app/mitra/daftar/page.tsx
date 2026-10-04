@@ -416,8 +416,7 @@ export default function DaftarMitraPage() {
         </div>
 
         {/* Right Column: Ilustrasi Mitra Perusahaan (company.webp) */}
-        <div className="relative hidden lg:block w-full h-full min-h-[580px] rounded-2xl lg:rounded-[28px] overflow-hidden bg-[#7C0215]">
-          {/* Dasar marun — gradien matching dengan background dan tema aplikasi */}
+        <div className="relative hidden lg:block w-full h-full min-h-[560px] rounded-2xl lg:rounded-[28px] overflow-hidden bg-[#7C0215]">
           <div
             className="absolute inset-0"
             style={{ background: "linear-gradient(90deg, #7C0215 0%, #8C051A 55%, #8F071C 100%)" }}
@@ -425,26 +424,14 @@ export default function DaftarMitraPage() {
           />
 
           <Image
-            src="/images/company.webp"
-            alt="Ilustrasi Mitra Industri dan Rekrutmen Perusahaan"
+            src="/images/company-v2.webp"
+            alt="Ilustrasi Mitra Industri dan Perusahaan"
             fill
             priority
             sizes="(min-width: 1280px) 512px, 448px"
             className="object-cover object-center select-none"
             draggable={false}
           />
-
-          {/* Overlay info box di bagian bawah */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 p-8 bg-gradient-to-t from-black/85 via-black/45 to-transparent text-white">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold mb-2">
-              <Building2 className="w-3.5 h-3.5" />
-              <span>Mitra Industri &amp; DUDI</span>
-            </div>
-            <h3 className="text-xl font-bold tracking-tight">Kemitraan &amp; Rekrutmen Talenta</h3>
-            <p className="text-xs text-white/85 mt-1 leading-relaxed">
-              Hubungkan kebutuhan industri Anda langsung dengan talenta terverifikasi dari SMKN 13 Bandung.
-            </p>
-          </div>
         </div>
 
       </div>

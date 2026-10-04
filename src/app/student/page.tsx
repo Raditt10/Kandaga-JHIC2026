@@ -36,6 +36,8 @@ import {
   ImagePlus,
   Video,
   Trash2,
+  Inbox,
+  SearchX,
 } from "lucide-react"
 
 export interface StudentProject {
@@ -727,10 +729,12 @@ export default function StudentDashboardPage() {
           {/* Project List Items */}
           <div className="space-y-4">
             {filteredProjects.length === 0 ? (
-              <div className="p-12 text-center bg-white rounded-2xl border border-ink-150">
-                <FolderGit2 className="w-12 h-12 text-ink-300 mx-auto mb-3" />
-                <h3 className="font-heading text-base font-bold text-ink-700">Tidak ada karya yang cocok</h3>
-                <p className="text-xs text-ink-600 mt-1">Coba sesuaikan kata kunci pencarian atau filter status Anda.</p>
+              <div className="p-12 text-center bg-[#FBF9F6] rounded-3xl border-2 border-dashed border-ink-200 flex flex-col items-center">
+                <div className="w-14 h-14 rounded-2xl bg-white border border-ink-200/80 shadow-xs flex items-center justify-center text-[#8B1A2F] mb-3">
+                  <SearchX className="w-7 h-7" />
+                </div>
+                <h3 className="font-heading text-base font-bold text-ink">Tidak Ada Karya yang Cocok</h3>
+                <p className="text-sm text-ink-700 mt-1.5 max-w-sm">Coba sesuaikan kata kunci pencarian atau reset filter kategori karya Anda.</p>
               </div>
             ) : (
               filteredProjects.map((project) => (
@@ -894,8 +898,12 @@ export default function StudentDashboardPage() {
               )}
 
               {!memuatKontak && kontak.length === 0 && (
-                <div className="py-8 text-center">
-                  <p className="text-xs text-ink-400">Belum ada perusahaan yang menghubungi Anda melalui BKK.</p>
+                <div className="py-8 px-4 text-center flex flex-col items-center rounded-2xl bg-[#FBF9F6] border border-ink-150">
+                  <div className="w-10 h-10 rounded-xl bg-white border border-ink-150 shadow-2xs flex items-center justify-center text-[#8B1A2F] mb-2">
+                    <Inbox className="w-5 h-5" />
+                  </div>
+                  <p className="text-xs font-bold text-ink">Belum Ada Permintaan Kontak</p>
+                  <p className="text-[11px] text-ink-600 mt-0.5">Belum ada perusahaan yang menghubungi Anda melalui BKK.</p>
                 </div>
               )}
 
@@ -962,13 +970,14 @@ export default function StudentDashboardPage() {
             </div>
           )}
 
-          {/* Empty state */}
           {!memuatLowongan && lowongan.length === 0 && (
-            <div className="p-12 text-center bg-white rounded-2xl border border-ink-150">
-              <Briefcase className="w-10 h-10 text-ink-300 mx-auto mb-3" />
-              <h3 className="font-heading text-base font-bold text-ink-700">Belum ada lowongan aktif</h3>
-              <p className="text-xs text-ink-600 mt-1">
-                BKK SMKN 13 belum memposting lowongan magang saat ini. Pantau terus halaman ini.
+            <div className="p-12 text-center bg-[#FBF9F6] rounded-3xl border-2 border-dashed border-ink-200 flex flex-col items-center">
+              <div className="w-14 h-14 rounded-2xl bg-white border border-ink-200/80 shadow-xs flex items-center justify-center text-[#8B1A2F] mb-3">
+                <Briefcase className="w-7 h-7" />
+              </div>
+              <h3 className="font-heading text-base font-bold text-ink">Belum Ada Lowongan Aktif</h3>
+              <p className="text-sm text-ink-700 mt-1 max-w-sm">
+                BKK SMKN 13 belum memposting lowongan magang saat ini. Pantau terus pembaruan informasi di sini.
               </p>
             </div>
           )}

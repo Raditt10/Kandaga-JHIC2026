@@ -318,10 +318,6 @@ export default function GallerySection() {
                 icon={<SearchX className="w-7 h-7 text-[#8B1A2F]" />}
                 title="Belum Ada Karya yang Dipublikasikan"
                 description="Karya inovasi siswa masih dalam proses bimbingan dan kurasi resmi guru SMKN 13 Bandung."
-                action={{
-                  label: "Jelajahi Katalog Lengkap",
-                  href: "/gallery",
-                }}
               />
             )}
           </div>

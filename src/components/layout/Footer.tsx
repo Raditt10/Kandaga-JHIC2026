@@ -239,7 +239,7 @@ export default function Footer() {
 
             <div className="border-t border-white/15 pt-6">
               <p className="mb-3 text-base font-semibold text-white">
-                Tautan Induk
+                Website Sekolah
               </p>
               <a
                 href="https://smkn13bandung.sch.id"

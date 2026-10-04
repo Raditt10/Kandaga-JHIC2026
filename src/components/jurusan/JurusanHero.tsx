@@ -9,7 +9,7 @@ import { JurusanDetail } from "@/data/jurusanData";
 /** Foto model per jurusan (rasio 2:3). TKJ menyusul. */
 const MODEL_BY_MAJOR: Record<string, string> = {
   "analis-kimia": "/majors/MODELKA2.webp",
-  rpl: "/images/MODELRPL.webp",
+  rpl: "/images/model-rpl.webp",
 };
 
 export default function JurusanHero({
@@ -152,6 +152,7 @@ export default function JurusanHero({
                   alt={`Siswa program ${currentMajor.name}`}
                   fill
                   priority
+                  unoptimized
                   sizes="(min-width: 1024px) 480px, 100vw"
                   className={currentMajor.id === "rpl" ? "object-contain" : "object-cover"}
                 />
