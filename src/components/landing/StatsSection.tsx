@@ -69,6 +69,8 @@ function StatItem({ value, suffix, label, active }: Stat & { active: boolean }) 
 export default function StatsSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-80px" });
+  /* Tanpa `once` — dipakai untuk mematikan animasi kilau saat bagian ini di luar layar. */
+  const floatsInView = useInView(sectionRef, { margin: "-80px" });
 
   // Mulai dari data statis — diperbarui setelah API merespons
   const [stats, setStats] = useState<Stat[]>(STATS);
@@ -94,19 +96,27 @@ export default function StatsSection() {
 
   return (
     <section ref={sectionRef} className="relative overflow-hidden bg-ink py-20 md:py-24">
-      {/* Aksen kilau emas sangat halus */}
-      <motion.div
-        className="pointer-events-none absolute -left-40 -top-40 h-96 w-96 rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(232,201,122,0.08) 0%, transparent 70%)" }}
-        animate={{ x: [0, 30, 0], y: [0, 20, 0] }}
-        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="pointer-events-none absolute -bottom-20 right-0 h-80 w-80 rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(232,201,122,0.06) 0%, transparent 70%)" }}
-        animate={{ x: [0, -20, 0], y: [0, -15, 0] }}
-        transition={{ duration: 24, repeat: Infinity, ease: "easeInOut" }}
-      />
+      {/*
+       * Aksen kilau emas sangat halus — hanya dirender saat bagian ini terlihat.
+       * Keduanya beranimasi `repeat: Infinity`; kalau dibiarkan tetap hidup di luar
+       * layar, compositor terus bekerja selama pengguna menggulir bagian lain.
+       */}
+      {floatsInView && (
+        <>
+          <motion.div
+            className="pointer-events-none absolute -left-40 -top-40 h-96 w-96 rounded-full"
+            style={{ background: "radial-gradient(circle, rgba(232,201,122,0.08) 0%, transparent 70%)" }}
+            animate={{ x: [0, 30, 0], y: [0, 20, 0] }}
+            transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="pointer-events-none absolute -bottom-20 right-0 h-80 w-80 rounded-full"
+            style={{ background: "radial-gradient(circle, rgba(232,201,122,0.06) 0%, transparent 70%)" }}
+            animate={{ x: [0, -20, 0], y: [0, -15, 0] }}
+            transition={{ duration: 24, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </>
+      )}
 
       <div className="relative mx-auto max-w-7xl px-6">
         <div className="flex flex-col gap-12 md:flex-row md:items-start md:gap-20">

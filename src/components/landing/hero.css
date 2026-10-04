@@ -116,7 +116,6 @@
   );
   pointer-events: none;
   z-index: 0;
-  filter: blur(4px);
 }
 
 /* ── Layer ikon melayang (terpasang di hero-root, bukan di stage) ─── */
@@ -145,6 +144,18 @@
   25%      { transform: translate(5px, -5px) rotate(2deg); }
   50%      { transform: translate(-2px, -11px) rotate(5deg); }
   75%      { transform: translate(-5px, -4px) rotate(-1deg); }
+}
+
+/*
+ * Sepuluh ikon beranimasi tanpa henti. Tanpa ini, compositor terus bekerja
+ * selama pengguna menggulir bagian lain halaman — padahal hero sudah tidak
+ * terlihat. Kelas ini dipasang/dilepas oleh HeroFloatingIcons lewat
+ * IntersectionObserver. will-change dimatikan sekalian agar lapisan
+ * compositor milik ikon dilepas saat animasinya berhenti.
+ */
+.hero-floating-icon--paused {
+  animation-play-state: paused;
+  will-change: auto;
 }
 
 /* ── Stage ────────────────────────────────────────────────────────── */
@@ -192,7 +203,6 @@
   );
   pointer-events: none;
   z-index: 1;
-  filter: blur(20px);
 }
 
 /* ── Bayangan Blur Kiri & Kanan (dinonaktifkan karena lingkaran dihapus) ── */
@@ -396,7 +406,6 @@
     0 16px 36px -4px rgba(139, 26, 47, 0.42),
     0 4px 16px rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(8px);
   overflow: hidden;
   padding: clamp(8px, 1.2vw, 16px) clamp(6px, 1.5vw, 18px);
 }

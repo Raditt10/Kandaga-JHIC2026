@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "motion/react";
+import { motion, AnimatePresence, useMotionValue, useTransform, animate, useInView } from "motion/react";
 import { revealUp, staggerChildren } from "@/lib/motion";
 import JellyRadio from "@/components/ui/JellyRadio";
 import { GALLERY_FILTERS } from "@/lib/data";
@@ -186,6 +186,13 @@ export default function GallerySection() {
   const [activeFilter, setActiveFilter] = useState("Semua")
   const [activeIndex, setActiveIndex] = useState(0)
   const pauseRef = useRef(false)
+  const sectionRef = useRef<HTMLElement>(null)
+  /*
+   * Auto-advance 7 detik hanya boleh berdetak saat galeri terlihat. Sebelumnya
+   * interval tetap jalan walau galeri jauh di luar layar, sehingga animasi kartu
+   * terus dipicu selama pengguna menggulir bagian lain halaman.
+   */
+  const autoAdvanceInView = useInView(sectionRef, { margin: "0px 0px -10% 0px" })
 
   // ── Fetch on mount ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -225,17 +232,17 @@ export default function GallerySection() {
 
   // ── Auto-advance setiap 7 detik ─────────────────────────────────────────────
   useEffect(() => {
-    if (cards.length === 0) return
+    if (cards.length === 0 || !autoAdvanceInView) return
     const id = setInterval(() => {
       if (!pauseRef.current) setActiveIndex((i) => (i + 1) % cards.length)
     }, 7000)
     return () => clearInterval(id)
-  }, [cards.length])
+  }, [cards.length, autoAdvanceInView])
 
   const activeCard = cards[activeIndex]
 
   return (
-    <section id="galeri-section" className="mx-auto max-w-7xl px-6 py-20 md:py-24">
+    <section ref={sectionRef} id="galeri-section" className="mx-auto max-w-7xl px-6 py-20 md:py-24">
       {/* Header */}
       <motion.div
         className="mb-10 max-w-xl"

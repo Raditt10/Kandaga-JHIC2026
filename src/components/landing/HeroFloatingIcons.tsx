@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+
 /**
  * HeroFloatingIcons.tsx  v3
  *
@@ -153,15 +155,37 @@ const SVG: Record<string, SvgFn> = {
 };
 
 export default function HeroFloatingIcons() {
+  const layerRef = useRef<HTMLDivElement>(null);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    const el = layerRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+
+    /*
+     * Sepuluh ikon ini beranimasi tanpa henti. Tanpa penjeda, compositor
+     * terus bekerja selama pengguna menggulir bagian lain halaman padahal
+     * hero sudah tidak terlihat — ini salah satu penyebab scroll tersendat.
+     */
+    const observer = new IntersectionObserver(
+      ([entry]) => setPaused(!entry.isIntersecting),
+      { rootMargin: "0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="hero-icons-layer" aria-hidden="true">
+    <div ref={layerRef} className="hero-icons-layer" aria-hidden="true">
       {ICONS.map((icon) => {
         const fn = SVG[icon.id];
         if (!fn) return null;
         return (
           <span
             key={icon.key}
-            className={`hero-floating-icon${icon.hideMobile ? " hero-icon-hide-mobile" : ""}`}
+            className={`hero-floating-icon${
+              icon.hideMobile ? " hero-icon-hide-mobile" : ""
+            }${paused ? " hero-floating-icon--paused" : ""}`}
             style={{
               left:     icon.left,
               right:    icon.right,
