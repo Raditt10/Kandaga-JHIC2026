@@ -28,9 +28,6 @@
   --font-heading:     var(--font-poppins);
   --font-sans:        var(--font-inter);
   --font-mono:        var(--font-geist-mono);
-  --font-tangerine:   var(--font-tangerine);
-  --font-montserrat:  var(--font-montserrat);
-  --font-bebas:       var(--font-bebas-neue);
 }
 
 body {
@@ -42,14 +39,6 @@ body {
 }
 
 /* ── Font utility classes ── */
-.font-tangerine {
-  font-family: var(--font-tangerine), "Tangerine", cursive;
-}
-
-.font-bebas {
-  font-family: var(--font-bebas-neue), "Bebas Neue", sans-serif;
-}
-
 /* ── 3D utilities (untuk carousel/kartu) ── */
 .perspective-1000 {
   perspective: 1200px;

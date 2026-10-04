@@ -126,6 +126,14 @@ export async function PATCH(
       data: { title: updated.title, score: score ?? null },
     });
 
+    // Invalidate Redis gallery cache
+    try {
+      const { invalidateGalleryCache } = await import("@/lib/redis");
+      await invalidateGalleryCache();
+    } catch (cacheErr) {
+      console.warn("Cache invalidation error:", cacheErr);
+    }
+
     return NextResponse.json(
       { success: true, project: mapTeacherProject(updated) },
       { status: 200 }

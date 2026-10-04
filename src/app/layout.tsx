@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Poppins, Inter, Tangerine, Montserrat, Bebas_Neue } from "next/font/google";
+import { Poppins, Inter } from "next/font/google";
 import SmoothScrollProvider from "@/lib/SmoothScrollProvider";
 import AuthProvider from "@/lib/AuthProvider";
 import "./globals.css";
@@ -16,27 +16,6 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-const tangerine = Tangerine({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-tangerine",
-  display: "swap",
-});
-
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
-  variable: "--font-montserrat",
-  display: "swap",
-});
-
-const bebasNeue = Bebas_Neue({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-bebas-neue",
-  display: "swap",
-});
-
 export const metadata: Metadata = {
   title: "Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung",
   description:
@@ -50,7 +29,7 @@ export default function RootLayout({
     <html
       lang="id"
       suppressHydrationWarning
-      className={`${poppins.variable} ${inter.variable} ${tangerine.variable} ${montserrat.variable} ${bebasNeue.variable}`}
+      className={`${poppins.variable} ${inter.variable}`}
     >
       <body suppressHydrationWarning>
         <AuthProvider>
