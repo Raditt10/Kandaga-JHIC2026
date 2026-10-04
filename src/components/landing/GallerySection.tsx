@@ -6,8 +6,9 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, useMotionValue, useTransform, animate, useInView } from "motion/react";
 import { revealUp, staggerChildren } from "@/lib/motion";
 import JellyRadio from "@/components/ui/JellyRadio";
+import EmptyState from "@/components/ui/EmptyState";
+import { Loader2, SearchX, AlertCircle } from "lucide-react";
 import { GALLERY_FILTERS } from "@/lib/data";
-import { Loader2 } from "lucide-react";
 
 // ─── Tipe kartu internal deck ─────────────────────────────────────────────────
 
@@ -288,17 +289,28 @@ export default function GallerySection() {
 
         {/* Error / empty state */}
         {!isLoading && (fetchError || cards.length === 0) && (
-          <div className="mx-auto flex h-80 max-w-3xl items-center justify-center md:h-96">
-            <div className="text-center space-y-2">
-              {fetchError ? (
-                <>
-                  <Loader2 className="w-6 h-6 text-ink-300 mx-auto" />
-                  <p className="text-sm text-ink-300">Gagal memuat karya. Coba muat ulang.</p>
-                </>
-              ) : (
-                <p className="text-sm text-ink-300">Belum ada karya yang dipublikasikan.</p>
-              )}
-            </div>
+          <div className="mx-auto flex min-h-[320px] max-w-3xl items-center justify-center px-4 py-8">
+            {fetchError ? (
+              <EmptyState
+                icon={<AlertCircle className="w-7 h-7 text-rose-600" />}
+                title="Gagal Memuat Karya"
+                description="Terjadi kendala saat mengambil data karya siswa. Silakan coba muat ulang halaman."
+                action={{
+                  label: "Muat Ulang Halaman",
+                  onClick: () => window.location.reload(),
+                }}
+              />
+            ) : (
+              <EmptyState
+                icon={<SearchX className="w-7 h-7 text-[#8B1A2F]" />}
+                title="Belum Ada Karya yang Dipublikasikan"
+                description="Karya inovasi siswa masih dalam proses bimbingan dan kurasi resmi guru SMKN 13 Bandung."
+                action={{
+                  label: "Jelajahi Katalog Lengkap",
+                  href: "/gallery",
+                }}
+              />
+            )}
           </div>
         )}
 
