@@ -100,7 +100,7 @@ export default function Footer() {
                 <Image
                   src="/logo.png"
                   alt="Kandaga Logo"
-                  fill
+                  fill sizes="32px"
                   className="object-contain"
                 />
               </div>

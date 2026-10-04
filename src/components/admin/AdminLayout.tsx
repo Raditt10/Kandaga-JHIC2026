@@ -28,7 +28,6 @@ import {
 import DashboardShell, {
   type ShellNavItem,
 } from "@/components/dashboard/DashboardShell"
-import { usersDatabase } from "@/lib/users"
 
 export default function AdminLayout({
   children,
@@ -48,7 +47,6 @@ export default function AdminLayout({
       label: "Kelola Pengguna",
       href: "/admin/pengguna",
       icon: Users,
-      badge: `${usersDatabase.length}`,
     },
     {
       key: "moderasi",
