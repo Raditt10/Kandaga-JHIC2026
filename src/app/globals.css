@@ -27,10 +27,7 @@
   /* ── Font ── */
   --font-heading:     var(--font-poppins);
   --font-sans:        var(--font-jakarta);
-  --font-mono:        var(--font-geist-mono);
-  --font-tangerine:   var(--font-tangerine);
-  --font-montserrat:  var(--font-montserrat);
-  --font-bebas:       var(--font-bebas-neue);
+  --font-mono:        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
 
 body {
@@ -39,15 +36,6 @@ body {
   font-family: var(--font-jakarta), "Plus Jakarta Sans", Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-/* ── Font utility classes ── */
-.font-tangerine {
-  font-family: var(--font-tangerine), "Tangerine", cursive;
-}
-
-.font-bebas {
-  font-family: var(--font-bebas-neue), "Bebas Neue", sans-serif;
 }
 
 /* ── 3D utilities (untuk carousel/kartu) ── */

@@ -51,7 +51,12 @@ export async function POST(req: NextRequest) {
     const filePath = path.join(uploadDir, filename);
     await writeFile(filePath, buffer);
 
+    // Cache uploaded image in Redis for instant subsequent access
+    const { setFileCache } = await import("@/lib/redis");
+    await setFileCache(`cache:media:${filename}`, buffer, file.type, 86400 * 7);
+
     const publicUrl = `/assets/uploads/${filename}`;
+
 
     return NextResponse.json(
       {

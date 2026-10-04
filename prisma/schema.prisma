@@ -330,8 +330,8 @@ model FAQs {
   question  String
   answer    String
   
-  asker     Users    @relation("FAQSAsker", fields: [askerId], references: [id])
-  replier   Users    @relation("FAQsReplier", fields: [replierId], references: [id])
+  asker     Users    @relation("FAQSAsker", fields: [askerId], references: [id], onDelete: Cascade)
+  replier   Users    @relation("FAQsReplier", fields: [replierId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz

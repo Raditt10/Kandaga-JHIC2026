@@ -254,6 +254,14 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
       },
     });
 
+    // Invalidate Redis gallery and student caches
+    try {
+      const { invalidateGalleryCache } = await import("@/lib/redis");
+      await invalidateGalleryCache();
+    } catch (cacheErr) {
+      console.warn("Cache invalidation error:", cacheErr);
+    }
+
     const mapped = mapDatabaseProject(updated);
     return NextResponse.json({ success: true, project: mapped }, { status: 200 });
   } catch (error) {
@@ -298,6 +306,14 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
       entityId: id,
       data: { title: existing.title },
     });
+
+    // Invalidate Redis gallery and student caches
+    try {
+      const { invalidateGalleryCache } = await import("@/lib/redis");
+      await invalidateGalleryCache();
+    } catch (cacheErr) {
+      console.warn("Cache invalidation error:", cacheErr);
+    }
 
     return NextResponse.json(
       { success: true, message: "Karya dipindahkan ke arsip (bisa dipulihkan admin)." },

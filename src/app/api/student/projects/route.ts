@@ -269,6 +269,14 @@ export async function POST(req: NextRequest) {
       console.warn("Socket broadcast error:", sockErr);
     }
 
+    // Invalidate gallery Redis cache
+    try {
+      const { invalidateGalleryCache } = await import("@/lib/redis");
+      await invalidateGalleryCache();
+    } catch (cacheErr) {
+      console.warn("Cache invalidation error:", cacheErr);
+    }
+
     return NextResponse.json(
       {
         success: true,

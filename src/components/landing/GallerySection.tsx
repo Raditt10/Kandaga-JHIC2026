@@ -51,9 +51,6 @@ function DeckCard({
   isActive: boolean;
 }) {
   const router = useRouter();
-  const style = getCardStyle(offset);
-  if (!style) return null;
-
   const dragX = useMotionValue(0);
   // Rotasi ekstra saat di-drag (hanya kartu aktif)
   const dragRotate = useTransform(dragX, [-200, 0, 200], [-12, 0, 12]);
@@ -72,6 +69,9 @@ function DeckCard({
     },
     [onDragLeft, onDragRight, dragX]
   );
+
+  const style = getCardStyle(offset);
+  if (!style) return null;
 
   const handleClick = () => {
     if (isActive) router.push(card.href);

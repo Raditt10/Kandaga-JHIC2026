@@ -1,79 +1,74 @@
-import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
+import { getGalleryProjects, PaginatedGalleryResult } from "@/lib/gallery-server";
+import { getCache, setCache } from "@/lib/redis";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const dbProjects = await prisma.projects.findMany({
-      where: { status: "approved", deletedAt: null },
-      include: {
-        media: true,
-        tools: {
-          include: {
-            tool: true,
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "12", 10);
+    const major = (searchParams.get("major") || searchParams.get("jurusan") || "semua").toLowerCase();
+    const q = (searchParams.get("q") || "").trim();
+    const sort = (searchParams.get("sort") || "terbaru").toLowerCase();
+
+    const validPage = isNaN(page) ? 1 : Math.max(1, page);
+    const validLimit = isNaN(limit) ? 12 : Math.min(50, Math.max(1, limit));
+
+    // Cache key for Redis
+    const cacheKey = `gallery:list:${major}:${encodeURIComponent(q)}:${sort}:${validPage}:${validLimit}`;
+
+    // Attempt cache retrieval from Redis
+    const cachedResult = await getCache<PaginatedGalleryResult>(cacheKey);
+    if (cachedResult && Array.isArray(cachedResult.projects)) {
+      return NextResponse.json(
+        {
+          projects: cachedResult.projects,
+          pagination: {
+            page: cachedResult.page,
+            limit: cachedResult.limit,
+            total: cachedResult.total,
+            totalPages: cachedResult.totalPages,
           },
         },
-        badges: {
-          include: {
-            badge: true,
+        {
+          status: 200,
+          headers: {
+            "X-Cache": "HIT",
+            "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
           },
-        },
-        student: {
-          include: {
-            user: true,
-            major: true,
-          },
-        },
-        advisor: {
-          include: {
-            user: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
+        }
+      );
+    }
+
+    const result = await getGalleryProjects({
+      page: validPage,
+      limit: validLimit,
+      major,
+      q,
+      sort,
     });
 
-    const mapped = (dbProjects || []).map((p) => {
-      const typeSlug = p.type === "KA" ? "analis-kimia" : p.type === "TKJ" ? "tkj" : "rpl";
-      const typeLabel = p.type === "KA" ? "Analis Kimia" : p.type === "TKJ" ? "TKJ" : "RPL";
-      const mediaUrls = (p.media || []).map((m: any) => m.url);
-      const cover = p.coverImage || mediaUrls[0] || "/images/preview-rpl.jpg";
+    // Store in Redis (TTL: 300 seconds / 5 minutes)
+    await setCache(cacheKey, result, 300);
 
-      return {
-        id: p.id,
-        title: p.title,
-        tagline: p.description ? p.description.slice(0, 110) + "..." : "Karya tugas akhir siswa SMKN 13 Bandung.",
-        description: p.description || "",
-        solutionHighlights: [],
-        major: typeSlug as any,
-        majorLabel: typeLabel,
-        jurusan: typeSlug as any,
-        jurusanLabel: typeLabel,
-        year: p.year || new Date().getFullYear(),
-        coverImage: cover,
-        galleryImages: mediaUrls.length > 0 ? mediaUrls : [cover],
-        status: (p.status === "featured" ? "featured" : "verified") as any,
-        tools: (p.tools || []).map((t) => t.name || t.tool?.name).filter(Boolean),
-        studentId: p.studentId,
-        studentName: p.student?.user?.name || "Siswa SMKN 13",
-        studentAvatar: p.student?.photoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-        studentClass: p.student?.class || "XII",
-        isStudentPrivate: false,
-        advisor: {
-          name: p.advisor?.user?.name || "Guru Pembimbing",
-          role: "Guru Pembimbing Kompetensi Keahlian",
-          reviewNotes: p.reviewNotes || "Terverifikasi sekolah.",
+    return NextResponse.json(
+      {
+        projects: result.projects,
+        pagination: {
+          page: result.page,
+          limit: result.limit,
+          total: result.total,
+          totalPages: result.totalPages,
         },
-        metrics: {
-          views: p.viewCount || 0,
-          likes: p.stars || 0,
+      },
+      {
+        status: 200,
+        headers: {
+          "X-Cache": "MISS",
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
         },
-        links: {},
-      };
-    });
-
-    return NextResponse.json({ projects: mapped }, { status: 200 });
+      }
+    );
   } catch (error) {
     console.error("Error in /api/gallery:", error);
     return NextResponse.json({ error: "internal server error" }, { status: 500 });

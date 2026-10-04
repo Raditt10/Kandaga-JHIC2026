@@ -139,6 +139,14 @@ export async function PATCH(
       },
     });
 
+    // Invalidate Redis gallery cache
+    try {
+      const { invalidateGalleryCache } = await import("@/lib/redis");
+      await invalidateGalleryCache();
+    } catch (cacheErr) {
+      console.warn("Cache invalidation error:", cacheErr);
+    }
+
     return NextResponse.json({ success: true, project: updated });
   } catch (error) {
     console.error("PATCH /api/admin/projects/[id] error:", error);

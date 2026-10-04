@@ -3,7 +3,8 @@ import { parse } from "url";
 import next from "next";
 import { Server as SocketIOServer } from "socket.io";
 import prisma from "./src/lib/prisma";
-import type { AdminNotification, NotificationItemCategory, NotificationType } from "./src/types/notification";
+import type { Notifications } from "@prisma/client";
+import type { AdminNotification, NotificationType } from "./src/types/notification";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = process.env.HOSTNAME || "localhost";
@@ -12,18 +13,60 @@ const port = parseInt(process.env.PORT || "3000", 10);
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
-function mapPrismaNotification(n: any): AdminNotification {
+interface BroadcastActivityPayload {
+  type?: NotificationType;
+  title?: string;
+  message?: string;
+  content?: string;
+  [key: string]: unknown;
+}
+
+type SocketCallback<T = Record<string, unknown>> = (
+  res: { success: boolean; error?: string } & T
+) => void;
+
+function mapPrismaNotification(n: Notifications): AdminNotification {
   return {
     id: n.id,
     type: (n.type || "project_created") as NotificationType,
-    category: (n.category || "project") as NotificationItemCategory,
+    category: "project",
     title: n.title,
     message: n.content,
     timestamp: n.createdAt ? new Date(n.createdAt).toISOString() : new Date().toISOString(),
     read: Boolean(n.isRead),
-    priority: (n.priority || "normal") as any,
-    metadata: (n.metadata as any) || {},
+    priority: "normal",
+    metadata: {},
   };
+}
+
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// In-memory & Redis cache for Admin User ID to avoid repetitive DB roundtrips on broadcast events
+let cachedAdminUserId: string | null = null;
+async function getAdminUserId(): Promise<string | null> {
+  if (cachedAdminUserId) return cachedAdminUserId;
+  try {
+    const { getCache, setCache } = await import("./src/lib/redis");
+    const fromRedis = await getCache<string>("system:admin_user_id");
+    if (fromRedis) {
+      cachedAdminUserId = fromRedis;
+      return cachedAdminUserId;
+    }
+
+    const adminUser = await prisma.users.findFirst({
+      where: { role: "Admin" },
+      select: { id: true },
+    });
+    if (adminUser?.id) {
+      cachedAdminUserId = adminUser.id;
+      await setCache("system:admin_user_id", adminUser.id, 86400);
+      return cachedAdminUserId;
+    }
+  } catch (err) {
+    console.error("[Socket.IO Server] Error resolving admin user ID:", err);
+  }
+  return null;
 }
 
 app.prepare().then(() => {
@@ -81,58 +124,83 @@ app.prepare().then(() => {
     });
 
     // Handle broadcast activity event - saves to Prisma and broadcasts to admin_channel
-    socket.on("broadcast_activity", async (payload: any, callback?: (res: any) => void) => {
-      console.log(`[Socket.IO Server] Activity broadcasted:`, payload?.title || payload);
-      try {
-        const adminUser = await prisma.users.findFirst({
-          where: { role: "Admin" },
-        });
+    socket.on(
+      "broadcast_activity",
+      async (
+        payload: BroadcastActivityPayload,
+        callback?: SocketCallback<{ notification?: AdminNotification }>
+      ) => {
+        console.log(`[Socket.IO Server] Activity broadcasted:`, payload?.title || payload);
+        try {
+          const adminUserId = await getAdminUserId();
+          if (!adminUserId) {
+            console.warn("[Socket.IO Server] No admin user found in database to assign notification");
+            if (typeof callback === "function") {
+              callback({ success: false, error: "Admin user not found" });
+            }
+            return;
+          }
 
-        const created = await prisma.notifications.create({
-          data: {
-            userId: adminUser?.id || "00000000-0000-0000-0000-000000000000",
-            type: payload?.type || "project_created",
-            title: payload?.title || "Aktivitas Web Baru",
-            content: payload?.message || payload?.content || "Aktivitas baru tercatat pada platform Kandaga.",
-            isRead: false,
-          },
-        });
-        const mapped = mapPrismaNotification(created);
-        io.to("admin_channel").emit("admin_notification", mapped);
-        if (typeof callback === "function") {
-          callback({ success: true, notification: mapped });
-        }
-      } catch (error: any) {
-        console.error("[Socket.IO Server] Error saving broadcast activity to Prisma:", error);
-        if (typeof callback === "function") {
-          callback({ success: false, error: "Database error" });
+          const created = await prisma.notifications.create({
+            data: {
+              userId: adminUserId,
+              type: payload?.type || "project_created",
+              title: payload?.title || "Aktivitas Web Baru",
+              content:
+                payload?.message ||
+                payload?.content ||
+                "Aktivitas baru tercatat pada platform Kandaga.",
+              isRead: false,
+            },
+          });
+          const mapped = mapPrismaNotification(created);
+          io.to("admin_channel").emit("admin_notification", mapped);
+          if (typeof callback === "function") {
+            callback({ success: true, notification: mapped });
+          }
+        } catch (error: unknown) {
+          console.error("[Socket.IO Server] Error saving broadcast activity to Prisma:", error);
+          if (typeof callback === "function") {
+            callback({ success: false, error: "Database error" });
+          }
         }
       }
-    });
+    );
 
     // Mark single notification as read via socket
-    socket.on("mark_read", async (payload: { id: string }, callback?: (res: any) => void) => {
-      if (!payload?.id) return;
-      try {
-        const updated = await prisma.notifications.update({
-          where: { id: payload.id },
-          data: { isRead: true },
-        });
-        const mapped = mapPrismaNotification(updated);
-        io.to("admin_channel").emit("admin_notification_updated", mapped);
-        if (typeof callback === "function") {
-          callback({ success: true, notification: mapped });
+    socket.on(
+      "mark_read",
+      async (
+        payload: { id: string },
+        callback?: SocketCallback<{ notification?: AdminNotification }>
+      ) => {
+        if (!payload?.id || !UUID_REGEX.test(payload.id)) {
+          if (typeof callback === "function") {
+            callback({ success: false, error: "Invalid notification ID" });
+          }
+          return;
         }
-      } catch (error: any) {
-        console.error("[Socket.IO Server] Error marking read in Prisma:", error);
-        if (typeof callback === "function") {
-          callback({ success: false, error: "Database error" });
+        try {
+          const updated = await prisma.notifications.update({
+            where: { id: payload.id },
+            data: { isRead: true },
+          });
+          const mapped = mapPrismaNotification(updated);
+          io.to("admin_channel").emit("admin_notification_updated", mapped);
+          if (typeof callback === "function") {
+            callback({ success: true, notification: mapped });
+          }
+        } catch (error: unknown) {
+          console.error("[Socket.IO Server] Error marking read in Prisma:", error);
+          if (typeof callback === "function") {
+            callback({ success: false, error: "Database error" });
+          }
         }
       }
-    });
+    );
 
     // Mark all notifications as read via socket
-    socket.on("mark_all_read", async (callback?: (res: any) => void) => {
+    socket.on("mark_all_read", async (callback?: SocketCallback) => {
       try {
         await prisma.notifications.updateMany({
           where: { isRead: false },
@@ -142,7 +210,7 @@ app.prepare().then(() => {
         if (typeof callback === "function") {
           callback({ success: true });
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("[Socket.IO Server] Error marking all read in Prisma:", error);
         if (typeof callback === "function") {
           callback({ success: false, error: "Database error" });
@@ -151,33 +219,44 @@ app.prepare().then(() => {
     });
 
     // Delete single notification via socket
-    socket.on("delete_notification", async (payload: { id: string }, callback?: (res: any) => void) => {
-      if (!payload?.id) return;
-      try {
-        await prisma.notifications.delete({
-          where: { id: payload.id },
-        });
-        io.to("admin_channel").emit("admin_notification_deleted", { id: payload.id });
-        if (typeof callback === "function") {
-          callback({ success: true, id: payload.id });
+    socket.on(
+      "delete_notification",
+      async (
+        payload: { id: string },
+        callback?: SocketCallback<{ id?: string }>
+      ) => {
+        if (!payload?.id || !UUID_REGEX.test(payload.id)) {
+          if (typeof callback === "function") {
+            callback({ success: false, error: "Invalid notification ID" });
+          }
+          return;
         }
-      } catch (error: any) {
-        console.error("[Socket.IO Server] Error deleting notification in Prisma:", error);
-        if (typeof callback === "function") {
-          callback({ success: false, error: "Database error" });
+        try {
+          await prisma.notifications.delete({
+            where: { id: payload.id },
+          });
+          io.to("admin_channel").emit("admin_notification_deleted", { id: payload.id });
+          if (typeof callback === "function") {
+            callback({ success: true, id: payload.id });
+          }
+        } catch (error: unknown) {
+          console.error("[Socket.IO Server] Error deleting notification in Prisma:", error);
+          if (typeof callback === "function") {
+            callback({ success: false, error: "Database error" });
+          }
         }
       }
-    });
+    );
 
     // Clear all notifications via socket
-    socket.on("clear_all", async (callback?: (res: any) => void) => {
+    socket.on("clear_all", async (callback?: SocketCallback) => {
       try {
         await prisma.notifications.deleteMany();
         io.to("admin_channel").emit("admin_notifications_cleared");
         if (typeof callback === "function") {
           callback({ success: true });
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("[Socket.IO Server] Error clearing notifications in Prisma:", error);
         if (typeof callback === "function") {
           callback({ success: false, error: "Database error" });
@@ -198,5 +277,6 @@ app.prepare().then(() => {
   server.listen(port, () => {
     console.log(`> Kandaga server ready on http://${hostname}:${port}`);
     console.log(`> Socket.IO central server interface running on http://${hostname}:${port}`);
+    getAdminUserId().catch(() => {});
   });
 });

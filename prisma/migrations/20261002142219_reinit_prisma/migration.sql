@@ -359,7 +359,7 @@ ALTER TABLE "notifications" ADD CONSTRAINT "notifications_user_id_fkey" FOREIGN 
 ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "faqs" ADD CONSTRAINT "faqs_asker_id_fkey" FOREIGN KEY ("asker_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "faqs" ADD CONSTRAINT "faqs_asker_id_fkey" FOREIGN KEY ("asker_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "faqs" ADD CONSTRAINT "faqs_replier_id_fkey" FOREIGN KEY ("replier_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "faqs" ADD CONSTRAINT "faqs_replier_id_fkey" FOREIGN KEY ("replier_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

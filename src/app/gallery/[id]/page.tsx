@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProjectCard from "@/components/gallery/ProjectCard";
+import ProjectImageGallery from "@/components/gallery/ProjectImageGallery";
 import Loading from "@/components/ui/Loading";
 import type { GalleryProjectItem } from "@/types";
 import {
@@ -29,11 +30,11 @@ interface ProjectDetailPageProps {
 }
 
 export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
-  const resolvedParams = use(params);
+  const { id } = use(params);
   const [project, setProject] = useState<GalleryProjectItem | null>(null);
   const [relatedProjects, setRelatedProjects] = useState<GalleryProjectItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [hasFetched, setHasFetched] = useState<boolean>(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -41,21 +42,26 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
     const fetchProject = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch(`/api/gallery/${resolvedParams.id}`);
+        const res = await fetch(`/api/gallery/${id}`);
         if (res.ok) {
           const data = await res.json();
           if (data && data.project && isMounted) {
             setProject(data.project);
+            if (Array.isArray(data.relatedProjects) && data.relatedProjects.length > 0) {
+              setRelatedProjects(data.relatedProjects);
+            }
             setIsLoading(false);
+            setHasFetched(true);
             return;
           }
         }
       } catch (error) {
-        console.error("Failed to fetch project from API:", error);
+        console.error("Failed to fetch project detail from API:", error);
       }
 
       if (isMounted) {
         setIsLoading(false);
+        setHasFetched(true);
       }
     };
 
@@ -64,25 +70,24 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
     return () => {
       isMounted = false;
     };
-  }, [resolvedParams.id]);
+  }, [id]);
 
   const currentMajor = project?.major || project?.jurusan || "rpl";
   const currentMajorLabel = project?.majorLabel || project?.jurusanLabel || "RPL";
 
+  // Fallback: fetch related projects only if not already provided by the detail API
   useEffect(() => {
-    if (!project) return;
+    if (!project || relatedProjects.length > 0) return;
+    let isMounted = true;
+
     const fetchRelated = async () => {
       try {
-        const res = await fetch("/api/gallery");
+        const res = await fetch(`/api/gallery?major=${currentMajor}&limit=4`);
         if (res.ok) {
           const data = await res.json();
-          if (data && Array.isArray(data.projects)) {
+          if (data && Array.isArray(data.projects) && isMounted) {
             const rel = data.projects
-              .filter(
-                (p: GalleryProjectItem) =>
-                  p.id !== project.id &&
-                  (p.major === currentMajor || p.jurusan === currentMajor)
-              )
+              .filter((p: GalleryProjectItem) => p.id !== project.id)
               .slice(0, 3);
             setRelatedProjects(rel);
           }
@@ -91,18 +96,32 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
         console.error("Failed to fetch related projects:", e);
       }
     };
-    fetchRelated();
-  }, [project, currentMajor]);
 
-  // Not found state
-  if (!isLoading && !project) {
+    fetchRelated();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [project, currentMajor, relatedProjects.length]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-white">
+        <Navbar />
+        <main className="flex-1 pt-32 pb-20 flex items-center justify-center">
+          <Loading />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Not found state after fetch has completed
+  if (hasFetched && !project) {
     notFound();
   }
 
-  const currentImages =
-    project?.galleryImages && project.galleryImages.length > 0
-      ? project.galleryImages
-      : [project?.coverImage || "/images/preview-rpl.jpg"];
+  if (!project) return null;
 
   const majorColorMap: Record<string, { badge: string; text: string; bg: string }> = {
     rpl: {
@@ -126,11 +145,9 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      {isLoading && <Loading />}
       <Navbar />
 
-      {project && (
-        <main className="flex-1 pt-24 pb-20">
+      <main className="flex-1 pt-24 pb-20">
         {/* ── Breadcrumb & Back Bar ── */}
         <div className="border-b border-ink-150 bg-[#FBF9F6]">
           <div className="mx-auto max-w-7xl px-6 py-4 flex flex-wrap items-center justify-between gap-4">
@@ -243,39 +260,11 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
         </section>
 
         {/* ── Media Gallery Showcase ── */}
-        <section className="mx-auto max-w-7xl px-6 mb-12">
-          <div className="relative aspect-[16/9] w-full rounded-3xl overflow-hidden border border-ink-200 bg-ink-900 shadow-lg">
-            <Image
-              src={currentImages[activeImageIndex] || project.coverImage || "/images/preview-rpl.jpg"}
-              alt={`${project.title} - Gambar ${activeImageIndex + 1}`}
-              fill
-              priority
-              sizes="(max-width: 1200px) 100vw, 1200px"
-              className="object-cover"
-            />
-          </div>
-
-          {/* Thumbnails switcher */}
-          {currentImages.length > 1 && (
-            <div className="mt-4 flex items-center gap-3 overflow-x-auto pb-2">
-              {currentImages.map((img, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setActiveImageIndex(idx)}
-                  className={`relative w-24 h-16 rounded-xl overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${
-                    activeImageIndex === idx
-                      ? "border-[#8B1A2F] ring-2 ring-[#8B1A2F]/30"
-                      : "border-ink-200 opacity-60 hover:opacity-100"
-                  }`}
-                  aria-label={`Pilih gambar ${idx + 1}`}
-                >
-                  <Image src={img} alt="Thumbnail" fill sizes="96px" className="object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
-        </section>
+        <ProjectImageGallery
+          images={project.galleryImages}
+          title={project.title}
+          coverImage={project.coverImage}
+        />
 
         {/* ── Main Content Grid: Description (Left) + Metadata Sidebar (Right) ── */}
         <div className="mx-auto max-w-7xl px-6 grid grid-cols-1 lg:grid-cols-12 gap-10">
@@ -418,57 +407,59 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
             )}
 
             {/* Project Links / External Access */}
-            <div className="bg-white rounded-3xl p-6 border border-ink-200 shadow-sm space-y-4">
-              <h3 className="font-heading text-sm font-bold text-ink">
-                Tautan &amp; Repositori
-              </h3>
-              <div className="space-y-2.5">
-                {project.links?.demoUrl && (
-                  <a
-                    href={project.links.demoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between p-3 rounded-2xl bg-ink-100 hover:bg-[#8B1A2F]/10 hover:text-[#8B1A2F] text-xs font-bold text-ink transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      <ExternalLink className="w-4 h-4" />
-                      <span>Aplikasi / Live Demo</span>
-                    </div>
-                    <ChevronRight className="w-4 h-4" />
-                  </a>
-                )}
-                {project.links?.githubUrl && (
-                  <a
-                    href={project.links.githubUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between p-3 rounded-2xl bg-ink-100 hover:bg-[#8B1A2F]/10 hover:text-[#8B1A2F] text-xs font-bold text-ink transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                        <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-                      </svg>
-                      <span>Repositori GitHub</span>
-                    </div>
-                    <ChevronRight className="w-4 h-4" />
-                  </a>
-                )}
-                {project.links?.docUrl && (
-                  <a
-                    href={project.links.docUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between p-3 rounded-2xl bg-ink-100 hover:bg-[#8B1A2F]/10 hover:text-[#8B1A2F] text-xs font-bold text-ink transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4" />
-                      <span>Laporan Riset (PDF)</span>
-                    </div>
-                    <ChevronRight className="w-4 h-4" />
-                  </a>
-                )}
+            {(project.links?.demoUrl || project.links?.githubUrl || project.links?.docUrl) && (
+              <div className="bg-white rounded-3xl p-6 border border-ink-200 shadow-sm space-y-4">
+                <h3 className="font-heading text-sm font-bold text-ink">
+                  Tautan &amp; Repositori
+                </h3>
+                <div className="space-y-2.5">
+                  {project.links?.demoUrl && (
+                    <a
+                      href={project.links.demoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between p-3 rounded-2xl bg-ink-100 hover:bg-[#8B1A2F]/10 hover:text-[#8B1A2F] text-xs font-bold text-ink transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <ExternalLink className="w-4 h-4" />
+                        <span>Aplikasi / Live Demo</span>
+                      </div>
+                      <ChevronRight className="w-4 h-4" />
+                    </a>
+                  )}
+                  {project.links?.githubUrl && (
+                    <a
+                      href={project.links.githubUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between p-3 rounded-2xl bg-ink-100 hover:bg-[#8B1A2F]/10 hover:text-[#8B1A2F] text-xs font-bold text-ink transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                          <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+                        </svg>
+                        <span>Repositori GitHub</span>
+                      </div>
+                      <ChevronRight className="w-4 h-4" />
+                    </a>
+                  )}
+                  {project.links?.docUrl && (
+                    <a
+                      href={project.links.docUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between p-3 rounded-2xl bg-ink-100 hover:bg-[#8B1A2F]/10 hover:text-[#8B1A2F] text-xs font-bold text-ink transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        <span>Laporan Riset (PDF)</span>
+                      </div>
+                      <ChevronRight className="w-4 h-4" />
+                    </a>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* School Endorsement Badge */}
             <div className="bg-[#FBF9F6] rounded-3xl p-6 border border-ink-150 text-xs text-ink-600 space-y-2">
@@ -511,7 +502,6 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
           </section>
         )}
       </main>
-      )}
 
       <Footer />
     </div>

@@ -119,7 +119,7 @@ const mitra: SeedMitra[] = [
   },
 ]
 
-async function main() {
+export async function main() {
   console.log('🌱 Seed mitra perusahaan BKK (non-destruktif)...')
 
   const passwordHash = await bcrypt.hash('password123', 12)

@@ -15,7 +15,6 @@ import {
   ShieldCheck,
   CheckCircle2,
   GraduationCap,
-  Sparkles,
   ExternalLink,
   Mail,
   Building2,
@@ -28,38 +27,45 @@ interface StudentProfilePageProps {
 }
 
 export default function StudentProfilePage({ params }: StudentProfilePageProps) {
-  const resolvedParams = use(params);
+  const { id } = use(params);
   const [student, setStudent] = useState<StudentProfileData | null>(null);
   const [studentProjects, setStudentProjects] = useState<GalleryProjectItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [hasFetched, setHasFetched] = useState<boolean>(false);
 
   useEffect(() => {
     let isMounted = true;
+
     const fetchStudent = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch(`/api/siswa/${resolvedParams.id}`);
+        const res = await fetch(`/api/siswa/${id}`);
         if (res.ok) {
           const data = await res.json();
           if (data && data.student && isMounted) {
             setStudent(data.student);
             setStudentProjects(data.projects || []);
             setIsLoading(false);
+            setHasFetched(true);
             return;
           }
         }
       } catch (error) {
-        console.error("Failed to fetch student data:", error);
+        console.error("Failed to fetch student data from API:", error);
       }
+
       if (isMounted) {
         setIsLoading(false);
+        setHasFetched(true);
       }
     };
+
     fetchStudent();
+
     return () => {
       isMounted = false;
     };
-  }, [resolvedParams.id]);
+  }, [id]);
 
   if (isLoading) {
     return (
@@ -73,8 +79,8 @@ export default function StudentProfilePage({ params }: StudentProfilePageProps) 
     );
   }
 
-  // If student doesn't exist in records
-  if (!student) {
+  // If student doesn't exist in records after fetch completes
+  if (hasFetched && !student) {
     return (
       <div className="min-h-screen flex flex-col bg-white">
         <Navbar />
@@ -87,7 +93,7 @@ export default function StudentProfilePage({ params }: StudentProfilePageProps) 
               Data Siswa Tidak Ditemukan
             </h1>
             <p className="mt-3 text-sm text-ink-600 leading-relaxed max-w-[65ch]">
-              Data siswa dengan identitas &ldquo;{resolvedParams.id}&rdquo; tidak terdaftar pada direktori resmi Kandaga SMKN 13 Bandung.
+              Data siswa dengan identitas &ldquo;{id}&rdquo; tidak terdaftar pada direktori resmi Kandaga SMKN 13 Bandung.
             </p>
             <Link
               href="/gallery"
@@ -102,6 +108,8 @@ export default function StudentProfilePage({ params }: StudentProfilePageProps) 
       </div>
     );
   }
+
+  if (!student) return null;
 
   /* ──────────────────────────────────────────────────────────
    * KONDISI 1: PROFIL SISWA DIPRIVAT (isPrivate === true)

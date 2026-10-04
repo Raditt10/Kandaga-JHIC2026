@@ -1,96 +1,164 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProjectCard from "@/components/gallery/ProjectCard";
-import Loading from "@/components/ui/Loading";
-import GalleryToolbar, { FilterMajor, SortOption } from "@/components/gallery/GalleryToolbar";
+import GalleryToolbar, {
+  FilterMajor,
+  SortOption,
+} from "@/components/gallery/GalleryToolbar";
 import GalleryPagination from "@/components/gallery/GalleryPagination";
 import type { GalleryProjectItem } from "@/types";
-import { Sparkles, Layers, ShieldCheck, SearchX } from "lucide-react";
+import { Sparkles, Layers, ShieldCheck, SearchX, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 
-const ITEMS_PER_PAGE = 12;
+function getInitialFilters(): {
+  page: number;
+  major: FilterMajor;
+  q: string;
+  sort: SortOption;
+} {
+  if (typeof window === "undefined") {
+    return { page: 1, major: "semua", q: "", sort: "terbaru" };
+  }
+  const url = new URL(window.location.href);
+  const pageParam = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10) || 1);
+  const rawMajor = (url.searchParams.get("major") || url.searchParams.get("jurusan") || "semua").toLowerCase();
+  const majorParam: FilterMajor =
+    rawMajor === "rpl" || rawMajor === "tkj" || rawMajor === "analis-kimia"
+      ? rawMajor
+      : "semua";
+  const qParam = url.searchParams.get("q") || "";
+  const rawSort = (url.searchParams.get("sort") || "terbaru").toLowerCase();
+  const sortParam: SortOption =
+    rawSort === "populer" || rawSort === "unggulan" ? rawSort : "terbaru";
+
+  return { page: pageParam, major: majorParam, q: qParam, sort: sortParam };
+}
 
 export default function GalleryPage() {
-  const [selectedMajor, setSelectedMajor] = useState<FilterMajor>("semua");
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [sortBy, setSortBy] = useState<SortOption>("terbaru");
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [selectedMajor, setSelectedMajor] = useState<FilterMajor>(() => getInitialFilters().major);
+  const [searchQuery, setSearchQuery] = useState<string>(() => getInitialFilters().q);
+  const [sortBy, setSortBy] = useState<SortOption>(() => getInitialFilters().sort);
+  const [currentPage, setCurrentPage] = useState<number>(() => getInitialFilters().page);
+
   const [projects, setProjects] = useState<GalleryProjectItem[]>([]);
+  const [totalResults, setTotalResults] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Menerima kata kunci dari kotak pencarian dashboard lewat /gallery?q=...
-  // Dibaca dari window (bukan useSearchParams) supaya halaman ini tidak
-  // memerlukan Suspense boundary saat dirender statis.
-  useEffect(() => {
-    const q = new URLSearchParams(window.location.search).get("q");
-    if (q) setSearchQuery(q);
-  }, []);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const isPopStateRef = useRef(false);
+  const isFirstMountRef = useRef(true);
 
-  const fetchProjects = async () => {
-    setIsLoading(true);
-    try {
-      const res = await fetch("/api/gallery");
-      if (res.ok) {
-        const data = await res.json();
-        if (data && Array.isArray(data.projects)) {
-          setProjects(data.projects);
-          setIsLoading(false);
+  // Fetch paginated & filtered data from Backend API (cached via Redis)
+  const fetchProjects = useCallback(
+    async (page: number, major: FilterMajor, query: string, sort: SortOption) => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
+      setIsLoading(true);
+      setErrorMsg(null);
+
+      try {
+        const params = new URLSearchParams();
+        params.set("page", page.toString());
+        params.set("limit", "12");
+        if (major !== "semua") params.set("major", major);
+        if (query.trim()) params.set("q", query.trim());
+        if (sort !== "terbaru") params.set("sort", sort);
+
+        const res = await fetch(`/api/gallery?${params.toString()}`, {
+          signal: controller.signal,
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data && Array.isArray(data.projects)) {
+            setProjects(data.projects);
+            if (data.pagination) {
+              setTotalResults(data.pagination.total);
+              setTotalPages(data.pagination.totalPages);
+            }
+          }
+        } else {
+          setErrorMsg("Gagal memuat katalog karya dari server.");
+        }
+
+        // Sync URL query params without triggering full page reload
+        if (typeof window !== "undefined") {
+          const urlParams = new URLSearchParams();
+          if (page > 1) urlParams.set("page", page.toString());
+          if (major !== "semua") urlParams.set("major", major);
+          if (query.trim()) urlParams.set("q", query.trim());
+          if (sort !== "terbaru") urlParams.set("sort", sort);
+
+          const newUrl =
+            urlParams.toString().length > 0
+              ? `${window.location.pathname}?${urlParams.toString()}`
+              : window.location.pathname;
+          window.history.replaceState(null, "", newUrl);
+        }
+      } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") {
           return;
         }
+        console.error("Failed to fetch gallery projects from API:", err);
+        setErrorMsg("Koneksi terputus saat mengambil data karya.");
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Failed to fetch projects from API:", error);
-    }
-    setProjects([]);
-    setIsLoading(false);
-  };
+    },
+    []
+  );
 
+  // Support browser Back/Forward navigation
   useEffect(() => {
-    fetchProjects();
-  }, []);
+    const handlePopState = () => {
+      if (typeof window === "undefined") return;
+      const initial = getInitialFilters();
+      isPopStateRef.current = true;
+      setSelectedMajor(initial.major);
+      setSearchQuery(initial.q);
+      setSortBy(initial.sort);
+      setCurrentPage(initial.page);
+      fetchProjects(initial.page, initial.major, initial.q, initial.sort);
+    };
 
-  // Filter & Search Logic
-  const filteredProjects = useMemo(() => {
-    let list = [...projects];
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [fetchProjects]);
 
-    // Filter by department (supports both major and jurusan fields)
-    if (selectedMajor !== "semua") {
-      list = list.filter((p) => p.major === selectedMajor || p.jurusan === selectedMajor);
+  // Combined fetch handler: instant on mount, debounced on subsequent filter/search/sort/page changes
+  useEffect(() => {
+    if (isPopStateRef.current) {
+      isPopStateRef.current = false;
+      return;
     }
 
-    // Filter by search query
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      list = list.filter(
-        (p) =>
-          p.title?.toLowerCase().includes(q) ||
-          p.tagline?.toLowerCase().includes(q) ||
-          p.description?.toLowerCase().includes(q) ||
-          p.studentName?.toLowerCase().includes(q) ||
-          (p.tools && p.tools.some((t) => t.toLowerCase().includes(q)))
-      );
+    if (isFirstMountRef.current) {
+      isFirstMountRef.current = false;
+      fetchProjects(currentPage, selectedMajor, searchQuery, sortBy);
+      return;
     }
 
-    // Sort order
-    if (sortBy === "populer") {
-      list.sort((a, b) => (b.metrics?.views || 0) - (a.metrics?.views || 0));
-    } else if (sortBy === "unggulan") {
-      list.sort((a, b) => {
-        if (a.status === "featured" && b.status !== "featured") return -1;
-        if (a.status !== "featured" && b.status === "featured") return 1;
-        return (b.year || 0) - (a.year || 0);
-      });
-    } else {
-      // Default: Terbaru
-      list.sort((a, b) => (b.year || 0) - (a.year || 0));
-    }
+    const timer = setTimeout(() => {
+      fetchProjects(currentPage, selectedMajor, searchQuery, sortBy);
+    }, 250);
 
-    return list;
-  }, [projects, selectedMajor, searchQuery, sortBy]);
+    return () => clearTimeout(timer);
+  }, [currentPage, selectedMajor, searchQuery, sortBy, fetchProjects]);
 
-  // Reset to page 1 on filter or search changes
   const handleSelectMajor = (major: FilterMajor) => {
     setSelectedMajor(major);
     setCurrentPage(1);
@@ -105,13 +173,6 @@ export default function GalleryPage() {
     setSortBy(sort);
     setCurrentPage(1);
   };
-
-  // Pagination calculation
-  const totalPages = Math.ceil(filteredProjects.length / ITEMS_PER_PAGE);
-  const paginatedProjects = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredProjects.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredProjects, currentPage]);
 
   const handleResetFilters = () => {
     setSelectedMajor("semua");
@@ -167,50 +228,80 @@ export default function GalleryPage() {
             onSearchChange={handleSearchChange}
             sortBy={sortBy}
             onSortChange={handleSortChange}
-            totalResults={isLoading ? 0 : filteredProjects.length}
+            totalResults={totalResults}
           />
 
-          {isLoading ? (
-            <Loading />
-          ) : (
-            <>
-              {/* Project Cards Grid */}
-              {paginatedProjects.length > 0 ? (
-                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                  {paginatedProjects.map((project: GalleryProjectItem) => (
-                    <ProjectCard key={project.id} project={project} />
-                  ))}
+          {/* Project Cards Grid with Layout-Stable Loading State */}
+          <div className="relative mt-8 min-h-[300px]">
+            {isLoading && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 backdrop-blur-[1px] rounded-3xl transition-opacity">
+                <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-white border border-ink-150 shadow-md text-xs font-semibold text-ink-700">
+                  <Loader2 className="w-4 h-4 animate-spin text-[#8B1A2F]" />
+                  <span>Memuat karya...</span>
                 </div>
-              ) : (
-                /* Empty State */
-                <div className="mt-12 p-12 rounded-3xl border-2 border-dashed border-ink-200 bg-[#FBF9F6] text-center max-w-xl mx-auto flex flex-col items-center">
-                  <div className="w-14 h-14 rounded-2xl bg-white border border-ink-200 flex items-center justify-center text-ink-400 mb-4 shadow-xs">
-                    <SearchX className="w-7 h-7" />
-                  </div>
-                  <h3 className="font-heading text-xl font-bold text-ink">
-                    Karya Tidak Ditemukan
-                  </h3>
-                  <p className="mt-2 text-sm text-ink-600 max-w-md leading-relaxed">
-                    Tidak ada karya yang cocok dengan kata kunci &ldquo;{searchQuery}&rdquo; pada kategori yang dipilih. Cobalah kata kunci lain atau setel ulang filter.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleResetFilters}
-                    className="mt-6 px-5 py-2.5 bg-[#8B1A2F] text-white rounded-full text-xs sm:text-sm font-bold hover:bg-[#6B1424] transition-colors cursor-pointer shadow-xs"
-                  >
-                    Reset Semua Filter
-                  </button>
-                </div>
-              )}
+              </div>
+            )}
 
-              {/* Pagination */}
-              <GalleryPagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={(page) => setCurrentPage(page)}
-              />
-            </>
-          )}
+            {errorMsg && !isLoading ? (
+              /* Error State */
+              <div className="p-12 rounded-3xl border-2 border-dashed border-red-200 bg-red-50/50 text-center max-w-xl mx-auto flex flex-col items-center">
+                <div className="w-14 h-14 rounded-2xl bg-white border border-red-200 flex items-center justify-center text-red-500 mb-4 shadow-xs">
+                  <AlertCircle className="w-7 h-7" />
+                </div>
+                <h3 className="font-heading text-xl font-bold text-ink">
+                  Gagal Memuat Karya
+                </h3>
+                <p className="mt-2 text-sm text-ink-600 max-w-md leading-relaxed">
+                  {errorMsg}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => fetchProjects(currentPage, selectedMajor, searchQuery, sortBy)}
+                  className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 bg-[#8B1A2F] text-white rounded-full text-xs sm:text-sm font-bold hover:bg-[#6B1424] transition-colors cursor-pointer shadow-xs"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <span>Coba Lagi</span>
+                </button>
+              </div>
+            ) : !isLoading && projects.length === 0 ? (
+              /* Empty State */
+              <div className="p-12 rounded-3xl border-2 border-dashed border-ink-200 bg-[#FBF9F6] text-center max-w-xl mx-auto flex flex-col items-center">
+                <div className="w-14 h-14 rounded-2xl bg-white border border-ink-200 flex items-center justify-center text-ink-400 mb-4 shadow-xs">
+                  <SearchX className="w-7 h-7" />
+                </div>
+                <h3 className="font-heading text-xl font-bold text-ink">
+                  Karya Tidak Ditemukan
+                </h3>
+                <p className="mt-2 text-sm text-ink-600 max-w-md leading-relaxed">
+                  Tidak ada karya yang cocok dengan kriteria pencarian &ldquo;{searchQuery}&rdquo; pada kategori yang dipilih. Cobalah kata kunci lain atau setel ulang filter.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="mt-6 px-5 py-2.5 bg-[#8B1A2F] text-white rounded-full text-xs sm:text-sm font-bold hover:bg-[#6B1424] transition-colors cursor-pointer shadow-xs"
+                >
+                  Reset Semua Filter
+                </button>
+              </div>
+            ) : (
+              <div
+                className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 transition-opacity duration-200 ${
+                  isLoading ? "opacity-50" : "opacity-100"
+                }`}
+              >
+                {projects.map((project: GalleryProjectItem) => (
+                  <ProjectCard key={project.id} project={project} />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Pagination */}
+          <GalleryPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
         </section>
       </main>
 
