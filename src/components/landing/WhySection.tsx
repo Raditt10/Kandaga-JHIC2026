@@ -60,6 +60,7 @@ function FeatureCard({ feature }: { feature: Feature }) {
             alt={feature.title}
             width={28}
             height={28}
+            unoptimized
             className="h-7 w-7 object-contain"
           />
         </div>

@@ -42,6 +42,9 @@ export const metadata: Metadata = {
   title: "Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung",
   description:
     "Etalase digital karya terbaik siswa SMKN 13 Bandung — terverifikasi sekolah, terbuka untuk industri.",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({

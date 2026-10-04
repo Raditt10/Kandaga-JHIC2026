@@ -83,6 +83,7 @@ export default function JurusanHero({
                   alt="Detail"
                   width={16}
                   height={16}
+                  unoptimized
                   className="w-4 h-4 object-contain"
                 />
               </button>
@@ -97,6 +98,7 @@ export default function JurusanHero({
                   alt="Portofolio"
                   width={16}
                   height={16}
+                  unoptimized
                   className="w-4 h-4 object-contain"
                 />
               </Link>
@@ -111,6 +113,7 @@ export default function JurusanHero({
                     alt="Akreditasi A"
                     width={18}
                     height={18}
+                    unoptimized
                     className="w-4 h-4 object-contain"
                   />
                   <span>Akreditasi A</span>
@@ -125,6 +128,7 @@ export default function JurusanHero({
                     alt="Teaching Factory"
                     width={18}
                     height={18}
+                    unoptimized
                     className="w-4 h-4 object-contain"
                   />
                   <span>Teaching Factory</span>

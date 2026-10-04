@@ -352,6 +352,7 @@ export default function JurusanDetailSection({
                           alt={career.role}
                           width={18}
                           height={18}
+                          unoptimized
                           className="w-4.5 h-4.5 object-contain"
                         />
                       ) : (

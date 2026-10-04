@@ -35,6 +35,7 @@ export default function JurusanCTA() {
               alt="Lihat Jurusan lainnya"
               width={18}
               height={18}
+              unoptimized
               className="w-4.5 h-4.5 object-contain"
             />
           </Link>

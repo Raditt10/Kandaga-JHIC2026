@@ -104,6 +104,7 @@ export default function FAQSection() {
               alt="Arrow"
               width={14}
               height={14}
+              unoptimized
               className="w-3.5 h-3.5 object-contain transition-transform group-hover:translate-x-1"
             />
           </motion.a>
