@@ -1,4 +1,5 @@
 import React from "react"
+import type { Metadata } from "next"
 import Link from "next/link"
 import Image from "next/image"
 import { notFound } from "next/navigation"
@@ -142,6 +143,41 @@ import GalleryImageViewer from "@/components/gallery/GalleryImageViewer"
 
 interface Props {
   params: Promise<{ id: string }>
+}
+
+/**
+ * Metadata per karya. Judul dan ringkasan diambil dari data karya yang sama
+ * dengan yang dipakai halaman ini, sehingga pratinjau tautan di mesin pencari
+ * maupun media sosial menampilkan karya yang benar — bukan judul generik situs.
+ */
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params
+  const project = await fetchProject(id)
+
+  if (!project) {
+    return {
+      title: "Karya Tidak Ditemukan",
+      robots: { index: false, follow: true },
+    }
+  }
+
+  const description = (project.tagline || project.description || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 155)
+
+  return {
+    title: project.title,
+    description,
+    alternates: { canonical: `/gallery/${project.id}` },
+    openGraph: {
+      type: "article",
+      title: project.title,
+      description,
+      url: `/gallery/${project.id}`,
+      images: project.coverImage ? [{ url: project.coverImage }] : undefined,
+    },
+  }
 }
 
 export default async function ProjectDetailPage({ params }: Props) {

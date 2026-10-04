@@ -36,6 +36,22 @@ body {
   font-family: var(--font-jakarta), "Plus Jakarta Sans", Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /*
+   * Beberapa bagian memakai elemen dekoratif yang diposisikan absolut di luar
+   * tepi layar — terutama kartu samping pada card deck galeri (x = ±180px).
+   * Elemen seperti itu melebarkan dokumen, sehingga halaman bisa digulir
+   * menyamping di ponsel: pada lebar 360px dokumennya membengkak jadi 616px.
+   * Efeknya menjalar ke navbar, yang memakai w-[96%] sehingga ikut membengkak
+   * jadi 591px — padahal navbar hanya korban, bukan penyebab.
+   *
+   * `clip` dipakai, bukan `hidden`: `hidden` menjadikan body sebagai wadah
+   * gulir dan mematikan `position: sticky` di dalamnya. `clip` memotong tanpa
+   * membuat wadah gulir, jadi sticky tetap bekerja dan elemen `fixed` (navbar)
+   * tidak terpengaruh. Kartu yang terpotong memang berada di luar layar, jadi
+   * tampilannya tidak berubah sama sekali.
+   */
+  overflow-x: clip;
 }
 
 /* ── Font utility classes ── */

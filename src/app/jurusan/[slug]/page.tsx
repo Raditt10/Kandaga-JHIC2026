@@ -24,13 +24,22 @@ export async function generateMetadata({
 
   if (!jurusan) {
     return {
-      title: "Jurusan Tidak Ditemukan | Kandaga SMKN 13 Bandung",
+      title: "Jurusan Tidak Ditemukan",
+      robots: { index: false, follow: true },
     };
   }
 
   return {
-    title: `${jurusan.name} - SMKN 13 Bandung | Kandaga`,
+    // Akhiran "| Kandaga" ditambahkan otomatis oleh title.template di layout
+    // akar, jadi judul di sini cukup menyebut nama jurusan dan sekolahnya.
+    title: `${jurusan.name} - SMKN 13 Bandung`,
     description: jurusan.description,
+    alternates: { canonical: `/jurusan/${jurusan.id}` },
+    openGraph: {
+      title: `${jurusan.name} - SMKN 13 Bandung`,
+      description: jurusan.description,
+      url: `/jurusan/${jurusan.id}`,
+    },
   };
 }
 
