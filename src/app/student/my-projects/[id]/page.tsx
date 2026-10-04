@@ -265,14 +265,25 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
                   )}
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-[#6B1424] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
-                >
-                  <Pencil className="w-3.5 h-3.5" />
-                  <span>Edit Informasi Karya</span>
-                </button>
+                {/* Edit button — locked for approved karya */}
+                {(project.status as string) === "approved" ? (
+                  <span
+                    title="Karya yang sudah disetujui guru tidak dapat diedit"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-ink-100 text-ink-300 border border-ink-150 cursor-not-allowed select-none"
+                  >
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>Terverifikasi — Terkunci</span>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-[#6B1424] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    <span>Edit Informasi Karya</span>
+                  </button>
+                )}
 
                 {!isPrivate && (
                   <Link
@@ -304,6 +315,20 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
               <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm font-semibold flex items-center gap-2.5 shadow-xs">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>{toastMessage}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Read-only notice for approved projects */}
+          {(project.status as string) === "approved" && (
+            <div className="mx-auto max-w-7xl px-6 pt-4">
+              <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-start gap-2.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <p>
+                  <strong>Karya ini sudah diverifikasi guru dan tayang di Galeri Kandaga.</strong>{" "}
+                  Konten tidak dapat diubah untuk menjaga integritas label &ldquo;Terverifikasi Sekolah&rdquo;.
+                  Jika ada kesalahan, hubungi guru pembimbing Anda.
+                </p>
               </div>
             </div>
           )}

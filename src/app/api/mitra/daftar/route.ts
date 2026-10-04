@@ -61,6 +61,8 @@ export async function POST(req: Request) {
     // ── Cek duplikasi email ───────────────────────────────────────────
     const existing = await prisma.users.findFirst({
       where: { email: email.trim().toLowerCase() },
+      // Hanya perlu tahu ada/tidak — jangan tarik seluruh baris user.
+      select: { id: true },
     })
     if (existing) {
       return NextResponse.json(

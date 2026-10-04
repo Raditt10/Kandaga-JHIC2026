@@ -23,7 +23,11 @@ import {
   Wifi,
   Filter,
   X,
-  Settings
+  Settings,
+  Loader2,
+  Medal,
+  Eye,
+  ChevronDown,
 } from "lucide-react"
 
 // ── Tipe data dari /api/teacher/projects ────────────────────────────────
@@ -44,6 +48,8 @@ type TProject = {
   score: number | null
   reviewNotes: string | null
   techStack: string[]
+  badges: { badgeId: number; name: string; tier: string; awardedAt: string }[]
+  coverImage: string | null
 }
 
 type TSiswa = {
@@ -129,13 +135,21 @@ export default function TeacherDashboardPage() {
   // ── Dialog kurasi ───────────────────────────────────────────────────
   const [review, setReview] = useState<{
     item: TProject
-    action: "approve" | "revisi"
+    action: "approve" | "revisi" | "reject"
   } | null>(null)
   const [notes, setNotes] = useState("")
   const [score, setScore] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+
+  // ── Dialog badge ────────────────────────────────────────────────────────
+  const [badgeTarget, setBadgeTarget] = useState<TProject | null>(null)
+  const [badgeSubmitting, setBadgeSubmitting] = useState(false)
+  const [badgeError, setBadgeError] = useState<string | null>(null)
+
+  // ── Expanded queue item (lihat detail karya sebelum kurasi) ─────────────
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const muat = async () => {
     setLoading(true)
@@ -183,7 +197,7 @@ export default function TeacherDashboardPage() {
       ? (bernilai.reduce((a, p) => a + (p.score as number), 0) / bernilai.length).toFixed(1)
       : null
 
-  const bukaReview = (item: TProject, action: "approve" | "revisi") => {
+  const bukaReview = (item: TProject, action: "approve" | "revisi" | "reject") => {
     setReview({ item, action })
     setNotes("")
     setScore("")
@@ -199,6 +213,11 @@ export default function TeacherDashboardPage() {
   const handleRevision = (id: string) => {
     const item = queueRaw.find((p) => p.id === id)
     if (item) bukaReview(item, "revisi")
+  }
+
+  const handleReject = (id: string) => {
+    const item = queueRaw.find((p) => p.id === id)
+    if (item) bukaReview(item, "reject")
   }
 
   const kirimReview = async () => {
@@ -228,6 +247,8 @@ export default function TeacherDashboardPage() {
       setToast(
         review.action === "approve"
           ? "Karya disetujui dan kini tayang di Galeri Kandaga."
+          : review.action === "reject"
+          ? "Karya ditolak. Siswa sudah menerima notifikasi."
           : "Catatan revisi sudah dikirim ke akun siswa."
       )
       setReview(null)
@@ -236,6 +257,32 @@ export default function TeacherDashboardPage() {
     } catch {
       setFormError("Terjadi kesalahan koneksi.")
       setSubmitting(false)
+    }
+  }
+
+  const kirimBadge = async (tier: string | null) => {
+    if (!badgeTarget) return
+    setBadgeSubmitting(true)
+    setBadgeError(null)
+    try {
+      const res = await fetch(`/api/teacher/projects/${badgeTarget.id}/badge`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tier }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setBadgeError(data.error ?? "Gagal memproses badge.")
+        setBadgeSubmitting(false)
+        return
+      }
+      setToast(tier ? `Badge "${data.badges?.[0]?.name}" diberikan.` : "Badge karya berhasil dicabut.")
+      setBadgeTarget(null)
+      muat()
+    } catch {
+      setBadgeError("Terjadi kesalahan koneksi.")
+    } finally {
+      setBadgeSubmitting(false)
     }
   }
 
@@ -465,67 +512,145 @@ export default function TeacherDashboardPage() {
                 <p className="text-xs text-ink-600 mt-1">Tidak ada karya yang menunggu review saat ini.</p>
               </div>
             ) : (
-              curationQueue.map((item) => (
+              curationQueue.map((item) => {
+                const isExpanded = expandedId === item.id
+                return (
                 <div
                   key={item.id}
-                  className="p-6 bg-white rounded-2xl border border-ink-150 shadow-xs space-y-4"
+                  className="bg-white rounded-2xl border border-ink-150 shadow-xs overflow-hidden"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
-                          {item.major}
-                        </span>
-                        <span className="text-xs font-semibold text-ink-600">{item.category}</span>
-                        <span className="text-ink-300">•</span>
-                        <span className="text-xs text-ink-300">Diajukan: {item.submittedAt}</span>
+                  {/* ── Summary row ── */}
+                  <div className="p-6 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                            {item.major}
+                          </span>
+                          <span className="text-xs font-semibold text-ink-600">{item.category}</span>
+                          <span className="text-ink-300">•</span>
+                          <span className="text-xs text-ink-300">Diajukan: {item.submittedAt}</span>
+                        </div>
+                        <h2 className="font-heading text-lg font-bold text-ink pt-1">{item.title}</h2>
+                        <p className="text-xs text-ink-600">
+                          Oleh: <strong>{item.studentName}</strong> ({item.classRoom})
+                        </p>
                       </div>
-                      <h2 className="font-heading text-lg font-bold text-ink pt-1">{item.title}</h2>
-                      <p className="text-xs text-ink-600">
-                        Oleh: <strong>{item.studentName}</strong> ({item.classRoom})
-                      </p>
+
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-800 rounded-full border border-amber-200 text-xs font-bold">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>Menunggu Penilaian</span>
+                      </div>
                     </div>
 
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-800 rounded-full border border-amber-200 text-xs font-bold">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>Menunggu Penilaian</span>
+                    <p className="font-sans text-xs sm:text-sm text-ink-600 leading-relaxed max-w-[65ch]">
+                      {item.summary}
+                    </p>
+
+                    <div className="flex flex-wrap gap-1.5">
+                      {item.techStack.map((tech, idx) => (
+                        <span key={idx} className="px-2.5 py-1 rounded-md bg-ink-100 text-ink-700 text-xs font-mono">
+                          {tech}
+                        </span>
+                      ))}
                     </div>
-                  </div>
 
-                  <p className="font-sans text-xs sm:text-sm text-ink-600 leading-relaxed max-w-[65ch]">
-                    {item.summary}
-                  </p>
-
-                  <div className="flex flex-wrap gap-1.5">
-                    {item.techStack.map((tech, idx) => (
-                      <span key={idx} className="px-2.5 py-1 rounded-md bg-ink-100 text-ink-700 text-xs font-mono">
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="pt-4 border-t border-ink-150 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <span className="text-xs text-ink-600">Standar Rubrik: ISO 9001 / BNSP SMKN 13</span>
-                    <div className="flex items-center gap-2">
+                    <div className="pt-4 border-t border-ink-150 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      {/* Lihat detail toggle */}
                       <button
                         type="button"
-                        onClick={() => handleRevision(item.id)}
-                        className="px-4 py-2 border border-ink-150 text-ink-700 hover:bg-ink-100 rounded-xl text-xs font-bold transition cursor-pointer"
+                        onClick={() => setExpandedId(isExpanded ? null : item.id)}
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary-dark transition cursor-pointer"
                       >
-                        Minta Revisi Siswa
+                        <Eye className="w-3.5 h-3.5" />
+                        {isExpanded ? "Sembunyikan detail" : "Lihat detail karya lengkap"}
+                        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => handleApprove(item.id)}
-                        className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-                      >
-                        <CheckCircle2 className="w-4 h-4" />
-                        <span>Setujui &amp; Publikasikan</span>
-                      </button>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleRevision(item.id)}
+                          className="px-4 py-2 border border-ink-150 text-ink-700 hover:bg-ink-100 rounded-xl text-xs font-bold transition cursor-pointer"
+                        >
+                          Minta Revisi Siswa
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleReject(item.id)}
+                          className="px-4 py-2 border border-rose-200 text-rose-700 hover:bg-rose-50 rounded-xl text-xs font-bold transition cursor-pointer"
+                        >
+                          Tolak Permanen
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleApprove(item.id)}
+                          className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span>Setujui &amp; Publikasikan</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
+
+                  {/* ── Expandable detail panel ── */}
+                  {isExpanded && (
+                    <div className="border-t border-ink-150 bg-ink-100/40 p-6 space-y-4 animate-in fade-in duration-150">
+                      {/* Cover image */}
+                      {item.raw.coverImage && (
+                        <div>
+                          <p className="text-[10px] font-semibold text-ink-400 uppercase tracking-wider mb-2">Gambar Karya</p>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={item.raw.coverImage}
+                            alt={item.title}
+                            className="w-full max-h-64 object-cover rounded-xl border border-ink-200"
+                          />
+                        </div>
+                      )}
+
+                      {/* Full description */}
+                      <div>
+                        <p className="text-[10px] font-semibold text-ink-400 uppercase tracking-wider mb-1">Deskripsi Lengkap</p>
+                        <p className="text-xs text-ink-700 leading-relaxed whitespace-pre-line">
+                          {item.summary || "Belum ada deskripsi dari siswa."}
+                        </p>
+                      </div>
+
+                      {/* Metadata grid */}
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        <div className="p-3 bg-white rounded-xl border border-ink-150">
+                          <p className="text-[10px] text-ink-400 uppercase tracking-wider mb-0.5">Guru Pembimbing</p>
+                          <p className="font-semibold text-ink">{item.raw.advisorName || "—"}</p>
+                        </div>
+                        <div className="p-3 bg-white rounded-xl border border-ink-150">
+                          <p className="text-[10px] text-ink-400 uppercase tracking-wider mb-0.5">Kelas</p>
+                          <p className="font-semibold text-ink">{item.classRoom}</p>
+                        </div>
+                        <div className="p-3 bg-white rounded-xl border border-ink-150 col-span-2">
+                          <p className="text-[10px] text-ink-400 uppercase tracking-wider mb-1">{item.major === "RPL" ? "Teknologi / Stack" : item.major === "TKJ" ? "Perangkat & Protokol" : "Metode & Instrumen"}</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {item.techStack.length > 0
+                              ? item.techStack.map((t, i) => (
+                                  <span key={i} className="px-2 py-0.5 rounded-md bg-ink-100 text-ink-700 text-[11px] font-mono">{t}</span>
+                                ))
+                              : <span className="text-ink-400">Belum ada data tools.</span>
+                            }
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action reminder */}
+                      <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-800 flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <p>Setelah Anda setujui, karya ini akan langsung tayang di Galeri Kandaga dan dapat dilihat publik serta mitra industri.</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              ))
+                )
+              })
             )}
           </div>
         </div>
@@ -607,35 +732,158 @@ export default function TeacherDashboardPage() {
               Riwayat Karya yang Telah Disetujui
             </h1>
             <p className="font-sans text-xs sm:text-sm text-ink-600 mt-1 max-w-[65ch]">
-              Arsip karya portofolio siswa yang telah Anda setujui dan berhasil dipublikasikan di Galeri Utama Kandaga.
+              Arsip karya yang sudah diverifikasi. Klik <strong>Beri Badge</strong> untuk
+              memberi apresiasi tambahan — ini terpisah dari keputusan tayang.
             </p>
           </div>
 
           <div className="space-y-3">
-            {verifiedHistory.map((item) => (
-              <div key={item.id} className="p-5 bg-white rounded-2xl border border-ink-150 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                      Disetujui: {item.verifiedAt}
-                    </span>
-                    <span className="text-xs font-semibold text-rose-800 bg-rose-50 px-2 py-0.5 rounded-md">
-                      {item.major}
+            {verifiedHistory.length === 0 && (
+              <div className="p-12 text-center bg-white rounded-2xl border border-ink-150">
+                <History className="w-10 h-10 text-ink-300 mx-auto mb-2" />
+                <p className="text-sm font-bold text-ink-700">Belum ada riwayat kurasi</p>
+                <p className="text-xs text-ink-600 mt-1">Karya yang disetujui akan muncul di sini.</p>
+              </div>
+            )}
+
+            {verifiedHistory.map((item) => {
+              const currentBadge = item.raw.badges?.[0] ?? null
+              const TIER_COLOR: Record<string, string> = {
+                gold:   "bg-amber-50 text-amber-700 border-amber-200",
+                silver: "bg-slate-50 text-slate-600 border-slate-200",
+                bronze: "bg-orange-50 text-orange-700 border-orange-200",
+              }
+              return (
+                <div key={item.id} className="p-5 bg-white rounded-2xl border border-ink-150 shadow-xs flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                  {/* Left — project info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                        Disetujui: {item.verifiedAt}
+                      </span>
+                      <span className="text-xs font-semibold text-rose-800 bg-rose-50 px-2 py-0.5 rounded-md">
+                        {item.major}
+                      </span>
+                      {currentBadge && (
+                        <span className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-md border ${TIER_COLOR[currentBadge.tier] ?? "bg-ink-100 text-ink-700 border-ink-200"}`}>
+                          <Medal className="w-3 h-3" />
+                          {currentBadge.name}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="font-heading text-base font-bold text-ink">{item.title}</h3>
+                    <p className="text-xs text-ink-600 mt-0.5">
+                      Siswa: {item.studentName}
+                      {typeof item.score === "number" && (
+                        <> &bull; Nilai: <strong className="text-emerald-700">{item.score} / 100</strong></>
+                      )}
+                    </p>
+                    {item.notes && item.notes !== "Tanpa catatan." && (
+                      <p className="text-xs text-ink-600 mt-1 italic">&ldquo;{item.notes}&rdquo;</p>
+                    )}
+                  </div>
+
+                  {/* Right — actions */}
+                  <div className="flex items-center gap-2 shrink-0 self-start">
+                    <button
+                      type="button"
+                      onClick={() => { setBadgeTarget(item.raw); setBadgeError(null) }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold transition cursor-pointer"
+                    >
+                      <Medal className="w-3.5 h-3.5" />
+                      {currentBadge ? "Ganti Badge" : "Beri Badge"}
+                    </button>
+                    <span className="px-3 py-1.5 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full">
+                      Tayang di Galeri
                     </span>
                   </div>
-                  <h3 className="font-heading text-base font-bold text-ink">{item.title}</h3>
-                  <p className="text-xs text-ink-600 mt-0.5">Siswa: {item.studentName} • Nilai: <strong className="text-emerald-700">{item.score} / 100</strong></p>
-                  <p className="text-xs text-ink-600 mt-1 italic">&ldquo;{item.notes}&rdquo;</p>
                 </div>
-
-                <span className="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full self-start sm:self-center shrink-0">
-                  Tayang di Galeri
-                </span>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}
+      {/* ──────────────── DIALOG BADGE ──────────────── */}
+      {badgeTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/50 backdrop-blur-sm">
+          <div className="w-full max-w-sm bg-white rounded-2xl border border-ink-150 shadow-2xl p-6 space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="font-heading text-base font-bold text-ink flex items-center gap-2">
+                  <Medal className="w-4 h-4 text-amber-600" />
+                  Apresiasi Badge Karya
+                </h2>
+                <p className="text-xs text-ink-600 mt-0.5 line-clamp-2">{badgeTarget.title}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setBadgeTarget(null)}
+                aria-label="Tutup dialog badge"
+                className="p-1.5 rounded-lg hover:bg-ink-100 cursor-pointer shrink-0"
+              >
+                <X className="w-4 h-4 text-ink-600" />
+              </button>
+            </div>
+
+            <p className="text-xs text-ink-600 leading-relaxed">
+              Pilih tingkat apresiasi untuk karya ini. Badge bersifat opsional dan
+              <strong> tidak</strong> mengubah status tayang karya.
+            </p>
+
+            {/* Badge tier buttons */}
+            <div className="space-y-2">
+              {([
+                { tier: "gold",   label: "Karya Unggulan", desc: "Karya terbaik jurusan, di atas rata-rata",    color: "border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-800" },
+                { tier: "silver", label: "Karya Terpilih", desc: "Karya berkualitas dan layak disorot",          color: "border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700" },
+                { tier: "bronze", label: "Karya Baik",     desc: "Karya memenuhi standar dengan baik",          color: "border-orange-300 bg-orange-50 hover:bg-orange-100 text-orange-700" },
+              ] as const).map(({ tier, label, desc, color }) => {
+                const isActive = badgeTarget.badges?.[0]?.tier === tier
+                return (
+                  <button
+                    key={tier}
+                    type="button"
+                    disabled={badgeSubmitting}
+                    onClick={() => kirimBadge(tier)}
+                    className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl border text-left transition cursor-pointer disabled:opacity-50 ${color} ${isActive ? "ring-2 ring-offset-1 ring-amber-400" : ""}`}
+                  >
+                    <div>
+                      <p className="text-xs font-bold">{label} {isActive && <span className="ml-1 text-[10px] font-semibold opacity-70">(aktif)</span>}</p>
+                      <p className="text-[10px] opacity-70 mt-0.5">{desc}</p>
+                    </div>
+                    <Medal className="w-4 h-4 shrink-0" />
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Remove badge */}
+            {badgeTarget.badges?.length > 0 && (
+              <button
+                type="button"
+                disabled={badgeSubmitting}
+                onClick={() => kirimBadge(null)}
+                className="w-full px-4 py-2.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition cursor-pointer disabled:opacity-50"
+              >
+                Cabut Badge
+              </button>
+            )}
+
+            {badgeError && (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-700">
+                {badgeError}
+              </div>
+            )}
+
+            {badgeSubmitting && (
+              <div className="flex items-center justify-center gap-2 text-xs text-ink-600">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Memproses…
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ──────────────── DIALOG KURASI ──────────────── */}
       {review && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/50 backdrop-blur-sm">
@@ -645,9 +893,16 @@ export default function TeacherDashboardPage() {
                 <h2 className="font-heading text-lg font-bold text-ink">
                   {review.action === "approve"
                     ? "Setujui & Publikasikan Karya"
+                    : review.action === "reject"
+                    ? "Tolak Karya Secara Permanen"
                     : "Minta Revisi Karya"}
                 </h2>
                 <p className="text-xs text-ink-600 mt-1 max-w-[65ch]">{review.item.title}</p>
+                {review.action === "reject" && (
+                  <p className="text-xs text-rose-600 mt-1 font-semibold">
+                    ⚠ Penolakan bersifat final. Karya tidak bisa dikembalikan ke antrean oleh guru.
+                  </p>
+                )}
               </div>
               <button
                 type="button"
@@ -679,7 +934,7 @@ export default function TeacherDashboardPage() {
 
             <div className="space-y-1.5">
               <label htmlFor="catatan-kurasi" className="text-xs font-bold text-ink-700">
-                Catatan {review.action === "revisi" ? "(wajib, min. 10 karakter)" : "(opsional)"}
+                Catatan {review.action === "revisi" || review.action === "reject" ? "(wajib, min. 10 karakter)" : "(opsional)"}
               </label>
               <textarea
                 id="catatan-kurasi"
@@ -689,11 +944,17 @@ export default function TeacherDashboardPage() {
                 placeholder={
                   review.action === "revisi"
                     ? "Jelaskan bagian yang perlu diperbaiki…"
+                    : review.action === "reject"
+                    ? "Jelaskan alasan penolakan karya ini…"
                     : "Catatan penilaian untuk siswa…"
                 }
-                className="w-full rounded-xl border border-ink-150 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                className={`w-full rounded-xl border px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 ${
+                  review.action === "reject"
+                    ? "border-rose-200 focus:ring-rose-500/30"
+                    : "border-ink-150 focus:ring-emerald-500/30"
+                }`}
               />
-              {review.action === "revisi" && (
+              {(review.action === "revisi" || review.action === "reject") && (
                 <p className="text-[11px] text-ink-600">
                   Siswa akan menerima notifikasi berisi catatan ini.
                 </p>
@@ -721,6 +982,8 @@ export default function TeacherDashboardPage() {
                 className={`px-5 py-2 rounded-xl text-xs font-bold text-white cursor-pointer disabled:opacity-60 ${
                   review.action === "approve"
                     ? "bg-emerald-600 hover:bg-emerald-700"
+                    : review.action === "reject"
+                    ? "bg-rose-600 hover:bg-rose-700"
                     : "bg-amber-600 hover:bg-amber-700"
                 }`}
               >
@@ -728,6 +991,8 @@ export default function TeacherDashboardPage() {
                   ? "Menyimpan…"
                   : review.action === "approve"
                     ? "Setujui & Publikasikan"
+                    : review.action === "reject"
+                    ? "Tolak Permanen"
                     : "Kirim Catatan Revisi"}
               </button>
             </div>

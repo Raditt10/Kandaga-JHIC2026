@@ -33,9 +33,9 @@ export async function PATCH(
     const body = await req.json().catch(() => ({}));
     const action = String(body.action ?? "");
 
-    if (action !== "approve" && action !== "revisi") {
+    if (action !== "approve" && action !== "revisi" && action !== "reject") {
       return NextResponse.json(
-        { error: 'Aksi harus "approve" atau "revisi".' },
+        { error: 'Aksi harus "approve", "revisi", atau "reject".' },
         { status: 400 }
       );
     }
@@ -82,6 +82,16 @@ export async function PATCH(
       );
     }
 
+    // Penolakan permanen juga wajib disertai alasan yang jelas.
+    if (action === "reject" && reviewNotes.length < MIN_CATATAN) {
+      return NextResponse.json(
+        {
+          error: `Alasan penolakan wajib diisi (minimal ${MIN_CATATAN} karakter).`,
+        },
+        { status: 400 }
+      );
+    }
+
     // Nilai kurasi 0-100, opsional.
     let score: number | null | undefined = undefined;
     if (body.score !== undefined && body.score !== null && body.score !== "") {
@@ -96,12 +106,13 @@ export async function PATCH(
     }
 
     const approved = action === "approve";
+    const rejected = action === "reject";
 
     const updated = await prisma.projects.update({
       where: { id },
       data: {
-        status: approved ? "approved" : "revisi",
-        reviewedBy: auth.userId,
+        status:      approved ? "approved" : rejected ? "rejected" : "revisi",
+        reviewedBy:  auth.userId,
         publishedAt: approved ? new Date() : null,
         reviewNotes: reviewNotes.length > 0 ? reviewNotes : null,
         ...(score !== undefined ? { score } : {}),
@@ -109,21 +120,31 @@ export async function PATCH(
       include: TEACHER_PROJECT_INCLUDE,
     });
 
+    const notifTitle = approved
+      ? "Karya Anda disetujui"
+      : rejected
+      ? "Karya Anda ditolak"
+      : "Karya Anda perlu revisi";
+
+    const notifContent = approved
+      ? `"${updated.title}" sudah diverifikasi dan tayang di Galeri Kandaga.`
+      : rejected
+      ? `"${updated.title}" ditolak oleh guru pembimbing. Alasan: ${reviewNotes}`
+      : `"${updated.title}" dikembalikan untuk revisi. Catatan guru: ${reviewNotes}`;
+
     await notify({
-      userId: updated.studentId,
-      type: "karya",
-      title: approved ? "Karya Anda disetujui" : "Karya Anda perlu revisi",
-      content: approved
-        ? `"${updated.title}" sudah diverifikasi dan tayang di Galeri Kandaga.`
-        : `"${updated.title}" dikembalikan untuk revisi. Catatan guru: ${reviewNotes}`,
+      userId:  updated.studentId,
+      type:    "karya",
+      title:   notifTitle,
+      content: notifContent,
     });
 
     await audit({
-      userId: auth.userId,
-      action: approved ? "project.approve" : "project.revisi",
-      entity: "projects",
+      userId:   auth.userId,
+      action:   approved ? "project.approve" : rejected ? "project.reject" : "project.revisi",
+      entity:   "projects",
       entityId: updated.id,
-      data: { title: updated.title, score: score ?? null },
+      data:     { title: updated.title, score: score ?? null },
     });
 
     // Invalidate Redis gallery cache

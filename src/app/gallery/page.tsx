@@ -7,7 +7,7 @@ import ProjectCard from "@/components/gallery/ProjectCard";
 import Loading from "@/components/ui/Loading";
 import GalleryToolbar, { FilterMajor, SortOption } from "@/components/gallery/GalleryToolbar";
 import GalleryPagination from "@/components/gallery/GalleryPagination";
-import { getGalleryProjects, GalleryProjectItem } from "@/data/galleryData";
+import type { GalleryProjectItem } from "@/data/galleryData";
 import { Sparkles, Layers, ShieldCheck, SearchX } from "lucide-react";
 
 const ITEMS_PER_PAGE = 12;
@@ -34,20 +34,17 @@ export default function GalleryPage() {
       const res = await fetch("/api/gallery");
       if (res.ok) {
         const data = await res.json();
-        if (data && Array.isArray(data.projects) && data.projects.length > 0) {
-          setProjects(data.projects);
-          setIsLoading(false);
-          return;
-        }
+        setProjects(Array.isArray(data.projects) ? data.projects : []);
+      } else {
+        console.error("Gagal memuat galeri:", res.status);
+        setProjects([]);
       }
     } catch (error) {
-      console.error("Failed to fetch projects from API:", error);
+      console.error("Gagal memuat galeri:", error);
+      setProjects([]);
+    } finally {
+      setIsLoading(false);
     }
-
-    // Fallback to static verified dataset
-    const staticData = getGalleryProjects();
-    setProjects(staticData);
-    setIsLoading(false);
   };
 
   useEffect(() => {

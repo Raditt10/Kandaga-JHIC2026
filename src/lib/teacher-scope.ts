@@ -13,7 +13,7 @@ import prisma from "@/lib/prisma"
 import type { ProjectType } from "@prisma/client"
 
 /** Nama jurusan di tabel `majors` → nilai enum ProjectType. */
-const MAJOR_TO_PROJECT_TYPE: Record<string, ProjectType> = {
+export const MAJOR_TO_PROJECT_TYPE: Record<string, ProjectType> = {
   "RPL": "RPL",
   "TKJ": "TKJ",
   "Analis Kimia": "KA",
@@ -57,6 +57,7 @@ type ProjectWithRelations = {
   student: { class: string | null; user: { name: string } | null } | null
   advisor: { user: { name: string } | null } | null
   tools: { name: string; tool: { name: string } | null }[]
+  badges: { badge: { id: number; name: string; tier: string } | null; awardedAt: Date }[]
 }
 
 /** Bentuk data yang dipakai halaman /teacher. */
@@ -82,11 +83,21 @@ export function mapTeacherProject(p: ProjectWithRelations) {
     coverImage: p.coverImage,
     // Nama alat bebas dari siswa, jatuh ke master SkillTool bila kosong.
     techStack: p.tools.map((t) => t.name || t.tool?.name).filter(Boolean),
+    // Badge yang sudah diberikan guru (maks 1 badge per tier, dan tier unik per karya).
+    badges: p.badges
+      .filter((b) => b.badge !== null)
+      .map((b) => ({
+        badgeId:   b.badge!.id,
+        name:      b.badge!.name,
+        tier:      b.badge!.tier,
+        awardedAt: b.awardedAt.toISOString(),
+      })),
   }
 }
 
 export const TEACHER_PROJECT_INCLUDE = {
   student: { include: { user: true } },
   advisor: { include: { user: true } },
-  tools: { include: { tool: true } },
+  tools:   { include: { tool: true } },
+  badges:  { include: { badge: true } },
 } as const

@@ -103,7 +103,10 @@ function mapDatabaseProject(p: any) {
       views: p.viewCount || 0,
       likes: p.stars || 0,
     },
-    links: {},
+    links: {
+      ...(p.githubUrl ? { githubUrl: p.githubUrl } : {}),
+      ...(p.demoUrl   ? { demoUrl:   p.demoUrl   } : {}),
+    },
   };
 }
 
@@ -189,17 +192,25 @@ export async function POST(req: NextRequest) {
       ? body.tools.filter((t: any) => typeof t === "string" && t.trim()).map((t: string) => t.trim())
       : [];
 
-    const projectToolsData = [];
-    for (const name of toolNames) {
-      const skillTool = await prisma.skillTool.upsert({
-        where: { name },
-        create: { name },
-        update: {},
+    // Tools disiapkan dengan 2 kueri, bukan N kueri di dalam loop.
+    // Sebelumnya setiap nama tool memicu satu upsert serial (N+1), sehingga
+    // menyimpan karya dengan 8 teknologi berarti 8 round-trip ke database.
+    // `name` tetap disertakan karena project_tools menyimpannya terdenormalisasi.
+    let projectToolsData: { toolId: number; name: string }[] = [];
+    const uniqueToolNames = Array.from(new Set(toolNames));
+    if (uniqueToolNames.length > 0) {
+      await prisma.skillTool.createMany({
+        data: uniqueToolNames.map((name) => ({ name })),
+        skipDuplicates: true,
       });
-      projectToolsData.push({
-        toolId: skillTool.id,
+      const tools = await prisma.skillTool.findMany({
+        where: { name: { in: uniqueToolNames } },
+        select: { id: true, name: true },
+      });
+      projectToolsData = uniqueToolNames.map((name) => ({
+        toolId: tools.find((t) => t.name === name)!.id,
         name,
-      });
+      }));
     }
 
     // 4. Persiapkan poin fitur / solusi
@@ -211,6 +222,10 @@ export async function POST(req: NextRequest) {
     const created = await prisma.projects.create({
       data: {
         studentId,
+        // Guru pembimbing — opsional di DB, wajib di UI per alurKarya.md §1.
+        ...(body.advisorId && typeof body.advisorId === "string"
+          ? { advisorId: body.advisorId }
+          : {}),
         title: body.title.trim(),
         description: body.description?.trim() || "",
         type: projectType,
@@ -220,6 +235,11 @@ export async function POST(req: NextRequest) {
         coverImage: coverUrl,
         viewCount: 0,
         stars: 0,
+        // Tautan eksternal opsional
+        ...(body.githubUrl && typeof body.githubUrl === "string" && body.githubUrl.trim()
+          ? { githubUrl: body.githubUrl.trim() } : {}),
+        ...(body.demoUrl && typeof body.demoUrl === "string" && body.demoUrl.trim()
+          ? { demoUrl: body.demoUrl.trim() } : {}),
         mainFeatures: {
           create: features.map((feature) => ({ feature })),
         },

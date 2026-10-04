@@ -84,7 +84,7 @@ export default function Navbar({ onOpenLogin }: NavbarProps) {
               <Image
                 src="/logo.png"
                 alt="Kandaga Logo"
-                fill
+                fill sizes="32px"
                 className="object-contain"
                 priority
               />
