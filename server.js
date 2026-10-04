@@ -6,7 +6,7 @@ const next = require("next");
 // Set environment to production by default jika dijalankan lewat server.js
 const dev = process.env.NODE_ENV === "development";
 const hostname = process.env.HOSTNAME || "0.0.0.0";
-const port = parseInt(process.env.PORT, 10) || 56110;
+const port = parseInt(process.env.PORT, 10) || 30000;
 
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
