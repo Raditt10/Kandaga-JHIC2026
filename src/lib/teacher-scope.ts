@@ -13,7 +13,7 @@ import prisma from "@/lib/prisma"
 import type { ProjectType } from "@prisma/client"
 
 /** Nama jurusan di tabel `majors` → nilai enum ProjectType. */
-const MAJOR_TO_PROJECT_TYPE: Record<string, ProjectType> = {
+export const MAJOR_TO_PROJECT_TYPE: Record<string, ProjectType> = {
   "RPL": "RPL",
   "TKJ": "TKJ",
   "Analis Kimia": "KA",
