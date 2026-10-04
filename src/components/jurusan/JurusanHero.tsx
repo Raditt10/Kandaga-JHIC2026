@@ -128,16 +128,47 @@ export default function JurusanHero({
             </div>
           </motion.div>
 
-          {/* ── Right Column: KOSONG TERLEBIH DAHULU UNTUK SLOT MODEL 3D ── */}
-          <div className="hidden lg:flex lg:col-span-6 w-full justify-center items-center">
-            <div
-              id="hero-3d-model-container"
-              data-slot="hero-3d-model"
-              data-major={currentMajor.id}
-              className="w-full max-w-lg aspect-square relative"
-              aria-hidden="true"
-            />
-          </div>
+          {/* ── Right Column: Model siswa per jurusan — tanpa border, tanpa badge ── */}
+          <motion.div
+            initial={{ opacity: 0, x: 32 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="hidden lg:flex lg:col-span-6 w-full justify-center items-end"
+          >
+            <div className="relative w-full max-w-sm">
+
+              {/* Background ambient blur per jurusan — di belakang model */}
+              <div
+                className={`absolute inset-0 rounded-3xl blur-2xl scale-110 opacity-30 ${
+                  currentMajor.id === "analis-kimia"
+                    ? "bg-gradient-to-b from-amber-200 to-amber-100"
+                    : currentMajor.id === "tkj"
+                    ? "bg-gradient-to-b from-blue-200 to-blue-100"
+                    : "bg-gradient-to-b from-rose-200 to-rose-100"
+                }`}
+                aria-hidden="true"
+              />
+
+              {/* Gambar model — langsung, tanpa frame/border/badge */}
+              <div className="relative z-10 aspect-[3/4] overflow-hidden rounded-2xl">
+                <Image
+                  src={
+                    currentMajor.id === "analis-kimia"
+                      ? "/images/MODELKA.png"
+                      : currentMajor.id === "tkj"
+                      ? "/images/MODELTKJ.png"
+                      : "/images/MODELRPL.png"
+                  }
+                  alt={`Siswa program ${currentMajor.name}`}
+                  fill
+                  priority
+                  className="object-cover"
+                  style={{ objectPosition: "center 15%" }}
+                />
+              </div>
+
+            </div>
+          </motion.div>
 
         </div>
       </div>

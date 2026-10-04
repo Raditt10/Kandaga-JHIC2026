@@ -50,3 +50,11 @@ next-env.d.ts
 # artefak verifikasi lokal — screenshot & backup data, bukan bagian aplikasi
 /screenshots
 /backup-sebelum-seed-*.json
+
+# AI & editor tooling — dibuat ulang otomatis, tidak perlu di-commit
+.agent/
+.claude/
+.opencode/
+.kiro/
+AGENTS.md
+CLAUDE.md

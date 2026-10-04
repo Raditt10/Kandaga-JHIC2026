@@ -1,0 +1,54 @@
+### PC pages=18
+200 | / | type=homepage | wc=732 | h1=1 | inlinks=16 | outlinks=7 | img=17/noalt=0 | canonSelf=False | jsonld=0 | cq=79B | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+404 | /komunitas | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+200 | /auth/login | type=form_page | wc=104 | h1=1 | inlinks=1 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=37D | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+404 | /galeri | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+404 | /leaderboard | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+404 | /etalase/absensi-iot | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+404 | /kontak | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+200 | /jurusan/rpl | type=other | wc=555 | h1=1 | inlinks=15 | outlinks=6 | img=2/noalt=0 | canonSelf=False | jsonld=0 | cq=87A | desclen=364 | title=Rekayasa Perangkat Lunak - SMKN 13 Bandung | Kandaga
+404 | /akademi | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+404 | /mitra | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+404 | /verifikasi | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+404 | /mitra/daftar | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+200 | /galeri-karya | type=other | wc=160 | h1=1 | inlinks=14 | outlinks=6 | img=2/noalt=0 | canonSelf=False | jsonld=0 | cq=62C | desclen=115 | title=Galeri Karya — Kandaga SMKN 13 Bandung
+404 | /tentang | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+404 | /talenta | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+404 | /magang | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+404 | /galeri?jurusan=RPL | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+200 | /auth/register | type=form_page | wc=146 | h1=1 | inlinks=2 | outlinks=0 | img=1/noalt=0 | canonSelf=False | jsonld=0 | cq=39D | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+
+ISSUES PC
+keys: ['domain', 'total_pages', 'generated_at', 'issues']
+domain -> localhost:8080
+total_pages -> 18
+generated_at -> 2026-10-02 17:32:19
+issues -> dict: {"No Breadcrumb Schema": {"label": "Missing Breadcrumb Schema", "priority": "P0", "count": 18, "pct": 100.0, "severity": "High", "examples": ["http://localhost:8080", "http://localhost:8080/komunitas", "http://localhost:8080/auth/login", "http://localhost:8080/galeri", "http://localhost:8080/leaderboard", "http://localhost:8080/etalase/absensi-iot", "http://localhost:8080/kontak", "http://localhost:8080/jurusan/rpl"]}, "No Json Ld": {"label": "No Json Ld", "priority": "P0", "count": 18, "pct": 100.0, "severity": "High", "examples": ["http://localhost:8080", "http://localhost:8080/komunitas", "http://localhost:8080/auth/login", "http://localhost:8080/galeri", "http://localhost:8080/leaderboar
+
+### MOBILE pages=18
+200 | / | type=homepage | wc=732 | h1=1 | inlinks=16 | outlinks=7 | img=17/noalt=0 | canonSelf=False | jsonld=0 | cq=79B | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+200 | /auth/login | type=form_page | wc=104 | h1=1 | inlinks=1 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=37D | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+404 | /akademi | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+404 | /leaderboard | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+404 | /etalase/absensi-iot | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+404 | /mitra | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+404 | /tentang | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+404 | /mitra/daftar | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+404 | /galeri | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+404 | /verifikasi | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+200 | /jurusan/rpl | type=other | wc=555 | h1=1 | inlinks=15 | outlinks=6 | img=2/noalt=0 | canonSelf=False | jsonld=0 | cq=87A | desclen=364 | title=Rekayasa Perangkat Lunak - SMKN 13 Bandung | Kandaga
+404 | /talenta | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+200 | /galeri-karya | type=other | wc=160 | h1=1 | inlinks=14 | outlinks=6 | img=2/noalt=0 | canonSelf=False | jsonld=0 | cq=62C | desclen=115 | title=Galeri Karya — Kandaga SMKN 13 Bandung
+404 | /kontak | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+404 | /komunitas | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+404 | /magang | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+200 | /auth/register | type=form_page | wc=146 | h1=1 | inlinks=2 | outlinks=0 | img=1/noalt=0 | canonSelf=False | jsonld=0 | cq=39D | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+404 | /galeri?jurusan=RPL | type=other | wc=7 | h1=1 | inlinks=0 | outlinks=0 | img=0/noalt=0 | canonSelf=False | jsonld=0 | cq=25F | desclen=100 | title=Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung
+
+ISSUES MOBILE
+keys: ['domain', 'total_pages', 'generated_at', 'issues']
+domain -> localhost:8080
+total_pages -> 18
+generated_at -> 2026-10-02 17:32:33
+issues -> dict: {"No Breadcrumb Schema": {"label": "Missing Breadcrumb Schema", "priority": "P0", "count": 18, "pct": 100.0, "severity": "High", "examples": ["http://localhost:8080", "http://localhost:8080/auth/login", "http://localhost:8080/akademi", "http://localhost:8080/leaderboard", "http://localhost:8080/etalase/absensi-iot", "http://localhost:8080/mitra", "http://localhost:8080/tentang", "http://localhost:8080/mitra/daftar"]}, "No Json Ld": {"label": "No Json Ld", "priority": "P0", "count": 18, "pct": 100.0, "severity": "High", "examples": ["http://localhost:8080", "http://localhost:8080/auth/login", "http://localhost:8080/akademi", "http://localhost:8080/leaderboard", "http://localhost:8080/etalase/
+

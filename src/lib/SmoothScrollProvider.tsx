@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 
 export default function SmoothScrollProvider({
@@ -8,7 +9,22 @@ export default function SmoothScrollProvider({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
   useEffect(() => {
+    // Disable smooth scroll on portal dashboards & form-heavy pages to prevent main-thread CPU congestion
+    if (
+      pathname &&
+      (pathname.startsWith("/admin") ||
+        pathname.startsWith("/student") ||
+        pathname.startsWith("/teacher") ||
+        pathname.startsWith("/company") ||
+        pathname.startsWith("/bkk") ||
+        pathname.startsWith("/dashboard"))
+    ) {
+      return;
+    }
+
     const prefersReduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
@@ -46,7 +62,7 @@ export default function SmoothScrollProvider({
       document.removeEventListener("visibilitychange", handleVisibility);
       lenis.destroy();
     };
-  }, []);
+  }, [pathname]);
 
   return <>{children}</>;
 }

@@ -1,65 +1,42 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
-import { useRef } from "react";
-import { motion, useScroll, useTransform } from "motion/react";
-import { curtainReveal, wordmarkReveal, staggerChildren } from "@/lib/motion";
-import MagneticButton from "@/components/ui/MagneticButton";
+/**
+ * Hero.tsx  v3  —  Hero Section "3 Lingkaran Jurusan"
+ *
+ * PERBAIKAN v3:
+ * - HeroFloatingIcons di-render langsung di hero-root (bukan di stage),
+ *   sehingga ikon zona atas muncul di area judul & teks.
+ * - hero-root pakai overflow:hidden → lingkaran terpotong di dasar = flush.
+ * - Scroll indicator tetap dihapus.
+ * - Versi lama: HeroLegacy.tsx
+ */
 
-const panels = [
-  { src: "/images/hero-kimia.jpg", alt: "Aktivitas laboratorium Analis Kimia" },
-  { src: "/images/hero-kolaborasi.jpg", alt: "Siswa berkolaborasi mengerjakan proyek" },
-  { src: "/images/hero-tkj.jpg", alt: "Aktivitas coding TKJ/RPL di depan layar" },
-];
+import "./hero.css";
+
+import Link from "next/link";
+import { motion } from "motion/react";
+import MagneticButton from "@/components/ui/MagneticButton";
+import { wordmarkReveal } from "@/lib/motion";
+import HeroStage from "./HeroStage";
+import HeroFloatingIcons from "./HeroFloatingIcons";
 
 export default function Hero() {
-  const sectionRef = useRef<HTMLElement>(null);
-
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end start"],
-  });
-
-  // Parallax ±8%
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "8%"]);
-
   return (
-    <section ref={sectionRef} id="beranda-section" className="relative overflow-hidden">
-      {/* 3 panel curtain reveal staggered */}
-      <motion.div
-        className="grid h-[420px] grid-cols-3 md:h-[480px]"
-        variants={staggerChildren}
-        initial="hidden"
-        animate="show"
-      >
-        {panels.map((panel, index) => (
-          <motion.div
-            key={panel.src}
-            className="relative h-full w-full overflow-hidden"
-            variants={curtainReveal}
-            transition={{ delay: index * 0.1 }}
-          >
-            <motion.div className="absolute inset-0" style={{ y }}>
-              <Image
-                src={panel.src}
-                alt={panel.alt}
-                fill
-                priority
-                className="object-cover scale-110"
-              />
-            </motion.div>
-          </motion.div>
-        ))}
-      </motion.div>
+    <section id="beranda-section" className="hero-root">
+      {/* Shadow merah tipis di bagian atas, di belakang navbar pill */}
+      <div className="hero-top-glow" aria-hidden="true" />
 
-      {/* Gradient overlay */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/10 via-white/60 to-white/95" />
+      {/*
+       * Ikon melayang diletakkan di hero-root (position:absolute inset:0)
+       * sehingga mencakup seluruh tinggi hero termasuk area teks.
+       * z-index:2 di CSS — di bawah teks (z-3), di atas background.
+       */}
+      <HeroFloatingIcons />
 
-      {/* Konten tengah */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
+      {/* ── Blok Teks ─────────────────────────────────────────────── */}
+      <div className="hero-text-block">
         <motion.h1
-          className="font-heading text-5xl font-bold tracking-tight text-ink md:text-7xl"
+          className="hero-heading font-heading"
           variants={wordmarkReveal}
           initial="hidden"
           animate="show"
@@ -68,16 +45,16 @@ export default function Hero() {
         </motion.h1>
 
         <motion.p
-          className="mt-2 text-xs font-medium tracking-[0.6em] text-primary md:text-sm"
+          className="hero-subheading"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.75 }}
         >
-          MAJOR GALLERY
+          M A J O R &nbsp; G A L L E R Y
         </motion.p>
 
         <motion.p
-          className="mt-6 max-w-xl text-sm text-ink-700 md:text-lg"
+          className="hero-paragraph"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.9, ease: [0.22, 1, 0.36, 1] }}
@@ -86,15 +63,13 @@ export default function Hero() {
           sekolah, terbuka untuk industri.
         </motion.p>
 
-        {/* CTA magnetic — pakai komponen reusable */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 1.05, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-6"
+          className="hero-cta-wrapper"
         >
           <MagneticButton radius={40} strength={6} wrapperClassName="relative">
-            {/* Ring berdenyut emas */}
             <motion.span
               className="absolute inset-0 rounded-full border border-accent"
               animate={{ scale: [1, 1.12, 1], opacity: [0.7, 0, 0.7] }}
@@ -110,6 +85,9 @@ export default function Hero() {
           </MagneticButton>
         </motion.div>
       </div>
+
+      {/* ── Panggung (flush ke dasar hero via overflow:hidden pada root) */}
+      <HeroStage />
     </section>
   );
 }
