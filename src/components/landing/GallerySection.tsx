@@ -243,7 +243,20 @@ export default function GallerySection() {
   const activeCard = cards[activeIndex]
 
   return (
-    <section ref={sectionRef} id="galeri-section" className="mx-auto max-w-7xl px-6 py-20 md:py-24">
+    /*
+     * overflow-x-clip memotong kartu samping card deck yang diposisikan absolut
+     * pada x = ±180px. Section ini selebar viewport, jadi pemotongannya jatuh
+     * tepat di tepi layar — tampilan tidak berubah, tetapi lebar dokumen tidak
+     * lagi ikut membengkak. `overflow-x: clip` pada body mencegah gulir
+     * menyamping, namun documentElement.scrollWidth tetap membengkak dan itu
+     * ditandai audit Lighthouse sebagai konten yang tidak sesuai viewport.
+     * `clip` dipakai, bukan `hidden`, agar sticky di dalam tetap bekerja.
+     */
+    <section
+      ref={sectionRef}
+      id="galeri-section"
+      className="mx-auto max-w-7xl overflow-x-clip px-6 py-20 md:py-24"
+    >
       {/* Header */}
       <motion.div
         className="mb-10 max-w-xl"
