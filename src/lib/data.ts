@@ -57,7 +57,7 @@ export const JURUSAN_LIST: Jurusan[] = [
     slug: "analis-kimia",
     name: "Analis Kimia",
     fullName: "Analis Kimia",
-    image: "/images/hero-kimia.jpg",
+    image: "/images/KIMIA_V01.jpeg",
     link: "/jurusan/analis-kimia",
     description:
       "Jurusan yang berfokus pada analisis laboratorium, pengujian bahan kimia, dan riset berbasis sains terapan.",
@@ -66,7 +66,7 @@ export const JURUSAN_LIST: Jurusan[] = [
     slug: "tkj",
     name: "TKJ",
     fullName: "Teknik Komputer Jaringan",
-    image: "/images/hero-tkj.jpg",
+    image: "/images/TKJ_V01.jpeg",
     link: "/jurusan/tkj",
     description:
       "Jurusan yang mempelajari infrastruktur jaringan komputer, keamanan sistem, dan administrasi server.",
@@ -75,7 +75,7 @@ export const JURUSAN_LIST: Jurusan[] = [
     slug: "rpl",
     name: "RPL",
     fullName: "Rekayasa Perangkat Lunak",
-    image: "/images/preview-rpl.jpg",
+    image: "/images/RPL_V01.jpeg",
     link: "/jurusan/rpl",
     description:
       "Jurusan yang fokus pada pengembangan aplikasi web, mobile, dan sistem informasi berbasis kode.",

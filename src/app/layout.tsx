@@ -49,6 +49,7 @@ export default function RootLayout({
   return (
     <html
       lang="id"
+      suppressHydrationWarning
       className={`${poppins.variable} ${inter.variable} ${tangerine.variable} ${montserrat.variable} ${bebasNeue.variable}`}
     >
       <body suppressHydrationWarning>
