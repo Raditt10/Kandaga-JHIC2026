@@ -24,17 +24,20 @@ export async function generateMetadata({
 
   if (!jurusan) {
     return {
-      title: "Kandaga",
+      title: "Jurusan Tidak Ditemukan",
       robots: { index: false, follow: true },
     };
   }
 
   return {
-    title: "Kandaga",
+    // Nama merek tetap muncul lewat title.template di layout akar ("%s | Kandaga"),
+    // sedangkan di sini yang penting adalah pembeda antar jurusan.
+    title: `${jurusan.name} - SMKN 13 Bandung`,
     description: jurusan.description,
     alternates: { canonical: `/jurusan/${jurusan.id}` },
     openGraph: {
-      title: "Kandaga",
+      // Judul Open Graph tidak melewati title.template, jadi akhirannya ditulis langsung.
+      title: `${jurusan.name} - SMKN 13 Bandung | Kandaga`,
       description: jurusan.description,
       url: `/jurusan/${jurusan.id}`,
     },

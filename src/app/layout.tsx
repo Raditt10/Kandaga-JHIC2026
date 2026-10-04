@@ -59,8 +59,18 @@ const SITE_DESCRIPTION =
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Kandaga",
-    template: "Kandaga",
+    default: "Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung",
+    /*
+     * "%s" diganti judul masing-masing halaman, lalu ditempeli "| Kandaga"
+     * sehingga nama merek tetap muncul di SEMUA judul halaman.
+     *
+     * Tanpa "%s", template tidak menambahkan melainkan MENGGANTI judul
+     * halaman — akibatnya seluruh halaman di situs berjudul sama persis.
+     * Itu merugikan SEO: mesin pencari dan calon pengunjung kehilangan
+     * pembeda antar halaman, dan tiap halaman tidak lagi punya kata kunci
+     * sendiri di judulnya.
+     */
+    template: "%s | Kandaga",
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
