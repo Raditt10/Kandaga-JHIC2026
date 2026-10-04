@@ -55,9 +55,8 @@ function mapDatabaseProject(p: any) {
       likes: p.stars || 0,
     },
     links: {
-      demoUrl: p.links?.demoUrl || undefined,
-      githubUrl: p.links?.githubUrl || undefined,
-      docUrl: p.links?.docUrl || undefined,
+      ...(p.githubUrl ? { githubUrl: p.githubUrl } : {}),
+      ...(p.demoUrl   ? { demoUrl:   p.demoUrl   } : {}),
     },
   };
 }
@@ -184,6 +183,22 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
       return NextResponse.json({ error: "Karya ini bukan milik Anda" }, { status: 403 });
     }
 
+    // H1 — Karya yang sudah disetujui guru terkunci dari editing siswa.
+    // Begitu karya tayang di galeri publik (dan mungkin sudah dilihat atau
+    // di-bookmark mitra industri), mengizinkan edit diam-diam akan merusak
+    // kredibilitas label "Terverifikasi Sekolah". Siswa harus mengajukan
+    // karya baru jika ingin memperbarui isi karya yang sudah approved.
+    if (existing.status === "approved") {
+      return NextResponse.json(
+        {
+          error:
+            "Karya yang sudah disetujui guru tidak dapat diedit. " +
+            "Hubungi guru pembimbing jika ada kesalahan yang perlu diperbaiki.",
+        },
+        { status: 403 }
+      );
+    }
+
     const updateData: any = {};
 
     if (body.title && typeof body.title === "string") {
@@ -204,6 +219,13 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
     }
     if (body.coverImage) {
       updateData.coverImage = body.coverImage;
+    }
+    // Tautan eksternal — string kosong = hapus tautan
+    if (typeof body.githubUrl === "string") {
+      updateData.githubUrl = body.githubUrl.trim() || null;
+    }
+    if (typeof body.demoUrl === "string") {
+      updateData.demoUrl = body.demoUrl.trim() || null;
     }
 
     // Perbarui relasi media jika diberikan

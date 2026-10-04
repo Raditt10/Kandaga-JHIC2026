@@ -39,6 +39,7 @@ model Users {
   auditLogs               AuditLogs[]
   faqAsker                FAQs[]            @relation("FAQSAsker")
   faqReplier              FAQs[]            @relation("FAQsReplier")
+  internshipPostings      InternshipPostings[] @relation("InternshipCreatedBy")
 
   @@map("users")
 }
@@ -155,6 +156,10 @@ model Projects {
   // kode yang membacanya — jadi membuangnya hanya menambah risiko tanpa manfaat.
   projectType  ProjectType?
   isPrivate    Boolean                  @default(false)
+  /// Tautan repositori kode (GitHub, GitLab, dsb.) — opsional
+  githubUrl    String?                  @map("github_url")
+  /// Tautan demo aplikasi, laporan PDF, atau video demo — opsional
+  demoUrl      String?                  @map("demo_url")
 
   student         Student           @relation(fields: [studentId], references: [userId])
   advisor         Teacher?          @relation("ProjectsAdvisor", fields: [advisorId], references: [userId])
@@ -324,4 +329,36 @@ model FAQs {
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
   
   @@map("faqs")
+}
+
+model InternshipPostings {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// Judul posisi / role yang ditawarkan, misal "Frontend Developer Intern"
+  role        String
+  /// Nama perusahaan mitra atau lembaga
+  company     String
+  /// Target jurusan: RPL | TKJ | KA | Semua
+  majorTarget String    @default("Semua") @map("major_target")
+  /// Jenis program: PKL | Magang | Kunjungan Industri
+  type        String    @default("Magang")
+  /// Kota / format kerja, misal "Bandung (Hybrid)"
+  location    String    @default("")
+  /// Status: buka | terbatas | tutup
+  status      String    @default("buka")
+  /// Teks tambahan untuk status terbatas, misal "3 Kuota"
+  quota       String?
+  /// Tanggal batas pendaftaran
+  deadline    DateTime? @map("deadline") @db.Timestamptz
+  /// Deskripsi singkat lowongan (opsional)
+  description String?
+  /// Dibuat oleh BKK officer
+  createdBy   String    @map("created_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  creator Users @relation("InternshipCreatedBy", fields: [createdBy], references: [id])
+
+  @@index([status], map: "internship_status_idx")
+  @@index([majorTarget], map: "internship_major_idx")
+  @@map("internship_postings")
 }

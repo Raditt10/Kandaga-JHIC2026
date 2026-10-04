@@ -103,7 +103,10 @@ function mapDatabaseProject(p: any) {
       views: p.viewCount || 0,
       likes: p.stars || 0,
     },
-    links: {},
+    links: {
+      ...(p.githubUrl ? { githubUrl: p.githubUrl } : {}),
+      ...(p.demoUrl   ? { demoUrl:   p.demoUrl   } : {}),
+    },
   };
 }
 
@@ -219,6 +222,10 @@ export async function POST(req: NextRequest) {
     const created = await prisma.projects.create({
       data: {
         studentId,
+        // Guru pembimbing — opsional di DB, wajib di UI per alurKarya.md §1.
+        ...(body.advisorId && typeof body.advisorId === "string"
+          ? { advisorId: body.advisorId }
+          : {}),
         title: body.title.trim(),
         description: body.description?.trim() || "",
         type: projectType,
@@ -228,6 +235,11 @@ export async function POST(req: NextRequest) {
         coverImage: coverUrl,
         viewCount: 0,
         stars: 0,
+        // Tautan eksternal opsional
+        ...(body.githubUrl && typeof body.githubUrl === "string" && body.githubUrl.trim()
+          ? { githubUrl: body.githubUrl.trim() } : {}),
+        ...(body.demoUrl && typeof body.demoUrl === "string" && body.demoUrl.trim()
+          ? { demoUrl: body.demoUrl.trim() } : {}),
         mainFeatures: {
           create: features.map((feature) => ({ feature })),
         },
