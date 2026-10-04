@@ -189,17 +189,25 @@ export async function POST(req: NextRequest) {
       ? body.tools.filter((t: any) => typeof t === "string" && t.trim()).map((t: string) => t.trim())
       : [];
 
-    const projectToolsData = [];
-    for (const name of toolNames) {
-      const skillTool = await prisma.skillTool.upsert({
-        where: { name },
-        create: { name },
-        update: {},
+    // Tools disiapkan dengan 2 kueri, bukan N kueri di dalam loop.
+    // Sebelumnya setiap nama tool memicu satu upsert serial (N+1), sehingga
+    // menyimpan karya dengan 8 teknologi berarti 8 round-trip ke database.
+    // `name` tetap disertakan karena project_tools menyimpannya terdenormalisasi.
+    let projectToolsData: { toolId: number; name: string }[] = [];
+    const uniqueToolNames = Array.from(new Set(toolNames));
+    if (uniqueToolNames.length > 0) {
+      await prisma.skillTool.createMany({
+        data: uniqueToolNames.map((name) => ({ name })),
+        skipDuplicates: true,
       });
-      projectToolsData.push({
-        toolId: skillTool.id,
+      const tools = await prisma.skillTool.findMany({
+        where: { name: { in: uniqueToolNames } },
+        select: { id: true, name: true },
+      });
+      projectToolsData = uniqueToolNames.map((name) => ({
+        toolId: tools.find((t) => t.name === name)!.id,
         name,
-      });
+      }));
     }
 
     // 4. Persiapkan poin fitur / solusi

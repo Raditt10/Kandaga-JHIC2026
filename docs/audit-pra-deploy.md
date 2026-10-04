@@ -207,8 +207,8 @@ Diukur langsung dari `route.ts`, `schema.prisma`, dan pemakaian di kode.
 
 | Endpoint | Alasan |
 |---|---|
-| `/api/chat` | **Tanpa auth.** Siapa pun bisa memanggilnya dan menghabiskan kuota `GEMINI_API_KEY`. Beri rate limit atau wajibkan login |
-| `/api/media/[filename]` | Menyajikan berkas dari `public/assets/uploads` **tanpa auth**. Aman untuk gambar karya, tapi kalau dokumen legalitas mitra (`bkk/verifikasi` `docUrl`) ikut tersimpan di folder yang sama, dokumen itu jadi bisa diakses publik. **Perlu dipastikan pemisahan foldernya** |
+| `/api/chat` | **Tanpa auth.** Siapa pun bisa memanggilnya dan menghabiskan kuota `GEMINI_API_KEY`. ✅ **Sudah diperbaiki** — kini dibatasi 20 permintaan per 10 menit per IP (balas 429) |
+| `/api/media/[filename]` | Menyajikan berkas dari `public/assets/uploads` tanpa auth. ✅ **Tidak bermasalah** — setelah diperiksa, `/api/upload` hanya menerima berkas gambar dan sudah dijaga `requireStudent()`, sedangkan dokumen legalitas mitra bukan berkas lokal melainkan URL eksternal yang diisi pendaftar. Jadi tidak ada dokumen sensitif di folder itu |
 
 ### Yang jelas belum ada backend-nya
 
@@ -339,7 +339,7 @@ Prioritaskan **`rules-of-hooks` (3)** dan `set-state-in-effect` (23); sisanya bi
 | `passwordHash` terbaca dari DB (tidak terkirim) | `api/gallery/route.ts:9`, `api/akun/route.ts:32` | Sedang — perbaiki dengan `select` |
 | Aksi admin tidak berdampak ke data | `admin/moderasi/[id]/page.tsx:63-79` | **Integritas data** — keputusan moderasi tidak tercatat |
 | `console.log(error)` tertinggal di handler error produksi | `api/auth/register/route.ts:64` | Rendah |
-| URL dokumen legalitas mitra masih placeholder | `bkk/verifikasi/route.ts:114` | Sedang — verifikasi mitra berbasis dokumen palsu |
+| Dokumen legalitas mitra adalah URL eksternal yang diisi sendiri pendaftar (tidak diunggah ke server) | `mitra/daftar/page.tsx:365-366`; `api/mitra/daftar/route.ts:29` | Sedang — verifikasi mitra bersandar pada tautan yang belum diperiksa keasliannya. Bukan celah kebocoran data, tapi kualitas verifikasi |
 
 ---
 

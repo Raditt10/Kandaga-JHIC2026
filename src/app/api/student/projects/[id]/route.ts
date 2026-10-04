@@ -220,25 +220,38 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
       });
     }
 
-    // Perbarui relasi tools jika diberikan
+    // Perbarui relasi tools jika diberikan.
+    // Sebelumnya satu upsert + satu create dijalankan PER nama tool (N+1),
+    // jadi karya dengan 8 teknologi berarti 16 round-trip ke database.
+    // Sekarang jumlah kuerinya tetap: 1 delete, 1 createMany tool baru,
+    // 1 findMany, lalu 1 createMany relasi.
     if (Array.isArray(body.tools)) {
       await prisma.projectsTool.deleteMany({ where: { projectId: id } });
-      for (const name of body.tools) {
-        if (typeof name === "string" && name.trim()) {
-          const trimmed = name.trim();
-          const skillTool = await prisma.skillTool.upsert({
-            where: { name: trimmed },
-            create: { name: trimmed },
-            update: {},
-          });
-          await prisma.projectsTool.create({
-            data: {
-              projectId: id,
-              toolId: skillTool.id,
-              name: trimmed,
-            },
-          });
-        }
+
+      const names = Array.from(
+        new Set(
+          (body.tools as unknown[])
+            .filter((n): n is string => typeof n === "string" && n.trim().length > 0)
+            .map((n) => n.trim())
+        )
+      );
+
+      if (names.length > 0) {
+        await prisma.skillTool.createMany({
+          data: names.map((name) => ({ name })),
+          skipDuplicates: true,
+        });
+        const tools = await prisma.skillTool.findMany({
+          where: { name: { in: names } },
+          select: { id: true, name: true },
+        });
+        await prisma.projectsTool.createMany({
+          data: names.map((name) => ({
+            projectId: id,
+            toolId: tools.find((t) => t.name === name)!.id,
+            name,
+          })),
+        });
       }
     }
 
