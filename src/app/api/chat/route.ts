@@ -60,7 +60,51 @@ Saya siap membantu Anda seputar:
 *(Tips: Masukkan \`GEMINI_API_KEY\` Anda di file \`.env\` untuk mengaktifkan kecerdasan penuh model Google Gemini 2.5 Flash)*. Apa yang ingin Anda ketahui?`
 }
 
+/**
+ * Pembatas laju sederhana per-IP (disimpan di memori proses).
+ *
+ * Endpoint ini memanggil GEMINI_API_KEY yang berbayar. Widget chat saat ini
+ * tidak dipasang di halaman mana pun, TETAPI endpoint-nya tetap dapat
+ * dijangkau langsung begitu situs live — jadi tanpa pembatas, siapa pun yang
+ * tahu alamatnya bisa menghabiskan kuota API. Pembatas in-memory dipilih
+ * (bukan wajib login) supaya widget tetap bisa dipakai pengunjung anonim
+ * kalau nanti dipasang kembali.
+ */
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+const RATE_LIMIT_MAX = 20;
+const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(ip: string): { allowed: boolean; retryAfterSec: number } {
+  const now = Date.now();
+  const entry = rateLimitStore.get(ip);
+
+  if (!entry || entry.resetAt <= now) {
+    rateLimitStore.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true, retryAfterSec: 0 };
+  }
+  if (entry.count >= RATE_LIMIT_MAX) {
+    return { allowed: false, retryAfterSec: Math.ceil((entry.resetAt - now) / 1000) };
+  }
+  entry.count += 1;
+  return { allowed: true, retryAfterSec: 0 };
+}
+
 export async function POST(req: Request) {
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-real-ip") ||
+    "unknown";
+  const limit = checkRateLimit(ip);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      {
+        error: "Terlalu banyak permintaan. Silakan coba lagi nanti.",
+        retryAfterSeconds: limit.retryAfterSec,
+      },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSec) } }
+    );
+  }
+
   try {
     const body = await req.json()
     const { messages } = body as { messages?: ChatMessage[] }

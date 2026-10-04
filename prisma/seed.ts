@@ -186,6 +186,32 @@ async function main() {
   })
   console.log('  ✓ Teacher profile: guru13 (RPL)')
 
+  // Tambah guru TKJ dan Analis Kimia supaya semua jurusan punya guru pengurasi.
+  // Tanpa baris ini, guru13 (hanya RPL) tidak bisa menyetujui karya TKJ/KA
+  // karena scope-guard di /api/teacher/projects/[id] menolak jurusan berbeda.
+  const extraTeachers = [
+    { name: 'guru_tkj13',   email: 'guru.tkj@smkn13bdg.sch.id',   major: 'TKJ',          nip: '198601012011012002' },
+    { name: 'guru_kimia13', email: 'guru.kimia@smkn13bdg.sch.id', major: 'Analis Kimia', nip: '198701012012013003' },
+  ]
+  for (const t of extraTeachers) {
+    if (!u[t.name]) {
+      u[t.name] = await prisma.users.create({
+        data: {
+          name:         t.name,
+          email:        t.email,
+          passwordHash: hashedPassword,
+          role:         Role.Teacher,
+          status:       'aktif',
+        },
+      })
+      console.log(`  ✓ Created: ${t.name} (teacher)`)
+    }
+    await prisma.teacher.create({
+      data: { userId: u[t.name].id, majorId: m[t.major].id, nip: t.nip },
+    })
+    console.log(`  ✓ Teacher profile: ${t.name} (${t.major})`)
+  }
+
   // ── Profil Perusahaan ──────────────────────────────────────────────────
   // mitra_perusahaan WAJIB punya baris di sini. Tanpa profil perusahaan,
   // verificationStatus bernilai null dan akun demo itu selalu dilempar ke
@@ -301,6 +327,23 @@ async function main() {
   }
   console.log(`  ✓ ${contactSeed.length} permintaan kontak (2 aktif, 2 riwayat)`)
 
+  // ── Badge master data ──────────────────────────────────────────────────
+  // Harus ada sebelum seedDemoTambahan() yang membuat assignments.
+  const BADGES = [
+    { name: 'Karya Unggulan',    tier: 'gold' },
+    { name: 'Karya Terpilih',    tier: 'silver' },
+    { name: 'Karya Baik',        tier: 'bronze' },
+    { name: 'Diminati Industri', tier: 'industri' },
+  ]
+  for (const b of BADGES) {
+    await prisma.badges.upsert({
+      where: { name: b.name },
+      update: { tier: b.tier },
+      create: b,
+    })
+  }
+  console.log(`  ✓ ${BADGES.length} badge master rows`)
+
   // Isi tabel yang selama ini hanya dihapus tanpa pernah diisi (lihat seed-demo.ts)
   await seedDemoTambahan(prisma)
 
@@ -311,7 +354,9 @@ async function main() {
   console.log('  siswa13 / password123          → /student')
   console.log('  admin13 / password123          → /admin/dashboard')
   console.log('  mitra_perusahaan / password123 → /company  (perusahaan disetujui)')
-  console.log('  guru13 / password123           → /teacher')
+  console.log('  guru13 / password123           → /teacher  (RPL)')
+  console.log('  guru_tkj13 / password123       → /teacher  (TKJ)')
+  console.log('  guru_kimia13 / password123     → /teacher  (Analis Kimia)')
   console.log('  bkk13 / password123            → /bkk')
   console.log('  siswa_tkj13 / password123      → /student')
   console.log('  siswa_kimia13 / password123    → /student')

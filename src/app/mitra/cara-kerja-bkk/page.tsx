@@ -31,7 +31,7 @@ export default function CaraKerjaBKKPage() {
         <div className="max-w-3xl mx-auto bg-white/90 backdrop-blur-md border border-ink-150 shadow-sm rounded-full px-6 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
             <div className="w-8 h-8 relative rounded-full overflow-hidden ring-1 ring-ink/5">
-              <Image src="/logo.png" alt="Kandaga" fill className="object-contain" priority />
+              <Image src="/logo.png" alt="Kandaga" fill sizes="32px" className="object-contain" priority />
             </div>
             <span className="font-heading font-extrabold text-base bg-gradient-to-r from-ink via-primary to-primary bg-clip-text text-transparent">
               KANDAGA

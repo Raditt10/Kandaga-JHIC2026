@@ -31,10 +31,24 @@ export async function GET() {
 
     const user = await prisma.users.findUnique({
       where: { id: auth.userId },
-      include: {
-        studentProfile: { include: { major: true } },
-        teacherProfile: { include: { major: true } },
-        companyProfile: true,
+      // `select` eksplisit: passwordHash tidak perlu terbaca di jalur BACA ini.
+      // Hanya handler PATCH (ganti kata sandi, baris ~142) yang membutuhkannya
+      // untuk memverifikasi kata sandi lama.
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        status: true,
+        createdAt: true,
+        studentProfile: {
+          select: { nis: true, class: true, major: { select: { name: true } } },
+        },
+        teacherProfile: {
+          select: { nip: true, major: { select: { name: true } } },
+        },
+        companyProfile: {
+          select: { name: true, field: true, verificationStatus: true },
+        },
       },
     });
 

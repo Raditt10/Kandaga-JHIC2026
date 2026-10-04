@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth-options"
 import prisma from "@/lib/prisma"
+import { notify } from "@/lib/activity"
 
 /**
  * /api/bkk/kontak — Antrian permintaan kontak (minat dari perusahaan ke karya siswa).
@@ -219,6 +220,38 @@ export async function PATCH(req: Request) {
       klarifikasi: "Permintaan klarifikasi dikirim ke perusahaan.",
       diteruskan:  "Permintaan diteruskan ke siswa.",
       ditolak:     "Permintaan ditolak dengan catatan.",
+    }
+
+    // Kirim notifikasi ke siswa saat BKK meneruskan permintaan kontak
+    if (newStatus === "diteruskan") {
+      try {
+        const kontak = await prisma.contactRequests.findUnique({
+          where: { id },
+          select: {
+            project: {
+              select: {
+                title: true,
+                studentId: true,
+              },
+            },
+            company: {
+              select: { name: true },
+            },
+          },
+        })
+
+        if (kontak) {
+          await notify({
+            userId: kontak.project.studentId,
+            type: "kontak",
+            title: "Ada perusahaan yang ingin menghubungi Anda",
+            content: `${kontak.company?.name ?? "Sebuah perusahaan"} tertarik dengan karya "${kontak.project.title}" Anda. BKK telah meneruskan permintaan ini — harap hubungi Koordinator BKK untuk tindak lanjut.`,
+          })
+        }
+      } catch (notifErr) {
+        // Kegagalan notifikasi tidak boleh membatalkan aksi utama
+        console.warn("[PATCH /api/bkk/kontak] notify student error:", notifErr)
+      }
     }
 
     return NextResponse.json({ message: pesan[newStatus], status: newStatus })

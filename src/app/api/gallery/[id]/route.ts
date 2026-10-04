@@ -1,105 +1,145 @@
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { getProjectById } from "@/data/galleryData";
+/**
+ * GET /api/gallery/[id]
+ *
+ * Detail karya publik. Hanya karya berstatus "approved" dan belum dihapus
+ * yang boleh dikembalikan. Karya pending/rejected/deleted → 404.
+ *
+ * Tidak ada fallback ke data mock — jika karya tidak ada di DB, berarti
+ * karya itu memang tidak ada secara resmi.
+ */
+
+import { NextRequest, NextResponse } from "next/server"
+import prisma from "@/lib/prisma"
+
+function typeToSlug(type: string): "rpl" | "tkj" | "analis-kimia" {
+  if (type === "TKJ") return "tkj"
+  if (type === "KA") return "analis-kimia"
+  return "rpl"
+}
+
+function typeToLabel(type: string): string {
+  if (type === "TKJ") return "TKJ"
+  if (type === "KA") return "Analis Kimia"
+  return "RPL"
+}
 
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await context.params;
+    const { id } = await context.params
 
-    // 1. Coba ambil dari database Prisma jika tabel tersedia
-    try {
-      const dbProject = await prisma.projects.findUnique({
-        where: { id },
-        include: {
-          media: true,
-          tools: {
-            include: {
-              tool: true,
-            },
-          },
-          badges: {
-            include: {
-              badge: true,
-            },
-          },
-          student: {
-            include: {
-              user: true,
-              major: true,
-            },
-          },
-          advisor: {
-            include: {
-              user: true,
-            },
+    const dbProject = await prisma.projects.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        type: true,
+        year: true,
+        status: true,
+        coverImage: true,
+        viewCount: true,
+        stars: true,
+        reviewNotes: true,
+        score: true,
+        deletedAt: true,
+        studentId: true,
+        isPrivate: true,
+        media: {
+          select: { url: true, type: true },
+          orderBy: { order: "asc" },
+          take: 10,
+        },
+        tools: {
+          select: { tool: { select: { name: true } }, name: true },
+        },
+        badges: {
+          select: { badge: { select: { tier: true, name: true } }, awardedAt: true },
+        },
+        mainFeatures: {
+          select: { feature: true },
+        },
+        student: {
+          select: {
+            userId: true,
+            class: true,
+            photoUrl: true,
+            user: { select: { name: true } },
+            major: { select: { name: true, fullName: true } },
           },
         },
-      });
+        advisor: {
+          select: { user: { select: { name: true } } },
+        },
+      },
+    })
 
-      // Karya yang belum diverifikasi guru (atau sudah dihapus) tidak boleh
-      // dibuka lewat URL publik. Dikembalikan 404 — sengaja TIDAK jatuh ke
-      // data statis, supaya status verifikasi tidak bisa dilewati lewat link.
-      if (dbProject && (dbProject.status !== "approved" || dbProject.deletedAt)) {
-        return NextResponse.json({ error: "Project not found" }, { status: 404 });
-      }
+    // Karya tidak ada, atau belum disetujui, atau sudah dihapus, atau diprivat
+    if (
+      !dbProject ||
+      dbProject.status !== "approved" ||
+      dbProject.deletedAt !== null ||
+      dbProject.isPrivate
+    ) {
+      return NextResponse.json({ error: "Karya tidak ditemukan." }, { status: 404 })
+    }
 
-      if (dbProject) {
-        const typeSlug = dbProject.type === "KA" ? "analis-kimia" : dbProject.type?.toLowerCase() || "rpl";
-        const typeLabel = dbProject.type === "KA" ? "Analis Kimia" : dbProject.type || "RPL";
+    // Naikkan view count (fire-and-forget, kegagalan tidak memblokir respons)
+    prisma.projects.update({
+      where: { id },
+      data: { viewCount: { increment: 1 } },
+    }).catch(() => {/* diabaikan */})
 
-        const mappedProject = {
-          id: dbProject.id,
-          title: dbProject.title,
-          tagline: dbProject.description ? dbProject.description.slice(0, 110) + "..." : "Karya tugas akhir siswa SMKN 13 Bandung.",
-          description: dbProject.description || "Deskripsi proyek sedang dalam kurasi pembimbing.",
-          solutionHighlights: [
-            "Proyek terverifikasi dan memenuhi standar kompetensi keahlian kurikulum SMK.",
-            "Telah melalui review kelayakan teknis oleh guru pembimbing.",
-          ],
-          major: typeSlug as any,
-          majorLabel: typeLabel,
-          jurusan: typeSlug as any,
-          jurusanLabel: typeLabel,
-          year: dbProject.year || new Date().getFullYear(),
-          coverImage: dbProject.media[0]?.url || "/images/preview-rpl.jpg",
-          galleryImages: dbProject.media.length > 0 ? dbProject.media.map((m) => m.url) : ["/images/preview-rpl.jpg"],
-          status: (dbProject.status === "featured" ? "featured" : "verified") as any,
-          tools: dbProject.tools.map((t) => t.tool.name),
-          studentId: dbProject.studentId,
-          studentName: dbProject.student?.user?.name || "Siswa SMKN 13",
-          studentAvatar: dbProject.student?.photoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-          studentClass: dbProject.student?.class || "XII",
-          isStudentPrivate: false,
-          advisor: {
-            name: dbProject.advisor?.user?.name || "Guru Pembimbing",
+    const slug = typeToSlug(String(dbProject.type))
+    const label = typeToLabel(String(dbProject.type))
+    const coverImage = dbProject.coverImage ?? dbProject.media[0]?.url ?? "/images/preview-rpl.jpg"
+    const topBadge = dbProject.badges[0]?.badge ?? null
+
+    const project = {
+      id: dbProject.id,
+      title: dbProject.title,
+      tagline: dbProject.description
+        ? dbProject.description.slice(0, 110) + (dbProject.description.length > 110 ? "..." : "")
+        : "Karya tugas akhir siswa SMKN 13 Bandung.",
+      description: dbProject.description ?? "",
+      solutionHighlights: dbProject.mainFeatures.map((f) => f.feature),
+      major: slug,
+      majorLabel: label,
+      jurusan: slug,
+      jurusanLabel: label,
+      year: dbProject.year,
+      coverImage,
+      galleryImages: dbProject.media.length > 0 ? dbProject.media.map((m) => m.url) : [coverImage],
+      status: "verified" as const,
+      badgeTier: topBadge ? (topBadge.tier as "gold" | "silver" | "bronze") : undefined,
+      badgeLabel: topBadge?.name ?? undefined,
+      tools: dbProject.tools.map((t) => t.name || t.tool.name),
+      studentId: dbProject.studentId,
+      studentName: dbProject.student?.user?.name ?? "Siswa SMKN 13",
+      studentAvatar: dbProject.student?.photoUrl ?? "/images/preview-rpl.jpg",
+      studentClass: dbProject.student?.class ?? "XII",
+      isStudentPrivate: false,
+      advisor: dbProject.advisor
+        ? {
+            name: dbProject.advisor.user.name,
             role: "Guru Pembimbing Kompetensi Keahlian",
-            reviewNotes: dbProject.reviewNotes || "Karya telah memenuhi standar penilaian akhir.",
-          },
-          metrics: {
-            views: dbProject.viewCount || 0,
-            likes: 0,
-          },
-          links: {},
-        };
-
-        return NextResponse.json({ project: mappedProject }, { status: 200 });
-      }
-    } catch {
-      // Prisma table may not exist yet in local development, fall through to static data
+            reviewNotes: dbProject.reviewNotes ?? "Terverifikasi sekolah.",
+          }
+        : undefined,
+      metrics: {
+        views: dbProject.viewCount,
+        likes: dbProject.stars,
+      },
+      score: dbProject.score ?? null,
+      majorForRelated: slug,
+      links: {},
     }
 
-    // 2. Fallback ke data terpusat (galleryData.ts)
-    const fallbackProject = getProjectById(id);
-    if (fallbackProject) {
-      return NextResponse.json({ project: fallbackProject }, { status: 200 });
-    }
-
-    return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    return NextResponse.json({ project }, { status: 200 })
   } catch (error) {
-    console.error("Error fetching project detail:", error);
-    return NextResponse.json({ error: "Failed to fetch gallery project" }, { status: 500 });
+    console.error("Error in GET /api/gallery/[id]:", error)
+    return NextResponse.json({ error: "Gagal memuat detail karya." }, { status: 500 })
   }
 }

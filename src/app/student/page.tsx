@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import DashboardLayout, { DashboardTab } from "@/components/DashboardLayout"
 import AccountSettings from "@/components/settings/AccountSettings"
 import { useSession } from "next-auth/react"
@@ -29,7 +30,12 @@ import {
   Building2,
   ChevronRight,
   BookOpen,
-  Settings
+  Settings,
+  Loader2,
+  Lock,
+  ImagePlus,
+  Video,
+  Trash2,
 } from "lucide-react"
 
 export interface StudentProject {
@@ -40,7 +46,7 @@ export interface StudentProject {
   category: string
   techStack: string[]
   views: number
-  status: string
+  status: "verified" | "review" | "revisi" | "draft" | string
   mentor: string
   submittedAt: string
   verifiedAt: string | null
@@ -56,11 +62,11 @@ export interface StudentProject {
 //
 // Database memakai status: pending | approved | revisi | private.
 // UI ini memakai istilah: verified | review | draft.
-const STATUS_UI: Record<string, "verified" | "review" | "draft"> = {
+const STATUS_UI: Record<string, "verified" | "review" | "revisi" | "draft"> = {
   approved: "verified",
-  pending: "review",
-  revisi: "review",
-  private: "draft",
+  pending:  "review",
+  revisi:   "revisi",
+  private:  "draft",
 }
 
 type ApiProject = {
@@ -75,6 +81,19 @@ type ApiProject = {
   updatedAt?: string | null
   metrics?: { views?: number }
   advisor?: { name?: string; reviewNotes?: string }
+}
+
+type LowonganItem = {
+  id: string
+  role: string
+  company: string
+  majorTarget: string
+  type: string
+  location: string
+  status: string
+  statusLabel: string
+  deadline: string | null
+  description: string | null
 }
 
 function dariApi(p: ApiProject): StudentProject {
@@ -105,41 +124,11 @@ function dariApi(p: ApiProject): StudentProject {
   }
 }
 
-const internshipOpportunities = [
-  {
-    id: "m-1",
-    company: "PT Telkom Indonesia (Digital Service)",
-    role: "Junior Network & Cloud Engineer",
-    majorTarget: "TKJ",
-    type: "PKL Bersertifikat (6 Bulan)",
-    location: "Bandung (Hybrid)",
-    status: "Buka Pendaftaran",
-    deadline: "20 Okt 2026",
-  },
-  {
-    id: "m-2",
-    company: "BukaStudio Software House",
-    role: "Frontend Developer Intern",
-    majorTarget: "RPL",
-    type: "Magang Industri (3-6 Bulan)",
-    location: "Bandung (On-site)",
-    status: "Buka Pendaftaran",
-    deadline: "25 Okt 2026",
-  },
-  {
-    id: "m-3",
-    company: "PT Kimia Farma Industri Tbk",
-    role: "QC Lab Analyst Intern",
-    majorTarget: "Analis Kimia",
-    type: "PKL Industri Farmasi",
-    location: "Bandung / Banjaran",
-    status: "Terbatas (3 Kuota)",
-    deadline: "15 Okt 2026",
-  },
-]
+// internshipOpportunities sekarang diambil dari /api/student/lowongan (lihat state di bawah)
 
 export default function StudentDashboardPage() {
   const { data: session } = useSession()
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState("dashboard")
   const [projects, setProjects] = useState<StudentProject[]>([])
   const [memuatKarya, setMemuatKarya] = useState(true)
@@ -147,6 +136,32 @@ export default function StudentDashboardPage() {
   const [filterStatus, setFilterStatus] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+  const [isSubmittingKarya, setIsSubmittingKarya] = useState(false)
+  const [submitKaryaError, setSubmitKaryaError] = useState<string | null>(null)
+  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null)
+
+  // ── Guru pembimbing untuk dropdown ────────────────────────────────────
+  type AdvisorItem = { id: string; name: string; nip: string | null; majorName: string }
+  const [advisors, setAdvisors] = useState<AdvisorItem[]>([])
+  const [newAdvisorId, setNewAdvisorId] = useState("")
+
+  // ── Lowongan magang dari database ─────────────────────────────────────────
+  const [lowongan, setLowongan] = useState<LowonganItem[]>([])
+  const [memuatLowongan, setMemuatLowongan] = useState(true)
+
+  // ── Permintaan kontak yang diteruskan BKK ke siswa ────────────────────────
+  type KontakItem = {
+    id: string
+    purpose: string
+    purposeLabel: string
+    message: string
+    bkkNotes: string | null
+    forwardedAt: string
+    company: { name: string; field: string | null; email: string | null }
+    project: { id: string; title: string }
+  }
+  const [kontak, setKontak] = useState<KontakItem[]>([])
+  const [memuatKontak, setMemuatKontak] = useState(true)
 
   // Form State untuk modal Tambah Karya
   const [newTitle, setNewTitle] = useState("")
@@ -154,6 +169,7 @@ export default function StudentDashboardPage() {
   const [newMajor, setNewMajor] = useState("RPL")
   const [newCategory, setNewCategory] = useState("Web & Mobile App")
   const [newTechStack, setNewTechStack] = useState("")
+  const [newYear, setNewYear] = useState(new Date().getFullYear())
   const [newGithub, setNewGithub] = useState("")
   const [newDemo, setNewDemo] = useState("")
 
@@ -181,36 +197,207 @@ export default function StudentDashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const handleCreateProject = (e: React.FormEvent) => {
+  // ── Konfigurasi adaptif per jurusan ──────────────────────────────────────
+  // Placeholder dan label berubah sesuai jurusan supaya siswa TKJ dan
+  // Analis Kimia tidak bingung mengisi form yang terasa "untuk RPL saja".
+  const JURUSAN_CONFIG: Record<string, {
+    titlePlaceholder: string
+    descPlaceholder: string
+    toolsLabel: string
+    toolsPlaceholder: string
+    linkALabel: string
+    linkAPlaceholder: string
+    linkBLabel: string
+    linkBPlaceholder: string
+    mediaHint: string
+  }> = {
+    RPL: {
+      titlePlaceholder: "Misal: EduClass — LMS & Presensi QR Cerdas",
+      descPlaceholder:  "Jelaskan masalah yang diselesaikan, teknologi yang dipakai, dan hasil akhirnya...",
+      toolsLabel:       "Teknologi / Stack",
+      toolsPlaceholder: "Next.js, TypeScript, PostgreSQL, Tailwind CSS",
+      linkALabel:       "Tautan GitHub / Repositori",
+      linkAPlaceholder: "https://github.com/...",
+      linkBLabel:       "Tautan Demo / Aplikasi",
+      linkBPlaceholder: "https://aplikasi.vercel.app",
+      mediaHint:        "Unggah screenshot UI, diagram arsitektur, atau video demo aplikasi.",
+    },
+    TKJ: {
+      titlePlaceholder: "Misal: Monitoring Jaringan Sekolah Berbasis SNMP",
+      descPlaceholder:  "Jelaskan topologi jaringan, perangkat yang dipakai, masalah yang diatasi, dan hasil konfigurasinya...",
+      toolsLabel:       "Perangkat & Protokol yang Digunakan",
+      toolsPlaceholder: "Cisco Packet Tracer, Mikrotik, SNMP, VPN, Wireshark",
+      linkALabel:       "Tautan Dokumentasi / Laporan",
+      linkAPlaceholder: "https://docs.google.com/...",
+      linkBLabel:       "Tautan Video Demo / Simulasi",
+      linkBPlaceholder: "https://youtube.com/...",
+      mediaHint:        "Unggah foto topologi jaringan, screenshot konfigurasi, atau video simulasi.",
+    },
+    "Analis Kimia": {
+      titlePlaceholder: "Misal: Analisis Kadar Vitamin C pada Buah Lokal Bandung",
+      descPlaceholder:  "Jelaskan tujuan riset, metode analisis yang digunakan, sampel yang diuji, dan kesimpulan hasilnya...",
+      toolsLabel:       "Metode & Instrumen Laboratorium",
+      toolsPlaceholder: "Titrasi Iodometri, Spektrofotometri UV-Vis, HPLC, AAS",
+      linkALabel:       "Tautan Laporan Riset / Jurnal",
+      linkAPlaceholder: "https://drive.google.com/...",
+      linkBLabel:       "Tautan Data Pendukung",
+      linkBPlaceholder: "https://drive.google.com/...",
+      mediaHint:        "Unggah foto proses pengujian laboratorium, grafik hasil, atau poster riset.",
+    },
+  }
+
+  const cfg = JURUSAN_CONFIG[newMajor] ?? JURUSAN_CONFIG["RPL"]
+
+  // ── Media upload state ────────────────────────────────────────────────────
+  type MediaItem = { url: string; type: "photo" | "video"; name: string; uploading?: boolean }
+  const [mediaFiles, setMediaFiles] = useState<MediaItem[]>([])
+  const [mediaError, setMediaError] = useState<string | null>(null)
+
+  const handleMediaUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return
+    setMediaError(null)
+
+    for (const file of Array.from(files)) {
+      const isImage = file.type.startsWith("image/")
+      const isVideo = file.type.startsWith("video/")
+      if (!isImage && !isVideo) {
+        setMediaError("Hanya file gambar (JPG, PNG, WebP) atau video (MP4, WebM, MOV) yang diizinkan.")
+        continue
+      }
+      const maxSize = isVideo ? 100 * 1024 * 1024 : 10 * 1024 * 1024
+      if (file.size > maxSize) {
+        setMediaError(`${file.name} terlalu besar (maks ${isVideo ? "100MB" : "10MB"}).`)
+        continue
+      }
+
+      // Tambah placeholder saat upload berjalan
+      const placeholder: MediaItem = { url: "", type: isVideo ? "video" : "photo", name: file.name, uploading: true }
+      setMediaFiles((prev) => [...prev, placeholder])
+
+      const formData = new FormData()
+      formData.append("file", file)
+
+      try {
+        const res = await fetch("/api/upload", { method: "POST", body: formData })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error ?? "Gagal mengunggah.")
+        setMediaFiles((prev) =>
+          prev.map((m) =>
+            m === placeholder
+              ? { url: data.url, type: data.mediaType ?? (isVideo ? "video" : "photo"), name: file.name }
+              : m
+          )
+        )
+      } catch (err) {
+        setMediaFiles((prev) => prev.filter((m) => m !== placeholder))
+        setMediaError(err instanceof Error ? err.message : "Gagal mengunggah file.")
+      }
+    }
+  }
+  useEffect(() => {
+    let cancelled = false
+    setMemuatLowongan(true)
+    fetch("/api/student/lowongan")
+      .then((res) => res.ok ? res.json() : Promise.reject(res.status))
+      .then((data) => { if (!cancelled) setLowongan(data.postings ?? []) })
+      .catch(() => { /* gagal — tampil kosong, tidak ada crash */ })
+      .finally(() => { if (!cancelled) setMemuatLowongan(false) })
+    return () => { cancelled = true }
+  }, [])
+
+  // ── Ambil permintaan kontak yang diteruskan BKK ──────────────────────────
+  useEffect(() => {
+    let cancelled = false
+    setMemuatKontak(true)
+    fetch("/api/student/kontak")
+      .then((res) => res.ok ? res.json() : Promise.reject(res.status))
+      .then((data) => { if (!cancelled) setKontak(data.requests ?? []) })
+      .catch(() => { /* gagal — tampil kosong */ })
+      .finally(() => { if (!cancelled) setMemuatKontak(false) })
+    return () => { cancelled = true }
+  }, [])
+
+  // ── Ambil daftar guru pembimbing saat modal dibuka ──────────────────────
+  useEffect(() => {
+    if (!isUploadModalOpen) return
+    let cancelled = false
+    fetch("/api/student/advisors")
+      .then((res) => res.ok ? res.json() : Promise.reject(res.status))
+      .then((data) => {
+        if (cancelled) return
+        const list: AdvisorItem[] = data.advisors ?? []
+        setAdvisors(list)
+        // Auto-pilih guru pertama jika belum dipilih
+        if (list.length > 0 && !newAdvisorId) setNewAdvisorId(list[0].id)
+      })
+      .catch(() => { /* gagal — dropdown tetap kosong */ })
+    return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isUploadModalOpen])
+
+  const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newTitle.trim()) return
 
-    const newProject = {
-      id: String(Date.now()),
-      title: newTitle,
-      description: newDescription || "Deskripsi proyek tugas akhir siswa.",
-      major: newMajor,
-      category: newCategory,
-      techStack: newTechStack ? newTechStack.split(",").map((t) => t.trim()) : ["Proyek Baru"],
-      views: 1,
-      status: "review",
-      mentor: "Menunggu Penugasan Guru Pembimbing",
-      submittedAt: "Baru saja",
-      verifiedAt: null,
-      score: null,
-      github: newGithub || null,
-      demo: newDemo || null,
-    }
+    setIsSubmittingKarya(true)
+    setSubmitKaryaError(null)
 
-    setProjects([newProject, ...projects])
-    setIsUploadModalOpen(false)
-    // reset form
-    setNewTitle("")
-    setNewDescription("")
-    setNewTechStack("")
-    setNewGithub("")
-    setNewDemo("")
-    setActiveTab("karya-saya")
+    try {
+      const tools = newTechStack
+        ? newTechStack.split(",").map((t) => t.trim()).filter(Boolean)
+        : []
+
+      const res = await fetch("/api/student/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: newTitle.trim(),
+          description: newDescription.trim(),
+          major: newMajor.toLowerCase().replace(/ /g, "-"),
+          year: newYear,
+          tools,
+          ...(newAdvisorId ? { advisorId: newAdvisorId } : {}),
+          ...(newGithub.trim() ? { githubUrl: newGithub.trim() } : {}),
+          ...(newDemo.trim()   ? { demoUrl:   newDemo.trim()   } : {}),
+          ...(mediaFiles.filter(m => m.url && !m.uploading).length > 0 ? {
+            coverImage: mediaFiles.find(m => m.url && !m.uploading)?.url,
+            galleryImages: mediaFiles.filter(m => m.url && !m.uploading).map(m => m.url),
+          } : {}),
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setSubmitKaryaError(data.error ?? "Gagal menyimpan karya. Coba lagi.")
+        setIsSubmittingKarya(false)
+        return
+      }
+
+      // Sukses — tutup modal, reset form, refresh daftar dari DB
+      setIsUploadModalOpen(false)
+      setNewTitle("")
+      setNewDescription("")
+      setNewMajor("RPL")
+      setNewCategory("Web & Mobile App")
+      setNewTechStack("")
+      setNewYear(new Date().getFullYear())
+      setNewGithub("")
+      setNewDemo("")
+      setNewAdvisorId("")
+      setSubmitKaryaError(null)
+      setMediaFiles([])
+      setMediaError(null)
+      setUploadSuccess(
+        `Karya "${data.project?.title ?? newTitle.trim()}" berhasil dikirim dan sedang menunggu kurasi dari guru pembimbing. Karya akan tampil di Galeri Kandaga setelah disetujui.`
+      )
+      setActiveTab("karya-saya")
+      await muatKarya()
+    } catch {
+      setSubmitKaryaError("Terjadi kesalahan koneksi. Periksa koneksi internet Anda.")
+    } finally {
+      setIsSubmittingKarya(false)
+    }
   }
 
   // Filter Projects
@@ -241,7 +428,7 @@ export default function StudentDashboardPage() {
       id: "magang",
       label: "Peluang Magang & BKK",
       icon: Briefcase,
-      badge: `${internshipOpportunities.length}`,
+      badge: `${lowongan.length + kontak.length}`,
     },
     {
       id: "profil",
@@ -274,6 +461,27 @@ export default function StudentDashboardPage() {
       {galatKarya && (
         <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs font-semibold text-amber-800">
           {galatKarya}
+        </div>
+      )}
+
+      {/* ── Banner sukses setelah upload ── */}
+      {uploadSuccess && (
+        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800 flex items-start gap-2.5 animate-in fade-in duration-200">
+          <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
+          <div className="flex-1">
+            <p>{uploadSuccess}</p>
+            <p className="font-normal mt-1 text-emerald-700">
+              Login sebagai <strong>guru pembimbing</strong> untuk menyetujui karya dari tab Antrean Verifikasi.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setUploadSuccess(null)}
+            className="shrink-0 text-emerald-600 hover:text-emerald-800 cursor-pointer"
+            aria-label="Tutup notifikasi"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
@@ -554,6 +762,11 @@ export default function StudentDashboardPage() {
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           <span>Terverifikasi Sekolah</span>
                         </div>
+                      ) : project.status === "revisi" ? (
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-200 text-xs font-bold">
+                          <AlertCircle className="w-3.5 h-3.5" />
+                          <span>Perlu Revisi</span>
+                        </div>
                       ) : (
                         <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 rounded-full border border-amber-200 text-xs font-bold">
                           <Clock className="w-3.5 h-3.5" />
@@ -615,12 +828,23 @@ export default function StudentDashboardPage() {
                           <span>Live Demo</span>
                         </a>
                       )}
-                      <button
-                        type="button"
-                        className="px-3 py-1.5 rounded-xl border border-ink-150 text-ink-600 font-semibold hover:bg-ink-100 transition cursor-pointer"
-                      >
-                        Edit Draf
-                      </button>
+                      {project.status === "verified" ? (
+                        <span
+                          title="Karya terverifikasi tidak dapat diedit"
+                          className="px-3 py-1.5 rounded-xl border border-ink-100 text-ink-300 font-semibold text-xs flex items-center gap-1.5 cursor-not-allowed select-none"
+                        >
+                          <Lock className="w-3 h-3" />
+                          Terkunci
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => router.push(`/student/my-projects/${project.id}`)}
+                          className="px-3 py-1.5 rounded-xl border border-ink-150 text-ink-600 font-semibold hover:bg-ink-100 transition cursor-pointer"
+                        >
+                          {project.status === "revisi" ? "Lihat Catatan & Revisi" : "Edit Draf"}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -642,37 +866,155 @@ export default function StudentDashboardPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {internshipOpportunities.map((m) => (
-              <div key={m.id} className="p-6 bg-white rounded-2xl border border-ink-150 shadow-xs flex flex-col justify-between space-y-4">
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-                      Target: {m.majorTarget}
-                    </span>
-                    <span className="text-xs text-amber-600 font-semibold font-mono">{m.status}</span>
-                  </div>
-                  <h2 className="font-heading text-base font-bold text-ink">{m.role}</h2>
-                  <p className="text-xs font-semibold text-ink-700 mt-1 flex items-center gap-1">
-                    <Building2 className="w-3.5 h-3.5 text-ink-300" />
-                    <span>{m.company}</span>
-                  </p>
-                  <p className="text-xs text-ink-600 mt-2">{m.type} • {m.location}</p>
-                </div>
-
-                <div className="pt-3 border-t border-ink-150 flex items-center justify-between">
-                  <span className="text-[11px] text-ink-300">Batas: {m.deadline}</span>
-                  <button
-                    type="button"
-                    onClick={() => alert(`Pengajuan minat untuk ${m.role} di ${m.company} diteruskan ke Koordinator BKK SMKN 13.`)}
-                    className="px-3.5 py-1.5 bg-ink hover:bg-black text-white text-xs font-bold rounded-xl transition cursor-pointer"
-                  >
-                    Ajukan Minat via BKK
-                  </button>
-                </div>
+          {/* ── Permintaan dari perusahaan yang diteruskan BKK ── */}
+          <div className="bg-white rounded-2xl border border-ink-150 shadow-xs overflow-hidden">
+            <div className="px-6 pt-5 pb-3 border-b border-ink-150 flex items-center justify-between">
+              <div>
+                <h2 className="font-heading text-base font-bold text-ink flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-primary" />
+                  Permintaan dari Mitra Industri
+                </h2>
+                <p className="text-xs text-ink-600 mt-0.5">
+                  Perusahaan yang tertarik dengan karya Anda dan sudah diteruskan oleh BKK.
+                </p>
               </div>
-            ))}
+              {kontak.length > 0 && (
+                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary">
+                  {kontak.length} permintaan
+                </span>
+              )}
+            </div>
+
+            <div className="p-4">
+              {memuatKontak && (
+                <div className="py-6 flex items-center justify-center gap-2 text-xs text-ink-400">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Memuat permintaan…
+                </div>
+              )}
+
+              {!memuatKontak && kontak.length === 0 && (
+                <div className="py-8 text-center">
+                  <p className="text-xs text-ink-400">Belum ada perusahaan yang menghubungi Anda melalui BKK.</p>
+                </div>
+              )}
+
+              {!memuatKontak && kontak.length > 0 && (
+                <div className="space-y-3">
+                  {kontak.map((k) => (
+                    <div key={k.id} className="p-4 rounded-xl border border-ink-150 bg-ink-100/40 space-y-2">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                          <p className="text-xs font-bold text-ink">{k.company.name}</p>
+                          {k.company.field && (
+                            <p className="text-[11px] text-ink-400">{k.company.field}</p>
+                          )}
+                        </div>
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                          {k.purposeLabel}
+                        </span>
+                      </div>
+
+                      <p className="text-[11px] text-ink-600 leading-relaxed">
+                        <span className="font-semibold text-ink">Karya:</span> {k.project.title}
+                      </p>
+
+                      <p className="text-[11px] text-ink-600 leading-relaxed line-clamp-3">{k.message}</p>
+
+                      {k.bkkNotes && (
+                        <div className="p-2 rounded-lg bg-blue-50 border border-blue-100 text-[11px] text-blue-800">
+                          <span className="font-bold">Catatan BKK:</span> {k.bkkNotes}
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="text-[10px] text-ink-300">
+                          Diteruskan: {new Date(k.forwardedAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                        </span>
+                        {k.company.email && (
+                          <a
+                            href={`mailto:${k.company.email}`}
+                            className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            Hubungi via Email
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-ink-150" />
+            <span className="text-[11px] font-semibold text-ink-400 uppercase tracking-wider">Lowongan dari BKK</span>
+            <div className="flex-1 h-px bg-ink-150" />
+          </div>
+
+          {/* Loading */}
+          {memuatLowongan && (
+            <div className="p-4 rounded-2xl bg-ink-100 border border-ink-150 text-xs font-semibold text-ink-600">
+              Memuat daftar lowongan dari database…
+            </div>
+          )}
+
+          {/* Empty state */}
+          {!memuatLowongan && lowongan.length === 0 && (
+            <div className="p-12 text-center bg-white rounded-2xl border border-ink-150">
+              <Briefcase className="w-10 h-10 text-ink-300 mx-auto mb-3" />
+              <h3 className="font-heading text-base font-bold text-ink-700">Belum ada lowongan aktif</h3>
+              <p className="text-xs text-ink-600 mt-1">
+                BKK SMKN 13 belum memposting lowongan magang saat ini. Pantau terus halaman ini.
+              </p>
+            </div>
+          )}
+
+          {/* Lowongan grid */}
+          {!memuatLowongan && lowongan.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {lowongan.map((m) => (
+                <div key={m.id} className="p-6 bg-white rounded-2xl border border-ink-150 shadow-xs flex flex-col justify-between space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+                        Target: {m.majorTarget}
+                      </span>
+                      <span className={`text-xs font-semibold font-mono ${
+                        m.status === "terbatas" ? "text-amber-600" : "text-emerald-600"
+                      }`}>
+                        {m.statusLabel}
+                      </span>
+                    </div>
+                    <h2 className="font-heading text-base font-bold text-ink">{m.role}</h2>
+                    <p className="text-xs font-semibold text-ink-700 mt-1 flex items-center gap-1">
+                      <Building2 className="w-3.5 h-3.5 text-ink-300" />
+                      <span>{m.company}</span>
+                    </p>
+                    <p className="text-xs text-ink-600 mt-2">{m.type}{m.location ? ` • ${m.location}` : ""}</p>
+                    {m.description && (
+                      <p className="text-xs text-ink-600 mt-2 leading-relaxed line-clamp-2">{m.description}</p>
+                    )}
+                  </div>
+
+                  <div className="pt-3 border-t border-ink-150 flex items-center justify-between">
+                    <span className="text-[11px] text-ink-300">
+                      {m.deadline ? `Batas: ${m.deadline}` : "Deadline belum ditentukan"}
+                    </span>
+                    <a
+                      href="#footer"
+                      className="px-3.5 py-1.5 bg-ink hover:bg-black text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                    >
+                      Ajukan via BKK
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -747,129 +1089,237 @@ export default function StudentDashboardPage() {
       {/* ──────────────── MODAL UNGGAH KARYA BARU ──────────────── */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-4 border-b border-ink-150">
+          <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[92vh]">
+            {/* Header — fixed */}
+            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-ink-150 shrink-0">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-rose-50 text-primary flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-rose-50 text-primary flex items-center justify-center shrink-0">
                   <Upload className="w-4 h-4" />
                 </div>
-                <h3 className="font-heading text-lg font-bold text-ink">Unggah Karya Baru</h3>
+                <div>
+                  <h3 className="font-heading text-base font-bold text-ink leading-tight">Unggah Karya Baru</h3>
+                  <p className="text-[10px] text-ink-400 mt-0.5">
+                    {newMajor === "TKJ" ? "Infrastruktur Jaringan & Sistem" : newMajor === "Analis Kimia" ? "Riset & Analisis Laboratorium" : "Pengembangan Perangkat Lunak"}
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
-                onClick={() => setIsUploadModalOpen(false)}
+                onClick={() => { setIsUploadModalOpen(false); setSubmitKaryaError(null); setNewAdvisorId(""); setMediaFiles([]); setMediaError(null) }}
                 className="p-1 rounded-lg text-ink-300 hover:text-ink-600 hover:bg-ink-100 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateProject} className="space-y-4 pt-4 text-xs">
-              <div>
-                <label className="block font-semibold text-ink-700 mb-1">Judul Karya / Proyek *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Misal: EduClass — LMS & Presensi QR Cerdas"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none focus:ring-1 focus:ring-primary"
-                />
-              </div>
+            {/* Scrollable body */}
+            <div className="overflow-y-auto flex-1 min-h-0 px-6 py-5">
+              <form id="upload-karya-form" onSubmit={handleCreateProject} className="space-y-4 text-xs">
 
-              <div className="grid grid-cols-2 gap-3">
+                {/* Judul */}
                 <div>
-                  <label className="block font-semibold text-ink-700 mb-1">Kompetensi Keahlian</label>
-                  <select
-                    value={newMajor}
-                    onChange={(e) => setNewMajor(e.target.value)}
-                    className="w-full px-3 py-2 border border-ink-150 rounded-xl bg-white focus:outline-none"
-                  >
-                    <option value="RPL">RPL (Rekayasa Perangkat Lunak)</option>
-                    <option value="TKJ">TKJ (Teknik Komputer Jaringan)</option>
-                    <option value="Analis Kimia">Analis Kimia</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-semibold text-ink-700 mb-1">Kategori Karya</label>
+                  <label className="block font-semibold text-ink-700 mb-1">Judul Karya *</label>
                   <input
                     type="text"
-                    placeholder="Web App, IoT, Riset ISO"
-                    value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value)}
-                    className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none"
+                    required
+                    placeholder={cfg.titlePlaceholder}
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
-              </div>
 
-              <div>
-                <label className="block font-semibold text-ink-700 mb-1">Deskripsi Proyek Singkat</label>
-                <textarea
-                  rows={3}
-                  placeholder="Jelaskan tujuan, masalah yang diselesaikan, dan hasil karya Anda..."
-                  value={newDescription}
-                  onChange={(e) => setNewDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none"
-                />
-              </div>
+                {/* Jurusan + Tahun */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-ink-700 mb-1">Kompetensi Keahlian</label>
+                    <select
+                      value={newMajor}
+                      onChange={(e) => { setNewMajor(e.target.value); setMediaFiles([]); setMediaError(null) }}
+                      className="w-full px-3 py-2 border border-ink-150 rounded-xl bg-white focus:outline-none"
+                    >
+                      <option value="RPL">RPL — Perangkat Lunak</option>
+                      <option value="TKJ">TKJ — Komputer Jaringan</option>
+                      <option value="Analis Kimia">Analis Kimia</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-ink-700 mb-1">Tahun Karya</label>
+                    <input
+                      type="number"
+                      min={2000}
+                      max={2100}
+                      value={newYear}
+                      onChange={(e) => setNewYear(Number(e.target.value))}
+                      className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none"
+                    />
+                  </div>
+                </div>
 
-              <div>
-                <label className="block font-semibold text-ink-700 mb-1">Teknologi / Stack (pisahkan koma)</label>
-                <input
-                  type="text"
-                  placeholder="Next.js, TypeScript, PostgreSQL"
-                  value={newTechStack}
-                  onChange={(e) => setNewTechStack(e.target.value)}
-                  className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+                {/* Deskripsi */}
                 <div>
-                  <label className="block font-semibold text-ink-700 mb-1">Tautan GitHub / Repo</label>
-                  <input
-                    type="url"
-                    placeholder="https://github.com/..."
-                    value={newGithub}
-                    onChange={(e) => setNewGithub(e.target.value)}
-                    className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none"
+                  <label className="block font-semibold text-ink-700 mb-1">Deskripsi Karya</label>
+                  <textarea
+                    rows={3}
+                    placeholder={cfg.descPlaceholder}
+                    value={newDescription}
+                    onChange={(e) => setNewDescription(e.target.value)}
+                    className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none resize-none"
                   />
                 </div>
+
+                {/* Guru */}
                 <div>
-                  <label className="block font-semibold text-ink-700 mb-1">Tautan Demo / Laporan</label>
+                  <label className="block font-semibold text-ink-700 mb-1">
+                    Guru Pembimbing <span className="text-rose-500">*</span>
+                  </label>
+                  {advisors.length === 0 ? (
+                    <div className="w-full px-3 py-2 border border-ink-150 rounded-xl bg-ink-100 text-ink-400 flex items-center gap-2">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />Memuat daftar guru…
+                    </div>
+                  ) : (
+                    <select
+                      required
+                      value={newAdvisorId}
+                      onChange={(e) => setNewAdvisorId(e.target.value)}
+                      className="w-full px-3 py-2 border border-ink-150 rounded-xl bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                    >
+                      <option value="">-- Pilih guru pembimbing --</option>
+                      {advisors.map((a) => (
+                        <option key={a.id} value={a.id}>{a.name}{a.nip ? ` · ${a.nip}` : ""}</option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+
+                {/* Tools — adaptive */}
+                <div>
+                  <label className="block font-semibold text-ink-700 mb-1">
+                    {cfg.toolsLabel}
+                    <span className="font-normal text-ink-400 ml-1">(pisahkan koma)</span>
+                  </label>
                   <input
-                    type="url"
-                    placeholder="https://..."
-                    value={newDemo}
-                    onChange={(e) => setNewDemo(e.target.value)}
+                    type="text"
+                    placeholder={cfg.toolsPlaceholder}
+                    value={newTechStack}
+                    onChange={(e) => setNewTechStack(e.target.value)}
                     className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none"
                   />
                 </div>
-              </div>
 
-              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-start gap-2 text-amber-800">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <p className="text-[11px] leading-relaxed">
-                  Setelah disimpan, karya akan berstatus <strong>Menunggu Kurasi Guru</strong>. Guru pembimbing akan menerima notifikasi untuk menilai karya Anda.
-                </p>
-              </div>
+                {/* Tautan — adaptive */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-ink-700 mb-1">{cfg.linkALabel}</label>
+                    <input type="url" placeholder={cfg.linkAPlaceholder} value={newGithub}
+                      onChange={(e) => setNewGithub(e.target.value)}
+                      className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none" />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-ink-700 mb-1">{cfg.linkBLabel}</label>
+                    <input type="url" placeholder={cfg.linkBPlaceholder} value={newDemo}
+                      onChange={(e) => setNewDemo(e.target.value)}
+                      className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none" />
+                  </div>
+                </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsUploadModalOpen(false)}
-                  className="px-4 py-2 border border-ink-150 text-ink-600 rounded-xl font-bold hover:bg-ink-100 transition cursor-pointer"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition cursor-pointer"
-                >
-                  Simpan & Ajukan Kurasi
-                </button>
-              </div>
-            </form>
+                {/* ── Media upload ── */}
+                <div>
+                  <label className="block font-semibold text-ink-700 mb-1">
+                    Foto / Video Karya
+                    <span className="font-normal text-ink-400 ml-1">(opsional, maks 5 file)</span>
+                  </label>
+                  <p className="text-[10px] text-ink-400 mb-2">{cfg.mediaHint}</p>
+
+                  {mediaFiles.length < 5 && (
+                    <label className="flex flex-col items-center justify-center gap-1.5 w-full py-5 border-2 border-dashed border-ink-200 rounded-xl cursor-pointer hover:border-primary hover:bg-primary/5 transition">
+                      <div className="flex items-center gap-2 text-ink-400">
+                        <ImagePlus className="w-5 h-5" />
+                        <Video className="w-5 h-5" />
+                      </div>
+                      <span className="text-[11px] text-ink-500 font-medium">Klik atau seret file ke sini</span>
+                      <span className="text-[10px] text-ink-300">Gambar maks 10 MB · Video maks 100 MB</span>
+                      <input type="file" accept="image/*,video/mp4,video/webm,video/quicktime" multiple className="hidden"
+                        onChange={(e) => handleMediaUpload(e.target.files)} />
+                    </label>
+                  )}
+
+                  {mediaError && (
+                    <p className="mt-1.5 text-[11px] text-rose-600 flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />{mediaError}
+                    </p>
+                  )}
+
+                  {mediaFiles.length > 0 && (
+                    <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
+                      {mediaFiles.map((m, idx) => (
+                        <div key={idx} className="relative w-14 h-14 rounded-xl overflow-hidden bg-ink-100 border border-ink-150 shrink-0">
+                          {m.uploading ? (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Loader2 className="w-4 h-4 animate-spin text-ink-300" />
+                            </div>
+                          ) : m.type === "video" ? (
+                            <div className="w-full h-full flex flex-col items-center justify-center gap-0.5 p-1">
+                              <Video className="w-4 h-4 text-ink-400" />
+                              <span className="text-[8px] text-ink-400 text-center truncate w-full px-0.5 leading-tight">{m.name.slice(0, 8)}…</span>
+                            </div>
+                          ) : (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={m.url} alt={m.name} className="w-full h-full object-cover" />
+                          )}
+                          {!m.uploading && (
+                            <button type="button" onClick={() => setMediaFiles((prev) => prev.filter((_, i) => i !== idx))}
+                              className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-rose-600 transition cursor-pointer" aria-label="Hapus">
+                              <X className="w-2.5 h-2.5" />
+                            </button>
+                          )}
+                          {idx === 0 && !m.uploading && (
+                            <span className="absolute bottom-0 left-0 right-0 text-center text-[8px] bg-primary/80 text-white py-0.5 leading-tight">Cover</span>
+                          )}
+                        </div>
+                      ))}
+                      {mediaFiles.length < 5 && !mediaFiles.some(m => m.uploading) && (
+                        <label className="w-14 h-14 rounded-xl border-2 border-dashed border-ink-200 flex flex-col items-center justify-center gap-0.5 cursor-pointer hover:border-primary hover:bg-primary/5 transition shrink-0">
+                          <ImagePlus className="w-4 h-4 text-ink-300" />
+                          <span className="text-[8px] text-ink-300">Tambah</span>
+                          <input type="file" accept="image/*,video/mp4,video/webm,video/quicktime" multiple className="hidden"
+                            onChange={(e) => handleMediaUpload(e.target.files)} />
+                        </label>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Notice */}
+                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-start gap-2 text-amber-800">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <p className="text-[11px] leading-relaxed">
+                    Karya disimpan sebagai <strong>Menunggu Kurasi Guru</strong> dan belum tayang publik. Guru akan meninjau sebelum karya muncul di Galeri Kandaga.
+                  </p>
+                </div>
+
+                {submitKaryaError && (
+                  <div className="p-3 bg-rose-50 rounded-xl border border-rose-200 flex items-start gap-2 text-rose-700">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <p className="text-[11px] leading-relaxed">{submitKaryaError}</p>
+                  </div>
+                )}
+              </form>
+            </div>
+
+            {/* Footer — fixed */}
+            <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-ink-150 shrink-0">
+              <button type="button" disabled={isSubmittingKarya}
+                onClick={() => { setIsUploadModalOpen(false); setSubmitKaryaError(null); setNewAdvisorId(""); setMediaFiles([]); setMediaError(null) }}
+                className="px-4 py-2 border border-ink-150 text-ink-600 rounded-xl text-xs font-bold hover:bg-ink-100 transition cursor-pointer disabled:opacity-50">
+                Batal
+              </button>
+              <button type="submit" form="upload-karya-form"
+                disabled={isSubmittingKarya || mediaFiles.some(m => m.uploading)}
+                className="px-5 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary-dark transition cursor-pointer flex items-center gap-1.5 disabled:opacity-60">
+                {isSubmittingKarya ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Menyimpan…</> : "Simpan & Ajukan Kurasi"}
+              </button>
+            </div>
           </div>
         </div>
       )}

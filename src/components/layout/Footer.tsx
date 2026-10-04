@@ -162,9 +162,8 @@ export default function Footer() {
               <div className="relative h-10 w-10 rounded-full overflow-hidden shadow-xs ring-1 ring-white/20 bg-white transition-transform duration-200 group-hover:scale-105 shrink-0">
                 <Image
                   src="/logo.png"
-                  alt="Kandaga"
-                  fill
-                  sizes="40px"
+                  alt="Kandaga Logo"
+                  fill sizes="32px"
                   className="object-contain"
                 />
               </div>
