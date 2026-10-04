@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  experimental: {
+    cpus: 1,
+  },
   images: {
     // Izinkan gambar dari picsum.photos dan unsplash
     remotePatterns: [
