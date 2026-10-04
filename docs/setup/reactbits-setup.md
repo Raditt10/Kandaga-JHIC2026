@@ -270,7 +270,7 @@ export default function ScrollExpandHero() {
   if (reduce) {
     return (
       <section className="relative flex h-screen items-center justify-center">
-        <Image src="/images/hero-kolaborasi.jpg" alt="" fill className="object-cover" />
+        <Image src="/images/smkn13.jpg" alt="" fill className="object-cover" />
         <div className="absolute inset-0 bg-ink/60" />
         <p className="relative z-10 max-w-2xl px-6 text-center font-heading text-3xl font-semibold text-white md:text-5xl">
           Etalase karya siswa, terverifikasi sekolah, terbuka untuk industri.
