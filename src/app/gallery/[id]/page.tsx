@@ -156,7 +156,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!project) {
     return {
-      title: "Karya Tidak Ditemukan",
+      title: "Kandaga",
       robots: { index: false, follow: true },
     }
   }
@@ -167,12 +167,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .slice(0, 155)
 
   return {
-    title: project.title,
+    title: "Kandaga",
     description,
     alternates: { canonical: `/gallery/${project.id}` },
     openGraph: {
       type: "article",
-      title: project.title,
+      title: "Kandaga",
       description,
       url: `/gallery/${project.id}`,
       images: project.coverImage ? [{ url: project.coverImage }] : undefined,

@@ -17,7 +17,7 @@ import { bkkSteps, bkkFaqs } from "@/data/bkkSteps";
  */
 
 export const metadata: Metadata = {
-  title: "Cara Kerja BKK — Kandaga",
+  title: "Kandaga",
   description:
     "Alur pendaftaran mitra industri hingga penyaluran minat rekrutmen dan PKL siswa SMKN 13 Bandung melalui Bursa Kerja Khusus (BKK).",
 };

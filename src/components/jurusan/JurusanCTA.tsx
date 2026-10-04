@@ -5,11 +5,7 @@ import Image from "next/image";
 export default function JurusanCTA() {
   return (
     <section className="py-20 bg-gradient-to-br from-[#8B1A2F] via-[#6B1424] to-[#420A16] text-white relative overflow-hidden">
-      {/* Decorative background grid and circles */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-10 bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:32px_32px]"
-        aria-hidden="true"
-      />
+      {/* Decorative background circles */}
       <div className="pointer-events-none absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
 
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-6">

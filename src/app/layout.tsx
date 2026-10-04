@@ -59,9 +59,8 @@ const SITE_DESCRIPTION =
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung",
-    // Halaman anak cukup mengisi judulnya sendiri; akhiran ini ditambahkan otomatis.
-    template: "%s | Kandaga",
+    default: "Kandaga",
+    template: "Kandaga",
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,

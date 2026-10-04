@@ -10,12 +10,12 @@ import type { Metadata } from "next";
  * dengan SMK lewat mesin pencari justru adalah calon pengguna yang tepat.
  */
 export const metadata: Metadata = {
-  title: "Daftar sebagai Perusahaan Mitra",
+  title: "Kandaga",
   description:
     "Daftarkan perusahaan Anda untuk mengakses katalog karya siswa SMKN 13 Bandung, mengirim minat rekrutmen, dan bermitra resmi melalui BKK sekolah.",
   alternates: { canonical: "/mitra/daftar" },
   openGraph: {
-    title: "Daftar sebagai Perusahaan Mitra | Kandaga",
+    title: "Kandaga",
     description:
       "Akses katalog karya siswa SMKN 13 Bandung dan bermitra resmi melalui BKK sekolah.",
     url: "/mitra/daftar",
