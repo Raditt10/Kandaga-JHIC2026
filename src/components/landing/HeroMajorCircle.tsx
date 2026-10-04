@@ -29,6 +29,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 /* ── Konfigurasi Jurusan ──────────────────────────────────────────── */
 export interface HeroMajor {
@@ -47,7 +48,7 @@ export const HERO_MAJORS: HeroMajor[] = [
     full: "Rekayasa Perangkat Lunak",
     image: "/images/hero/siswa-rpl.png",
     pattern: "binary",
-    href: "/karya?jurusan=rpl",
+    href: "/jurusan/rpl",
   },
   {
     id: "kimia",
@@ -55,7 +56,7 @@ export const HERO_MAJORS: HeroMajor[] = [
     full: "Analisis Kimia",
     image: "/images/hero/siswa-kimia.png",
     pattern: "molecule",
-    href: "/karya?jurusan=kimia",
+    href: "/jurusan/analis-kimia",
   },
   {
     id: "tkj",
@@ -63,89 +64,9 @@ export const HERO_MAJORS: HeroMajor[] = [
     full: "Teknik Komputer dan Jaringan",
     image: "/images/hero/siswa-tkj.png",
     pattern: "network",
-    href: "/karya?jurusan=tkj",
+    href: "/jurusan/tkj",
   },
 ];
-
-/* ── Pola Dekoratif SVG ───────────────────────────────────────────── */
-function BinaryPattern() {
-  const rows = [
-    "1 0 1 1 0 1 0 1 1 0",
-    "0 1 0 0 1 0 1 0 0 1",
-    "1 1 0 1 0 0 1 1 0 1",
-    "0 0 1 0 1 1 0 0 1 0",
-    "1 0 0 1 1 0 1 0 1 0",
-    "0 1 1 0 0 1 0 1 0 1",
-    "1 0 1 0 1 0 0 1 1 0",
-  ];
-  return (
-    <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg"
-      style={{ width: "100%", height: "100%" }} aria-hidden="true">
-      {rows.map((row, ri) =>
-        row.split(" ").map((char, ci) => (
-          <text key={`${ri}-${ci}`} x={ci * 20 + 5} y={ri * 28 + 24}
-            fontSize="11" fill="white" fontFamily="monospace" fontWeight="600">
-            {char}
-          </text>
-        ))
-      )}
-    </svg>
-  );
-}
-
-function MoleculePattern() {
-  const atomPairs: [number, number][] = [
-    [100, 40], [130, 57], [130, 91], [100, 108], [70, 91], [70, 57],
-  ];
-  return (
-    <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg"
-      style={{ width: "100%", height: "100%" }} aria-hidden="true">
-      <polygon points="100,40 130,57 130,91 100,108 70,91 70,57"
-        stroke="white" strokeWidth="1.5" fill="none" />
-      <polygon points="100,52 120,63 120,85 100,96 80,85 80,63"
-        stroke="white" strokeWidth="0.8" fill="none" strokeDasharray="4 3" />
-      {atomPairs.map(([cx, cy], i) => (
-        <circle key={i} cx={cx} cy={cy} r="3" fill="white" />
-      ))}
-      <line x1="100" y1="108" x2="100" y2="140" stroke="white" strokeWidth="1.5" />
-      <circle cx="100" cy="145" r="5" fill="none" stroke="white" strokeWidth="1.2" />
-      <line x1="70" y1="57" x2="46" y2="44" stroke="white" strokeWidth="1.5" />
-      <circle cx="42" cy="41" r="4" fill="none" stroke="white" strokeWidth="1.2" />
-      <line x1="130" y1="57" x2="154" y2="44" stroke="white" strokeWidth="1.5" />
-      <circle cx="158" cy="41" r="4" fill="none" stroke="white" strokeWidth="1.2" />
-      <circle cx="38" cy="155" r="18" stroke="white" strokeWidth="0.8" fill="none" />
-      <circle cx="162" cy="155" r="12" stroke="white" strokeWidth="0.8" fill="none" />
-    </svg>
-  );
-}
-
-function NetworkPattern() {
-  const nodes: [number, number][] = [
-    [100, 30], [50, 60], [150, 60],
-    [30, 110], [100, 95], [170, 110],
-    [55, 155], [145, 155], [100, 185],
-  ];
-  const edges: [number, number][] = [
-    [0, 1], [0, 2], [1, 3], [1, 4],
-    [2, 4], [2, 5], [3, 6], [4, 6],
-    [4, 7], [5, 7], [6, 8], [7, 8],
-    [0, 4], [1, 2],
-  ];
-  return (
-    <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg"
-      style={{ width: "100%", height: "100%" }} aria-hidden="true">
-      {edges.map(([a, b], i) => (
-        <line key={i}
-          x1={nodes[a][0]} y1={nodes[a][1]}
-          x2={nodes[b][0]} y2={nodes[b][1]}
-          stroke="white" strokeWidth="0.9" opacity="0.8" />
-      ))}
-      {nodes.map(([cx, cy], i) => (
-        <circle key={i} cx={cx} cy={cy} r="3.5" fill="white" />
-      ))}
-    </svg>
-  );
-}
 
 /* ── Placeholder Siluet (conditional render via imgError state) ───── */
 function SilhouettePlaceholder({ label }: { label: string }) {
@@ -153,13 +74,13 @@ function SilhouettePlaceholder({ label }: { label: string }) {
     /* TODO: ganti dengan siswa-{label.toLowerCase()}.png */
     <div className="hero-circle-placeholder" aria-hidden="true">
       <svg viewBox="0 0 80 140" fill="none" xmlns="http://www.w3.org/2000/svg"
-        style={{ width: "55%", opacity: 0.5 }}>
-        <circle cx="40" cy="20" r="16" fill="white" />
-        <path d="M16 50 C16 42 64 42 64 50 L70 110 H10 Z" fill="white" />
-        <rect x="14" y="106" width="20" height="30" rx="5" fill="white" />
-        <rect x="46" y="106" width="20" height="30" rx="5" fill="white" />
+        style={{ width: "55%", opacity: 0.35 }}>
+        <circle cx="40" cy="20" r="16" fill="var(--hero-brand)" />
+        <path d="M16 50 C16 42 64 42 64 50 L70 110 H10 Z" fill="var(--hero-brand)" />
+        <rect x="14" y="106" width="20" height="30" rx="5" fill="var(--hero-brand)" />
+        <rect x="46" y="106" width="20" height="30" rx="5" fill="var(--hero-brand)" />
       </svg>
-      <span className="hero-circle-placeholder-text">
+      <span className="hero-circle-placeholder-text" style={{ color: "var(--hero-brand)" }}>
         Foto siswa {label}
       </span>
     </div>
@@ -196,17 +117,7 @@ export default function HeroMajorCircle({
 
   const innerContent = (
     <>
-      {/* ① Background + gradient lingkaran (position:absolute inset:0) */}
-      <div className="hero-circle" aria-hidden="true" />
-
-      {/* ② Pola dekoratif — masked supaya tidak tutup wajah */}
-      <div className="hero-circle-pattern" aria-hidden="true">
-        {major.pattern === "binary"   && <BinaryPattern />}
-        {major.pattern === "molecule" && <MoleculePattern />}
-        {major.pattern === "network"  && <NetworkPattern />}
-      </div>
-
-      {/* ③ Placeholder — HANYA jika gambar gagal */}
+      {/* Placeholder — HANYA jika gambar gagal */}
       {imgError && <SilhouettePlaceholder label={major.label} />}
 
       {/* ④ Gambar siswa
@@ -232,23 +143,18 @@ export default function HeroMajorCircle({
           />
         </div>
       )}
-
-      {/* ⑤ Chip label — opacity-only, tanpa slide */}
-      <span className="hero-label-chip" aria-hidden="true">
-        {major.full}
-      </span>
     </>
   );
 
   const hoverWrapContent = routeExists ? (
-    <a
+    <Link
       href={major.href}
       className="hero-circle-hover-wrap"
       tabIndex={0}
-      aria-label={`Lihat karya jurusan ${major.full}`}
+      aria-label={`Lihat jurusan ${major.full}`}
     >
       {innerContent}
-    </a>
+    </Link>
   ) : (
     <div
       className="hero-circle-hover-wrap"

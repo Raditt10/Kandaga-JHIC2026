@@ -38,9 +38,9 @@ dianggap selesai.
 
 | Aturan | Detail |
 |---|---|
-| Heading (`h1`–`h4`) | **Selalu** `font-heading` (Poppins). Tidak ada heading yang boleh memakai Inter. |
-| Body text, label, deskripsi | `font-body` (Inter). |
-| Tanda bahaya | Kalau 1 font tunggal mendominasi **>70% teks yang terlihat** di satu halaman (persis seperti temuan "Inter 86% of text" di screenshot), itu tandanya heading tidak memakai token yang benar — audit sebelum halaman dianggap selesai. |
+| Heading (`h1`–`h4`) | **Selalu** `font-heading` (Poppins). Tidak ada heading yang boleh memakai font body (Plus Jakarta Sans). |
+| Body text, label, deskripsi | `font-sans` (Plus Jakarta Sans). |
+| Tanda bahaya | Kalau 1 font tunggal mendominasi **>70% teks yang terlihat** di satu halaman (temuan lama "body font 86% of text" di screenshot), itu tandanya heading tidak memakai token yang benar — audit sebelum halaman dianggap selesai. |
 
 **Kenapa ini terus terjadi:** kemungkinan besar komponen baru dibuat dengan
 class Tailwind default (`font-sans`) tanpa sengaja menambahkan

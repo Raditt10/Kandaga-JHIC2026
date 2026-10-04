@@ -40,7 +40,7 @@ ini saat membuat fitur baru):**
 ```
 src/
   app/
-    layout.tsx     # next/font setup (Poppins + Inter), metadata
+    layout.tsx     # next/font setup (Poppins + Plus Jakarta Sans), metadata
     page.tsx       # landing page — merangkai komponen dari src/components
     globals.css    # Tailwind v4, CSS-first @theme (TIDAK ADA tailwind.config.js)
   components/
@@ -87,7 +87,7 @@ jadi utility class (`bg-primary`, `text-primary`, dst.) — jangan tambah
 
 ### Tipografi
 - Heading (`h1`–`h4`): **Poppins** (`font-heading`)
-- Body: **Inter** (`font-body`)
+- Body: **Plus Jakarta Sans** (`font-sans`)
 - **Jangan pernah** tambah font ketiga tanpa alasan kuat — sudah ditolak
   eksplisit sekali (lihat `updateJurusan.md` — usulan serif italic ditolak
   karena menambah bobot & tidak cocok identitas vokasi/teknik).

@@ -2,22 +2,17 @@
 
 import React, { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
 import { getDashboardUrl } from "@/lib/auth"
 import {
   ArrowRight,
   ArrowLeft,
-  Sparkles,
   Eye,
   EyeOff,
   AlertCircle,
   CheckCircle2,
-  GraduationCap,
-  ShieldCheck,
-  Building2,
-  BookOpen,
-  Briefcase,
 } from "lucide-react"
 
 type RoleId = "student" | "admin" | "company" | "teacher" | "bkk"
@@ -25,88 +20,19 @@ type RoleId = "student" | "admin" | "company" | "teacher" | "bkk"
 export default function RegisterPage() {
   const router = useRouter()
 
-  // 4 field wajib (non-nullable)
+  // Field wajib (non-nullable)
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [role, setRole] = useState<RoleId>("student")
+
+  // Peran dikunci ke "student" — pendaftaran publik hanya untuk siswa.
+  // Peran lain dibuat dari dashboard sekolah; mitra industri lewat /mitra/daftar.
+  const role: RoleId = "student"
 
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [loading, setLoading] = useState(false)
-
-  // Metadata 5 peran — dipakai di daftar pilihan (kiri) dan panel detail (kanan)
-  const rolesList = [
-    {
-      id: "student" as const,
-      label: "Students",
-      subtitle: "Siswa SMKN 13 Bandung",
-      description: "Memamerkan karya portofolio & mendaftar magang industri.",
-      icon: GraduationCap,
-      color: "from-rose-500 to-pink-600",
-      capabilities: [
-        "Unggah & kelola karya portofolio",
-        "Pantau status verifikasi guru",
-        "Daftar magang lewat BKK",
-      ],
-    },
-    {
-      id: "admin" as const,
-      label: "Admin",
-      subtitle: "Administrator Sekolah",
-      description: "Mengelola sistem, pengguna, dan hak akses portal.",
-      icon: ShieldCheck,
-      color: "from-[#891337] to-[#a61743]",
-      capabilities: [
-        "Kelola pengguna & penetapan peran",
-        "Pantau audit log sistem",
-        "Atur data jurusan & FAQ",
-      ],
-    },
-    {
-      id: "company" as const,
-      label: "Company",
-      subtitle: "Mitra Industri & Perusahaan",
-      description: "Merekrut talenta siswa & membuka lowongan magang.",
-      icon: Building2,
-      color: "from-blue-600 to-indigo-700",
-      capabilities: [
-        "Jelajahi katalog karya terverifikasi",
-        "Simpan talenta ke daftar tersimpan",
-        "Ajukan minat magang / rekrutmen",
-      ],
-    },
-    {
-      id: "teacher" as const,
-      label: "Teacher",
-      subtitle: "Guru & Pembimbing Akademik",
-      description: "Menilai karya siswa & memberikan rekomendasi riset.",
-      icon: BookOpen,
-      color: "from-amber-600 to-orange-600",
-      capabilities: [
-        "Nilai & verifikasi karya siswa",
-        "Tambahkan catatan review",
-        "Publikasikan karya ke galeri",
-      ],
-    },
-    {
-      id: "bkk" as const,
-      label: "BKK",
-      subtitle: "Bursa Kerja Khusus",
-      description: "Fasilitator penyaluran kerja & bursa karir alumni.",
-      icon: Briefcase,
-      color: "from-emerald-600 to-teal-700",
-      capabilities: [
-        "Verifikasi akun perusahaan mitra",
-        "Tinjau permintaan kontak ke siswa",
-        "Kelola data mitra industri",
-      ],
-    },
-  ]
-
-  const selected = rolesList.find((r) => r.id === role) ?? rolesList[0]
-  const SelectedIcon = selected.icon
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -125,11 +51,6 @@ export default function RegisterPage() {
       setError("Password wajib diisi.")
       return
     }
-    if (!role) {
-      setError("Role wajib dipilih salah satu dari 5 role.")
-      return
-    }
-
     setLoading(true)
 
     try {
@@ -233,11 +154,6 @@ export default function RegisterPage() {
           </div>
 
           <div className="w-full max-w-[380px] mx-auto">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-100 text-[#a61743] text-[11px] font-bold mb-3">
-              <Sparkles className="w-3 h-3" />
-              <span>Registrasi Pengguna Baru</span>
-            </div>
-
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">
               Buat Akun Kandaga Anda
             </h1>
@@ -315,43 +231,6 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* Field 4: pilih peran */}
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-2">
-                  Pilih Peran Pengguna <span className="text-rose-500">*</span>
-                </label>
-                <div className="space-y-2">
-                  {rolesList.map((r) => {
-                    const Icon = r.icon
-                    const isSelected = role === r.id
-                    return (
-                      <button
-                        key={r.id}
-                        type="button"
-                        onClick={() => setRole(r.id)}
-                        aria-pressed={isSelected}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md border text-left transition cursor-pointer ${
-                          isSelected
-                            ? "border-[#a61743] bg-rose-50/60 ring-2 ring-[#a61743]/15"
-                            : "border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50"
-                        }`}
-                      >
-                        <span
-                          className={`w-8 h-8 shrink-0 rounded-lg bg-gradient-to-r ${r.color} flex items-center justify-center text-white`}
-                        >
-                          <Icon className="w-4 h-4" />
-                        </span>
-                        <span className="flex-1 min-w-0">
-                          <span className="block text-sm font-semibold text-zinc-900">{r.label}</span>
-                          <span className="block text-[11px] text-zinc-500 truncate">{r.subtitle}</span>
-                        </span>
-                        {isSelected && <CheckCircle2 className="w-4 h-4 shrink-0 text-[#a61743]" />}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
               <button
                 type="submit"
                 disabled={loading}
@@ -378,64 +257,43 @@ export default function RegisterPage() {
                   Masuk ke portal
                 </Link>
               </p>
-              <p className="text-[11px] text-zinc-400">
-                Mitra perusahaan?{" "}
-                <Link href="/mitra/daftar" className="text-[#a61743] hover:underline font-medium transition">
-                  Daftar sebagai mitra
-                </Link>
-              </p>
             </div>
           </div>
         </div>
 
-        {/* Kolom kanan: panel detail peran terpilih */}
-        <div className="hidden lg:flex w-full h-full min-h-[560px] rounded-2xl lg:rounded-[28px] bg-[#9c153e] relative overflow-hidden flex-col justify-between p-8 text-white">
-          {/* Blok atas: identitas peran terpilih */}
-          <div className="relative z-10 w-full">
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/10 border border-white/20 text-white text-[11px] font-bold mb-8">
-              <Sparkles className="w-3 h-3" />
-              <span>Peran Terpilih</span>
-            </div>
+        {/* Kolom kanan: ilustrasi siswa (RPL · Analis Kimia · TKJ) — disamakan dengan halaman login */}
+        <div className="relative hidden lg:block w-full h-full min-h-[560px] rounded-2xl lg:rounded-[28px] overflow-hidden bg-[#7C0215]">
+          {/* Dasar marun — gradiennya disamakan dengan tepi atas ilustrasi agar menyatu */}
+          <div
+            className="absolute inset-0"
+            style={{ background: "linear-gradient(90deg, #7C0215 0%, #8C051A 55%, #8F071C 100%)" }}
+            aria-hidden="true"
+          />
 
-            <div
-              className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${selected.color} flex items-center justify-center text-white shadow-lg mb-5`}
-            >
-              <SelectedIcon className="w-7 h-7" />
-            </div>
+          <Image
+            src="/images/models.png"
+            alt="Ilustrasi siswa jurusan RPL, Analis Kimia, dan TKJ"
+            fill
+            priority
+            sizes="(min-width: 1280px) 512px, 448px"
+            className="object-contain object-bottom select-none"
+            draggable={false}
+          />
 
-            <h2 className="text-2xl font-bold tracking-tight text-white">{selected.label}</h2>
-            <p className="text-sm text-rose-100/80 mt-1">{selected.subtitle}</p>
-            <p className="text-sm text-white/70 mt-4 leading-relaxed max-w-[42ch]">
-              {selected.description}
-            </p>
-
-            {/* Kemampuan peran — mengisi panel sekaligus membantu memilih peran */}
-            <ul className="mt-7 space-y-2.5">
-              {selected.capabilities.map((cap) => (
-                <li key={cap} className="flex items-start gap-2.5 text-sm text-white/85">
-                  <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-rose-200" />
-                  <span>{cap}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Blok bawah: tujuan dashboard + catatan */}
-          <div className="relative z-10 w-full">
-            <div className="pt-6 border-t border-white/15">
-              <p className="text-[11px] font-mono uppercase tracking-wider text-white/50 mb-1.5">
-                Akses Dashboard
-              </p>
-              <p className="text-sm font-semibold text-white font-mono">
-                {getDashboardUrl(selected.id)}
-              </p>
-            </div>
-
-            <p className="text-xs text-white/45 mt-5 leading-relaxed max-w-[42ch]">
-              Peran menentukan dashboard dan hak akses Anda. Peran tidak bisa diubah sendiri
-              setelah akun dibuat — hubungi Admin sekolah bila perlu penyesuaian.
-            </p>
-          </div>
+          {/* Pelembut sambungan: gradien identik dengan latar, diposisikan tepat
+              menutupi tepi atas ilustrasi (kotak 1:1 selebar panel, menempel bawah),
+              lalu memudar ke bawah sehingga tidak ada garis batas terlihat */}
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 aspect-square"
+            style={{
+              background: "linear-gradient(90deg, #7C0215 0%, #8C051A 55%, #8F071C 100%)",
+              WebkitMaskImage:
+                "linear-gradient(180deg, #000 0%, rgba(0,0,0,0.5) 8%, rgba(0,0,0,0) 20%)",
+              maskImage:
+                "linear-gradient(180deg, #000 0%, rgba(0,0,0,0.5) 8%, rgba(0,0,0,0) 20%)",
+            }}
+            aria-hidden="true"
+          />
         </div>
 
       </div>

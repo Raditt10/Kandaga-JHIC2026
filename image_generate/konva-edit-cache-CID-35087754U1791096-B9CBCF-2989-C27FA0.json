@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "document": {
+    "name": "Desain Karakter Kartun RPL, Kimia,",
+    "protocolJson": "{\"assets\":[],\"page\":{\"id\":\"page__k7POicSmpz\",\"type\":\"page\",\"v\":\"3.0.14\",\"layers\":[{\"visible\":true,\"opacity\":1,\"angle\":0,\"scaleX\":1,\"scaleY\":1,\"flipX\":false,\"flipY\":false,\"type\":\"image\",\"lockAspectRatio\":true,\"strokeColor\":{\"type\":\"solid\",\"colors\":[\"#000000\"]},\"strokeWidth\":1,\"paintFirst\":\"fill\",\"strokeEnabled\":false,\"shadow\":{\"offsetX\":0,\"offsetY\":4,\"blur\":4,\"color\":\"#00000040\",\"enabled\":false},\"id\":\"xYH9XqOai1j\",\"src\":\"https://sc02.alicdn.com/kf/A6b8d7fbe8bda43d48119c1bd7c7b2a269.png\",\"imageWidth\":1024,\"imageHeight\":1536,\"width\":1024,\"height\":1536,\"left\":513.3333333333333,\"top\":545,\"name\":\"Image 1\"}],\"backgroundColor\":{\"colors\":[\"#F1F4F8\"],\"type\":\"solid\"},\"rulerInfo\":{\"visible\":false,\"horizontal\":[],\"vertical\":[],\"locked\":false}},\"loadingLayers\":[]}"
+  },
+  "updatedAt": 1791102961951
+}

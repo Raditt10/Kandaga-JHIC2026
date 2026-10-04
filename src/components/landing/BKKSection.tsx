@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { motion } from "motion/react";
 import { staggerChildren, revealUp } from "@/lib/motion";
 // Isi alur & FAQ dipakai bersama dengan halaman publik /mitra/cara-kerja-bkk
@@ -22,10 +21,7 @@ export default function BKKSection() {
           whileInView="show"
           viewport={{ once: true, margin: "-80px" }}
         >
-          <motion.span variants={revealUp} className="text-xs font-semibold tracking-[0.3em] text-ink-600">
-            CARA KERJA BKK
-          </motion.span>
-          <motion.h2 variants={revealUp} className="mt-2 font-heading text-3xl font-semibold text-ink md:text-4xl">
+          <motion.h2 variants={revealUp} className="font-heading text-3xl font-semibold text-ink md:text-4xl">
             Apa itu BKK, dan bagaimana prosesnya?
           </motion.h2>
           <motion.p variants={revealUp} className="mt-4 text-base text-ink-700 leading-relaxed max-w-[65ch]">
@@ -91,25 +87,6 @@ export default function BKKSection() {
               </div>
             ))}
           </div>
-        </motion.div>
-
-        {/* ── CTA penutup ── */}
-        <motion.div
-          className="flex flex-col items-start gap-3 sm:flex-row sm:items-center"
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <Link
-            href="/mitra/daftar"
-            className="rounded-full bg-primary px-7 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
-          >
-            Daftar Sebagai Mitra Industri
-          </Link>
-          <p className="text-xs text-ink-300">
-            Akun perusahaan diverifikasi oleh Koordinator BKK sebelum mengakses katalog.
-          </p>
         </motion.div>
 
       </div>
