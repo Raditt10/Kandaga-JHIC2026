@@ -1,54 +1,49 @@
 "use client";
 
-/**
- * Heading outline (design-rules.md §3):
- *   h1: "Daftar Sebagai Mitra Industri"
- *     h2: (tidak perlu — form adalah satu kesatuan)
- *
- * Design-rules yang diterapkan:
- * - font-heading pada semua judul (§1)
- * - text-base untuk label, text-sm tidak pernah di bawah 12px (§2)
- * - max-w-[65ch] pada deskripsi (§4)
- * - Tidak ada nested card ganda (§6)
- * - Kontras ink-700 untuk teks deskriptif (§7)
- */
-
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
-  Building2, User, Mail, Lock, Briefcase,
-  FileText, Eye, EyeOff, AlertCircle,
-  CheckCircle2, ArrowRight, ChevronRight,
+  Building2,
+  User,
+  Mail,
+  Lock,
+  Briefcase,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
 } from "lucide-react";
 
 type FormState = {
-  namaKontak:     string;
-  email:          string;
-  password:       string;
+  namaKontak: string;
+  email: string;
+  password: string;
   konfirmasiPass: string;
   namaPerusahaan: string;
-  bidang:         string;
-  dokumenUrl:     string; // mock — diisi string URL atau dikosongkan
+  bidang: string;
+  dokumenUrl: string;
 };
 
 const INITIAL: FormState = {
-  namaKontak:     "",
-  email:          "",
-  password:       "",
+  namaKontak: "",
+  email: "",
+  password: "",
   konfirmasiPass: "",
   namaPerusahaan: "",
-  bidang:         "",
-  dokumenUrl:     "",
+  bidang: "",
+  dokumenUrl: "",
 };
 
 const BIDANG_OPTIONS = [
-  "Teknologi Informasi",
-  "Manufaktur & Industri",
-  "Kimia & Farmasi",
-  "Telekomunikasi & Jaringan",
-  "Pendidikan & Pelatihan",
+  "Teknologi Informasi & Software",
+  "Manufaktur & Rekayasa Industri",
+  "Kimia, Farmasi & Laboratorium",
+  "Telekomunikasi & Jaringan Komputer",
+  "Pendidikan, Riset & Pelatihan",
   "Energi & Utilitas",
   "Konstruksi & Infrastruktur",
   "Lainnya",
@@ -56,20 +51,21 @@ const BIDANG_OPTIONS = [
 
 export default function DaftarMitraPage() {
   const router = useRouter();
-  const [form, setForm]         = useState<FormState>(INITIAL);
+  const [form, setForm] = useState<FormState>(INITIAL);
   const [showPass, setShowPass] = useState(false);
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState("");
-  const [step, setStep]         = useState<1 | 2>(1); // 2 langkah form
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [step, setStep] = useState<1 | 2>(1);
 
-  const update = (k: keyof FormState) => (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => setForm((p) => ({ ...p, [k]: e.target.value }));
+  const update =
+    (k: keyof FormState) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+      setForm((p) => ({ ...p, [k]: e.target.value }));
 
-  // ── Validasi step 1 sebelum lanjut ──────────────────────────────────
   const validateStep1 = () => {
     if (!form.namaKontak.trim()) return "Nama kontak wajib diisi.";
-    if (!form.email.trim())      return "Email wajib diisi.";
+    if (!form.email.trim()) return "Email wajib diisi.";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
       return "Format email tidak valid.";
     if (form.password.length < 8) return "Password minimal 8 karakter.";
@@ -78,14 +74,17 @@ export default function DaftarMitraPage() {
     return null;
   };
 
-  const handleNextStep = () => {
+  const handleNextStep = (e: React.FormEvent) => {
+    e.preventDefault();
     const err = validateStep1();
-    if (err) { setError(err); return; }
+    if (err) {
+      setError(err);
+      return;
+    }
     setError("");
     setStep(2);
   };
 
-  // ── Submit ke API ────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.namaPerusahaan.trim()) {
@@ -100,321 +99,355 @@ export default function DaftarMitraPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          namaKontak:    form.namaKontak,
-          email:         form.email,
-          password:      form.password,
+          namaKontak: form.namaKontak,
+          email: form.email,
+          password: form.password,
           namaPerusahaan: form.namaPerusahaan,
-          bidang:        form.bidang,
-          dokumenUrl:    form.dokumenUrl || null,
+          bidang: form.bidang || BIDANG_OPTIONS[0],
+          dokumenUrl: form.dokumenUrl || null,
         }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Pendaftaran gagal. Coba lagi.");
+        setError(data.error || "Pendaftaran gagal. Silakan coba lagi.");
         setLoading(false);
         return;
       }
 
-      // Sukses → halaman menunggu verifikasi
       router.push("/mitra/menunggu");
     } catch {
-      setError("Terjadi kesalahan koneksi. Coba lagi.");
+      setError("Terjadi kesalahan koneksi. Silakan coba lagi.");
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FBF9F6] via-white to-cream flex flex-col">
+    <div
+      suppressHydrationWarning
+      className="relative min-h-screen w-full bg-[#a61743] flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans selection:bg-[#a61743] selection:text-white overflow-hidden"
+    >
+      {/* Background Graphic Design: Diagonal rounded pills matching login reference */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
+        <svg
+          className="absolute inset-0 w-full h-full"
+          viewBox="0 0 1440 900"
+          preserveAspectRatio="xMidYMid slice"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <linearGradient id="whitePillBright" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.55" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.28" />
+            </linearGradient>
+            <linearGradient id="whitePillMedium" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.42" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.18" />
+            </linearGradient>
+            <linearGradient id="whitePillSoft" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.32" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.12" />
+            </linearGradient>
+          </defs>
 
-      {/* ── Mini navbar ─────────────────────────────────────────────── */}
-      <header className="w-full pt-6 px-4 z-20">
-        <div className="max-w-3xl mx-auto bg-white/90 backdrop-blur-md border border-ink-150 shadow-sm rounded-full px-6 py-3 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 relative rounded-full overflow-hidden ring-1 ring-ink/5">
-              <Image src="/logo.png" alt="Kandaga" fill sizes="32px" className="object-contain" priority />
+          {/* Top-Left Diagonal Rounded Pills */}
+          <g transform="rotate(-35 250 200)">
+            <rect x="-180" y="-140" width="130" height="640" rx="65" fill="url(#whitePillMedium)" />
+            <rect x="0" y="-180" width="160" height="740" rx="80" fill="url(#whitePillBright)" />
+            <rect x="210" y="-100" width="110" height="520" rx="55" fill="url(#whitePillMedium)" />
+            <rect x="360" y="-50" width="75" height="380" rx="37.5" fill="url(#whitePillSoft)" />
+          </g>
+
+          {/* Bottom-Right Diagonal Rounded Pills */}
+          <g transform="rotate(-35 1200 700)">
+            <rect x="960" y="440" width="80" height="460" rx="40" fill="url(#whitePillSoft)" />
+            <rect x="1080" y="340" width="130" height="620" rx="65" fill="url(#whitePillMedium)" />
+            <rect x="1250" y="260" width="165" height="760" rx="82.5" fill="url(#whitePillBright)" />
+            <rect x="1460" y="320" width="140" height="660" rx="70" fill="url(#whitePillMedium)" />
+          </g>
+        </svg>
+      </div>
+
+      {/* Main Floating Card */}
+      <div className="relative z-10 w-full max-w-5xl xl:max-w-6xl bg-white rounded-3xl lg:rounded-[32px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] border border-white/40 p-6 sm:p-8 lg:p-10 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+        
+        {/* Left Column: Register Form */}
+        <div className="w-full flex flex-col justify-between py-2 sm:py-4">
+          {/* Top Header: Back Link */}
+          <div className="flex items-center justify-between mb-4">
+            <Link
+              href="/"
+              aria-label="Kembali ke Beranda"
+              className="w-8 h-8 rounded-md bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center text-zinc-600 hover:text-zinc-900 transition shadow-2xs"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Link>
+
+            {/* Step Pills */}
+            <div className="flex items-center gap-1.5 text-xs">
+              <span
+                className={`px-2.5 py-1 rounded-full font-semibold transition ${
+                  step === 1
+                    ? "bg-[#a61743] text-white"
+                    : "bg-emerald-100 text-emerald-800"
+                }`}
+              >
+                1. Akun
+              </span>
+              <span className="text-zinc-300">/</span>
+              <span
+                className={`px-2.5 py-1 rounded-full font-semibold transition ${
+                  step === 2
+                    ? "bg-[#a61743] text-white"
+                    : "bg-zinc-100 text-zinc-500"
+                }`}
+              >
+                2. Perusahaan
+              </span>
             </div>
-            <span className="font-heading font-extrabold text-base bg-gradient-to-r from-ink via-primary to-primary bg-clip-text text-transparent">
-              KANDAGA
-            </span>
-          </Link>
-          <div className="flex items-center gap-3 text-xs font-semibold">
-            <Link href="/mitra/cara-kerja-bkk" className="text-ink-600 hover:text-ink transition hidden sm:block">
-              Cara Kerja BKK
-            </Link>
-            <Link href="/auth/login" className="rounded-full border border-primary text-primary px-4 py-2 hover:bg-primary hover:text-white transition">
-              Masuk
-            </Link>
           </div>
-        </div>
-      </header>
 
-      {/* ── Konten utama ────────────────────────────────────────────── */}
-      <main className="flex-1 flex items-center justify-center px-4 py-10">
-        <div className="w-full max-w-2xl">
-
-          {/* Header */}
-          <div className="mb-8 text-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/8 border border-primary/20 text-primary text-xs font-semibold mb-3">
-              <Building2 className="w-3.5 h-3.5" aria-hidden="true" />
-              Mitra Industri &amp; DUDI
-            </div>
-            {/* h1 — satu-satunya heading utama */}
-            <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">
-              Daftar Sebagai Mitra Industri
+          {/* Form Content */}
+          <div className="w-full max-w-[420px] mx-auto">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">
+              Daftar Mitra Industri
             </h1>
-            <p className="mt-2 text-base text-ink-700 max-w-[65ch] mx-auto leading-relaxed">
-              Akses katalog portofolio siswa terverifikasi dan hubungkan kebutuhan
-              rekrutmen Anda melalui jalur resmi BKK SMKN 13 Bandung.
+            <p className="text-sm text-zinc-500 mt-2 mb-6">
+              {step === 1
+                ? "Lengkapi informasi akun narahubung perwakilan perusahaan Anda."
+                : "Lengkapi profil industri untuk verifikasi rekrutmen BKK."}
             </p>
-          </div>
 
-          {/* Progress indicator */}
-          <div className="flex items-center justify-center gap-2 mb-8">
-            {[
-              { no: 1, label: "Akun" },
-              { no: 2, label: "Perusahaan" },
-            ].map(({ no, label }, i) => (
-              <div key={no} className="flex items-center gap-2">
-                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-                  step === no
-                    ? "bg-primary text-white"
-                    : step > no
-                    ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
-                    : "bg-ink-100 text-ink-600"
-                }`}>
-                  {step > no
-                    ? <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
-                    : <span>{no}</span>}
-                  <span>{label}</span>
-                </div>
-                {i < 1 && <ChevronRight className="w-4 h-4 text-ink-300" aria-hidden="true" />}
-              </div>
-            ))}
-          </div>
-
-          {/* Card form */}
-          <div className="bg-white/95 rounded-3xl border border-ink-150 shadow-sm p-6 sm:p-8">
-
-            {/* Error banner */}
+            {/* Error Alert */}
             {error && (
-              <div className="mb-5 flex items-start gap-2.5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" aria-hidden="true" />
+              <div className="mb-5 p-3 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-center gap-2 animate-in fade-in">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
                 <span>{error}</span>
               </div>
             )}
 
-            <form onSubmit={handleSubmit}>
-
-              {/* ── STEP 1: Data akun ── */}
-              {step === 1 && (
-                <div className="space-y-5">
-                  <p className="text-sm font-semibold text-ink-600 mb-1">Data Akun Perusahaan</p>
-
-                  {/* Nama kontak */}
-                  <div>
-                    <label className="block text-sm font-semibold text-ink mb-1.5">
-                      Nama Narahubung <span className="text-rose-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-300" aria-hidden="true" />
-                      <input
-                        type="text"
-                        value={form.namaKontak}
-                        onChange={update("namaKontak")}
-                        placeholder="Nama lengkap Anda"
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-ink-150 text-sm bg-ink-100/30 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
-                        autoComplete="name"
-                      />
-                    </div>
+            {/* STEP 1: Akun Narahubung */}
+            {step === 1 && (
+              <form onSubmit={handleNextStep} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-700 mb-1.5">
+                    Nama Narahubung <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={form.namaKontak}
+                      onChange={update("namaKontak")}
+                      placeholder="Nama lengkap perwakilan"
+                      className="w-full px-3.5 py-2.5 rounded-md border border-zinc-200 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#a61743]/15 focus:border-[#a61743] transition bg-white"
+                      required
+                    />
                   </div>
-
-                  {/* Email */}
-                  <div>
-                    <label className="block text-sm font-semibold text-ink mb-1.5">
-                      Email Perusahaan <span className="text-rose-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-300" aria-hidden="true" />
-                      <input
-                        type="email"
-                        value={form.email}
-                        onChange={update("email")}
-                        placeholder="nama@perusahaan.co.id"
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-ink-150 text-sm bg-ink-100/30 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
-                        autoComplete="email"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Password */}
-                  <div>
-                    <label className="block text-sm font-semibold text-ink mb-1.5">
-                      Password <span className="text-rose-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-300" aria-hidden="true" />
-                      <input
-                        type={showPass ? "text" : "password"}
-                        value={form.password}
-                        onChange={update("password")}
-                        placeholder="Minimal 8 karakter"
-                        className="w-full pl-10 pr-10 py-3 rounded-xl border border-ink-150 text-sm bg-ink-100/30 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
-                        autoComplete="new-password"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPass(!showPass)}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-300 hover:text-ink-600"
-                        aria-label={showPass ? "Sembunyikan password" : "Tampilkan password"}
-                      >
-                        {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Konfirmasi password */}
-                  <div>
-                    <label className="block text-sm font-semibold text-ink mb-1.5">
-                      Konfirmasi Password <span className="text-rose-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-300" aria-hidden="true" />
-                      <input
-                        type={showPass ? "text" : "password"}
-                        value={form.konfirmasiPass}
-                        onChange={update("konfirmasiPass")}
-                        placeholder="Ulangi password"
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-ink-150 text-sm bg-ink-100/30 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
-                        autoComplete="new-password"
-                      />
-                    </div>
-                    {form.password && form.konfirmasiPass && form.password !== form.konfirmasiPass && (
-                      <p className="mt-1.5 text-xs text-rose-600 flex items-center gap-1">
-                        <AlertCircle className="w-3.5 h-3.5" aria-hidden="true" />
-                        Password tidak cocok
-                      </p>
-                    )}
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleNextStep}
-                    className="w-full flex items-center justify-center gap-2 rounded-full bg-primary py-3.5 text-sm font-bold text-white hover:bg-primary-dark transition-colors"
-                  >
-                    Lanjut ke Data Perusahaan
-                    <ArrowRight className="w-4 h-4" aria-hidden="true" />
-                  </button>
                 </div>
-              )}
 
-              {/* ── STEP 2: Data perusahaan ── */}
-              {step === 2 && (
-                <div className="space-y-5">
-                  <p className="text-sm font-semibold text-ink-600 mb-1">Data Perusahaan</p>
-
-                  {/* Nama perusahaan */}
-                  <div>
-                    <label className="block text-sm font-semibold text-ink mb-1.5">
-                      Nama Perusahaan <span className="text-rose-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-300" aria-hidden="true" />
-                      <input
-                        type="text"
-                        value={form.namaPerusahaan}
-                        onChange={update("namaPerusahaan")}
-                        placeholder="PT / CV / Nama Instansi"
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-ink-150 text-sm bg-ink-100/30 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
-                      />
-                    </div>
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-700 mb-1.5">
+                    Email Resmi Perusahaan <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      value={form.email}
+                      onChange={update("email")}
+                      placeholder="hrd@perusahaan.co.id"
+                      className="w-full px-3.5 py-2.5 rounded-md border border-zinc-200 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#a61743]/15 focus:border-[#a61743] transition bg-white"
+                      required
+                    />
                   </div>
+                </div>
 
-                  {/* Bidang usaha */}
-                  <div>
-                    <label className="block text-sm font-semibold text-ink mb-1.5">
-                      Bidang Usaha
-                    </label>
-                    <div className="relative">
-                      <Briefcase className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-300 pointer-events-none" aria-hidden="true" />
-                      <select
-                        value={form.bidang}
-                        onChange={update("bidang")}
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-ink-150 text-sm bg-ink-100/30 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition appearance-none"
-                      >
-                        <option value="">Pilih bidang usaha (opsional)</option>
-                        {BIDANG_OPTIONS.map((b) => (
-                          <option key={b} value={b}>{b}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Dokumen legalitas — mock */}
-                  <div>
-                    <label className="block text-sm font-semibold text-ink mb-1.5">
-                      Dokumen Legalitas
-                      <span className="ml-2 text-xs font-normal text-ink-300">(NIB / NPWP / SK — opsional saat ini)</span>
-                    </label>
-                    <div className="relative">
-                      <FileText className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-300" aria-hidden="true" />
-                      <input
-                        type="url"
-                        value={form.dokumenUrl}
-                        onChange={update("dokumenUrl")}
-                        placeholder="https://drive.google.com/... (URL dokumen)"
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-ink-150 text-sm bg-ink-100/30 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
-                      />
-                    </div>
-                    <p className="mt-1.5 text-xs text-ink-300">
-                      Sementara dapat diisi URL Google Drive / Dropbox yang bisa diakses BKK.
-                      Upload langsung akan tersedia di pembaruan berikutnya.
-                    </p>
-                  </div>
-
-                  {/* Info verifikasi */}
-                  <div className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3">
-                    <p className="text-xs text-ink-700 leading-relaxed">
-                      <span className="font-semibold text-primary">Setelah mendaftar:</span> akun Anda akan
-                      masuk ke antrian verifikasi Koordinator BKK SMKN 13 Bandung. Proses ini berlangsung
-                      maksimal <strong>1×24 jam kerja</strong>. Anda akan menerima notifikasi melalui email
-                      setelah diverifikasi.
-                    </p>
-                  </div>
-
-                  <div className="flex gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-700 mb-1.5">
+                    Kata Sandi <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPass ? "text" : "password"}
+                      value={form.password}
+                      onChange={update("password")}
+                      placeholder="Minimal 8 karakter"
+                      className="w-full px-3.5 py-2.5 pr-10 rounded-md border border-zinc-200 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#a61743]/15 focus:border-[#a61743] transition bg-white"
+                      required
+                    />
                     <button
                       type="button"
-                      onClick={() => { setStep(1); setError(""); }}
-                      className="flex-1 rounded-full border border-ink-150 py-3.5 text-sm font-semibold text-ink-700 hover:bg-ink-100 transition-colors"
+                      onClick={() => setShowPass(!showPass)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition cursor-pointer"
+                      tabIndex={-1}
                     >
-                      Kembali
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="flex-1 flex items-center justify-center gap-2 rounded-full bg-primary py-3.5 text-sm font-bold text-white hover:bg-primary-dark disabled:opacity-60 transition-colors"
-                    >
-                      {loading ? "Mendaftarkan..." : "Daftar Sekarang"}
-                      {!loading && <ArrowRight className="w-4 h-4" aria-hidden="true" />}
+                      {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
-              )}
 
-            </form>
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-700 mb-1.5">
+                    Konfirmasi Kata Sandi <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPass ? "text" : "password"}
+                      value={form.konfirmasiPass}
+                      onChange={update("konfirmasiPass")}
+                      placeholder="Ulangi kata sandi"
+                      className="w-full px-3.5 py-2.5 pr-10 rounded-md border border-zinc-200 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#a61743]/15 focus:border-[#a61743] transition bg-white"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPass(!showConfirmPass)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition cursor-pointer"
+                      tabIndex={-1}
+                    >
+                      {showConfirmPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-[#242c4b] hover:bg-[#1a2038] text-white py-3 rounded-md text-sm font-semibold transition-colors duration-150 flex items-center justify-center gap-2 cursor-pointer mt-2 shadow-xs"
+                >
+                  <span>Lanjutkan ke Data Perusahaan</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </form>
+            )}
+
+            {/* STEP 2: Data Perusahaan */}
+            {step === 2 && (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-700 mb-1.5">
+                    Nama Perusahaan / Instansi <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form.namaPerusahaan}
+                    onChange={update("namaPerusahaan")}
+                    placeholder="PT Telkom Indonesia, dsb."
+                    className="w-full px-3.5 py-2.5 rounded-md border border-zinc-200 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#a61743]/15 focus:border-[#a61743] transition bg-white"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-700 mb-1.5">
+                    Bidang Industri / Sektor
+                  </label>
+                  <select
+                    value={form.bidang}
+                    onChange={update("bidang")}
+                    className="w-full px-3.5 py-2.5 rounded-md border border-zinc-200 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#a61743]/15 focus:border-[#a61743] transition bg-white cursor-pointer"
+                  >
+                    <option value="">Pilih Bidang Industri</option>
+                    {BIDANG_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-700 mb-1.5">
+                    Tautan Profil / Legalitas (Opsional)
+                  </label>
+                  <input
+                    type="url"
+                    value={form.dokumenUrl}
+                    onChange={update("dokumenUrl")}
+                    placeholder="https://perusahaan.co.id/profile atau link dokumen"
+                    className="w-full px-3.5 py-2.5 rounded-md border border-zinc-200 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#a61743]/15 focus:border-[#a61743] transition bg-white"
+                  />
+                  <p className="text-[11px] text-zinc-400 mt-1">
+                    Bisa berupa link website profil perusahaan atau dokumen pengenal.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setError("");
+                      setStep(1);
+                    }}
+                    className="py-3 px-4 rounded-md border border-zinc-200 hover:bg-zinc-50 text-zinc-700 text-sm font-semibold transition cursor-pointer"
+                  >
+                    Kembali
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 bg-[#242c4b] hover:bg-[#1a2038] text-white py-3 rounded-md text-sm font-semibold transition-colors duration-150 flex items-center justify-center gap-2 disabled:opacity-70 cursor-pointer shadow-xs"
+                  >
+                    {loading ? "Mendaftarkan..." : "Selesaikan Pendaftaran"}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Account Login Links */}
+            <div className="text-center text-xs text-zinc-500 mt-5 space-y-1.5">
+              <p>
+                Sudah memiliki akun mitra?{" "}
+                <Link
+                  href="/auth/login"
+                  className="font-semibold text-[#a61743] underline underline-offset-2 hover:text-[#8B1A2F] transition"
+                >
+                  Masuk di sini
+                </Link>
+              </p>
+              <p className="text-[11px] text-zinc-400">
+                Pendaftaran siswa?{" "}
+                <Link href="/auth/register" className="text-[#a61743] hover:underline font-medium transition">
+                  Daftar sebagai siswa
+                </Link>
+              </p>
+            </div>
           </div>
-
-          {/* Footer link */}
-          <p className="mt-6 text-center text-sm text-ink-600">
-            Sudah punya akun?{" "}
-            <Link href="/auth/login" className="font-semibold text-primary hover:text-primary-dark transition-colors">
-              Masuk ke portal
-            </Link>
-          </p>
         </div>
-      </main>
+
+        {/* Right Column: Ilustrasi Mitra Perusahaan (company.webp) */}
+        <div className="relative hidden lg:block w-full h-full min-h-[580px] rounded-2xl lg:rounded-[28px] overflow-hidden bg-[#7C0215]">
+          {/* Dasar marun — gradien matching dengan background dan tema aplikasi */}
+          <div
+            className="absolute inset-0"
+            style={{ background: "linear-gradient(90deg, #7C0215 0%, #8C051A 55%, #8F071C 100%)" }}
+            aria-hidden="true"
+          />
+
+          <Image
+            src="/images/company.webp"
+            alt="Ilustrasi Mitra Industri dan Rekrutmen Perusahaan"
+            fill
+            priority
+            sizes="(min-width: 1280px) 512px, 448px"
+            className="object-cover object-center select-none"
+            draggable={false}
+          />
+
+          {/* Overlay info box di bagian bawah */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 p-8 bg-gradient-to-t from-black/85 via-black/45 to-transparent text-white">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold mb-2">
+              <Building2 className="w-3.5 h-3.5" />
+              <span>Mitra Industri &amp; DUDI</span>
+            </div>
+            <h3 className="text-xl font-bold tracking-tight">Kemitraan &amp; Rekrutmen Talenta</h3>
+            <p className="text-xs text-white/85 mt-1 leading-relaxed">
+              Hubungkan kebutuhan industri Anda langsung dengan talenta terverifikasi dari SMKN 13 Bandung.
+            </p>
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }
