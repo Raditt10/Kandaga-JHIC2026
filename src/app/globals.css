@@ -74,6 +74,27 @@ body {
   animation: blud-icon-glow 3.6s ease-in-out infinite;
 }
 
+/* ── Animasi Marquee TrustBar ── */
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.animate-marquee-scroll {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 28s linear infinite;
+}
+
+/* Kartu dengan garis putus-putus berjarak renggang dan jelas terlihat */
+.card-dashed-border {
+  background-color: #ffffff;
+  border-radius: 1rem;
+  background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='%239CA3AF' stroke-width='2' stroke-dasharray='12%2c 8'/%3e%3c/svg%3e");
+}
+
+
+
 
 
 /* ── Reduced motion — aksesibilitas wajib ── */

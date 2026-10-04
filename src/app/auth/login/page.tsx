@@ -2,6 +2,7 @@
 
 import React, { useState, Suspense } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useRouter, useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
 import { getDashboardUrl } from "@/lib/auth"
@@ -261,12 +262,39 @@ function LoginFormContent() {
           </div>
         </div>
 
-        {/* Right Column: Reserved empty card container for custom design */}
-        <div className="hidden lg:flex w-full h-full min-h-[560px] rounded-2xl lg:rounded-[28px] bg-[#9c153e] relative overflow-hidden items-center justify-center p-8 text-white">
-          {/* Empty area reserved for user's design */}
-          <div className="relative z-10 w-full h-full flex items-center justify-center">
-            {/* Bagian kanan dikosongkan untuk ditaruh design */}
-          </div>
+        {/* Right Column: ilustrasi siswa (RPL · Analis Kimia · TKJ) */}
+        <div className="relative hidden lg:block w-full h-full min-h-[560px] rounded-2xl lg:rounded-[28px] overflow-hidden bg-[#7C0215]">
+          {/* Dasar marun — gradiennya disamakan dengan tepi atas ilustrasi agar menyatu */}
+          <div
+            className="absolute inset-0"
+            style={{ background: "linear-gradient(90deg, #7C0215 0%, #8C051A 55%, #8F071C 100%)" }}
+            aria-hidden="true"
+          />
+
+          <Image
+            src="/images/models.png"
+            alt="Ilustrasi siswa jurusan RPL, Analis Kimia, dan TKJ"
+            fill
+            priority
+            sizes="(min-width: 1280px) 512px, 448px"
+            className="object-contain object-bottom select-none"
+            draggable={false}
+          />
+
+          {/* Pelembut sambungan: gradien identik dengan latar, diposisikan tepat
+              menutupi tepi atas ilustrasi (kotak 1:1 selebar panel, menempel bawah),
+              lalu memudar ke bawah sehingga tidak ada garis batas terlihat */}
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 aspect-square"
+            style={{
+              background: "linear-gradient(90deg, #7C0215 0%, #8C051A 55%, #8F071C 100%)",
+              WebkitMaskImage:
+                "linear-gradient(180deg, #000 0%, rgba(0,0,0,0.5) 8%, rgba(0,0,0,0) 20%)",
+              maskImage:
+                "linear-gradient(180deg, #000 0%, rgba(0,0,0,0.5) 8%, rgba(0,0,0,0) 20%)",
+            }}
+            aria-hidden="true"
+          />
         </div>
 
       </div>

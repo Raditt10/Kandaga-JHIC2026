@@ -254,7 +254,7 @@ export default function GallerySection() {
             <button
               onClick={() => { goPrev(); handleUserInteraction(); }}
               aria-label="Karya sebelumnya"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-ink-150 text-ink-700 transition-colors hover:border-ink hover:bg-ink-100"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-ink-150 text-ink-700 transition-colors hover:border-primary hover:bg-ink-100"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -286,7 +286,7 @@ export default function GallerySection() {
             <button
               onClick={() => { goNext(); handleUserInteraction(); }}
               aria-label="Karya berikutnya"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-ink-150 text-ink-700 transition-colors hover:border-ink hover:bg-ink-100"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-ink-150 text-ink-700 transition-colors hover:border-primary hover:bg-ink-100"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -294,21 +294,6 @@ export default function GallerySection() {
             </button>
           </div>
 
-          {/* Hint drag */}
-          <p className="text-xs text-ink-300 select-none">
-            Geser kartu atau klik untuk melihat detail
-          </p>
-
-          {/* Auto-advance progress bar — 7 detik per kartu */}
-          <div className="h-0.5 w-40 overflow-hidden rounded-full bg-ink-150">
-            <motion.div
-              key={activeIndex}
-              className="h-full bg-primary origin-left"
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ duration: 7, ease: "linear" }}
-            />
-          </div>
         </div>
       </motion.div>
 

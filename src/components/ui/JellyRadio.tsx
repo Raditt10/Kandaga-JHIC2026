@@ -66,7 +66,7 @@ export default function JellyRadio({
                 ${
                   active
                     ? "border-primary bg-primary text-white"
-                    : "border-ink-300 text-ink-700 hover:border-ink"
+                    : "border-ink-300 text-ink-700 hover:border-primary"
                 }`}
             >
               {opt.label}

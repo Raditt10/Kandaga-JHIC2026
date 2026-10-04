@@ -40,7 +40,7 @@ function BlueprintIllustration() {
   });
 
   return (
-    <svg ref={ref} viewBox="0 0 320 280" className="w-full max-w-sm" fill="none"
+    <svg ref={ref} viewBox="15 15 250 190" className="w-full max-w-sm" fill="none"
       aria-label="Ilustrasi kartu karya yang sedang diperiksa">
       <motion.rect x="40" y="40" width="200" height="140" rx="12"
         stroke="#1A1A1A" strokeWidth="1.5" strokeDasharray="600" strokeDashoffset="600"
@@ -60,27 +60,6 @@ function BlueprintIllustration() {
         stroke="#8B1A2F" strokeWidth="1" strokeLinecap="round"
         strokeDasharray="30" strokeDashoffset="30"
         animate={isInView ? { strokeDashoffset: 0 } : {}} transition={{ duration: 0.4, delay: 1.2 }} />
-      <motion.line x1="240" y1="100" x2="285" y2="80" {...lp(1.3)} />
-      <motion.text x="290" y="76" fontSize="9" fill="#8B1A2F" fontFamily="monospace" fontWeight="600"
-        initial={{ opacity: 0 }} animate={isInView ? { opacity: 1 } : {}} transition={{ delay: 1.5 }}>
-        VERIFIED
-      </motion.text>
-      <motion.line x1="40" y1="160" x2="15" y2="190" {...lp(1.4)} />
-      <motion.text x="8" y="200" fontSize="8" fill="#555" fontFamily="monospace"
-        initial={{ opacity: 0 }} animate={isInView ? { opacity: 1 } : {}} transition={{ delay: 1.6 }}>
-        RPL / TKJ
-      </motion.text>
-      <motion.line x1="40" y1="220" x2="240" y2="220" stroke="#CCCCCC" strokeWidth="1"
-        strokeDasharray="200" strokeDashoffset="200"
-        animate={isInView ? { strokeDashoffset: 0 } : {}} transition={{ duration: 0.8, delay: 1.0 }} />
-      <motion.line x1="40" y1="215" x2="40" y2="225" stroke="#CCCCCC" strokeWidth="1"
-        initial={{ opacity: 0 }} animate={isInView ? { opacity: 1 } : {}} transition={{ delay: 1.7 }} />
-      <motion.line x1="240" y1="215" x2="240" y2="225" stroke="#CCCCCC" strokeWidth="1"
-        initial={{ opacity: 0 }} animate={isInView ? { opacity: 1 } : {}} transition={{ delay: 1.8 }} />
-      <motion.text x="115" y="235" fontSize="8" fill="#AAAAAA" fontFamily="monospace" textAnchor="middle"
-        initial={{ opacity: 0 }} animate={isInView ? { opacity: 1 } : {}} transition={{ delay: 1.9 }}>
-        200 × 140 px
-      </motion.text>
     </svg>
   );
 }
@@ -222,9 +201,6 @@ export default function IndustrySection() {
                   className="w-3.5 h-3.5 object-contain transition-transform group-hover:translate-x-1"
                 />
               </Link>
-              <p className="text-xs text-ink-300">
-                Akun perusahaan diverifikasi oleh Koordinator BKK sebelum dapat mengakses katalog.
-              </p>
             </motion.div>
           </div>
 
