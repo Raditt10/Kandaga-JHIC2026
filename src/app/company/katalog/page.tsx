@@ -20,6 +20,7 @@ import Image from "next/image";
 import CompanyLayout from "@/components/company/CompanyLayout";
 import AjukanMinatModal, { type MinatProject } from "@/components/company/AjukanMinatModal";
 import EmptyState from "@/components/ui/EmptyState";
+import { FilterDropdown } from "@/components/ui/FilterDropdown";
 import {
   Search, SearchX, Bookmark, BookmarkCheck, ArrowRight,
   Eye, Loader2, AlertCircle, FlaskConical, Network, Code2,
@@ -289,23 +290,19 @@ export default function KatalogPage() {
           </button>
         </form>
 
-        {/* Filter jurusan */}
-        <div className={`flex gap-2 flex-wrap transition-opacity duration-150 ${isPending ? "opacity-60" : ""}`}>
-          {FILTERS.map(({ value, label, icon: Icon }) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => handleJurusanChange(value)}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-full text-sm font-semibold border transition-colors ${
-                jurusan === value
-                  ? "bg-primary text-white border-primary"
-                  : "bg-white text-ink-700 border-ink-150 hover:border-primary hover:text-primary"
-              }`}
-            >
-              {Icon && <Icon className="w-3.5 h-3.5" aria-hidden="true" />}
-              {label}
-            </button>
-          ))}
+        {/* Filter jurusan dropdown */}
+        <div className="shrink-0">
+          <FilterDropdown
+            label="Jurusan"
+            value={jurusan}
+            onChange={handleJurusanChange}
+            disabled={isPending}
+            options={FILTERS.map(({ value, label, icon: Icon }) => ({
+              value,
+              label,
+              icon: Icon ?? undefined,
+            }))}
+          />
         </div>
       </div>
 

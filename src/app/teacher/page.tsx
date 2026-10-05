@@ -367,7 +367,7 @@ export default function TeacherDashboardPage() {
             </div>
 
             {/* Model Chibi Guru */}
-            <div className="absolute right-1 sm:right-6 md:right-8 lg:right-12 top-1 sm:top-1.5 md:top-2 w-36 sm:w-48 md:w-56 lg:w-64 h-48 sm:h-60 md:h-68 lg:h-76 pointer-events-none select-none z-10">
+            <div className="absolute right-1 sm:right-6 md:right-8 lg:right-12 -top-2 sm:-top-3 md:-top-4 w-36 sm:w-48 md:w-56 lg:w-64 h-48 sm:h-60 md:h-68 lg:h-76 pointer-events-none select-none z-10">
               <div className="relative w-full h-full">
                 <Image
                   src="/images/guru.webp"

@@ -20,6 +20,7 @@ import {
 } from "lucide-react"
 import AdminLayout from "@/components/admin/AdminLayout"
 import { EmptyState } from "@/components/ui/EmptyState"
+import { FilterDropdown } from "@/components/ui/FilterDropdown"
 
 type AntrianItem = {
   userId: string
@@ -440,30 +441,18 @@ export default function AdminBkkPage() {
                 />
               </div>
 
-              <div className="flex gap-2 flex-wrap items-center">
-                {[
-                  { value: "all", label: "Semua", count: allMitra.length },
-                  { value: "disetujui", label: "Disetujui", count: countDisetujui },
-                  { value: "pending", label: "Menunggu", count: countPending },
-                  { value: "ditolak", label: "Ditolak", count: countDitolak },
-                ].map(({ value, label, count }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setStatusFilter(value)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold border transition-colors cursor-pointer ${
-                      statusFilter === value
-                        ? "bg-primary text-white border-primary"
-                        : "bg-white text-ink-700 border-ink-150 hover:border-primary hover:text-primary"
-                    }`}
-                  >
-                    <Filter className="w-3.5 h-3.5" aria-hidden="true" />
-                    {label}
-                    <span className={`font-bold text-xs ${statusFilter === value ? "text-white/80" : "text-ink-300"}`}>
-                      ({count})
-                    </span>
-                  </button>
-                ))}
+              <div className="shrink-0">
+                <FilterDropdown
+                  label="Status"
+                  value={statusFilter}
+                  onChange={(val) => setStatusFilter(val)}
+                  options={[
+                    { value: "all", label: "Semua", count: allMitra.length },
+                    { value: "disetujui", label: "Disetujui", count: countDisetujui },
+                    { value: "pending", label: "Menunggu", count: countPending },
+                    { value: "ditolak", label: "Ditolak", count: countDitolak },
+                  ]}
+                />
               </div>
             </div>
 

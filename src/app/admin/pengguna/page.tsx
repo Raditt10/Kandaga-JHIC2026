@@ -21,6 +21,7 @@ import {
 } from "lucide-react"
 import AdminLayout from "@/components/admin/AdminLayout"
 import { EmptyState } from "@/components/ui/EmptyState"
+import { FilterDropdown } from "@/components/ui/FilterDropdown"
 
 // ─── Tipe data dari /api/admin/users ────────────────────────────────────────
 
@@ -343,38 +344,26 @@ export default function AdminPenggunaPage() {
             </div>
           </div>
 
-          <div className="flex gap-2 flex-wrap items-center">
-            {[
-              { value: "all", label: "Semua", count: counts.all ?? 0 },
-              { value: "student", label: "Siswa", count: counts.student ?? 0 },
-              { value: "teacher", label: "Guru", count: counts.teacher ?? 0 },
-              { value: "company", label: "Mitra", count: counts.company ?? 0 },
-              { value: "bkk", label: "BKK", count: counts.bkk ?? 0 },
-              { value: "admin", label: "Admin", count: counts.admin ?? 0 },
-            ].map(({ value, label, count }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setRoleFilter(value)}
-                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold border transition-colors cursor-pointer ${
-                  roleFilter === value
-                    ? "bg-primary text-white border-primary"
-                    : "bg-white text-ink-700 border-ink-150 hover:border-primary hover:text-primary"
-                }`}
-              >
-                <Filter className="w-3.5 h-3.5" aria-hidden="true" />
-                {label}
-                <span className={`font-bold text-xs ${roleFilter === value ? "text-white/80" : "text-ink-300"}`}>
-                  ({count})
-                </span>
-              </button>
-            ))}
+          <div className="flex items-center gap-2 shrink-0">
+            <FilterDropdown
+              label="Role"
+              value={roleFilter}
+              onChange={(val) => setRoleFilter(val)}
+              options={[
+                { value: "all", label: "Semua", count: counts.all ?? 0 },
+                { value: "student", label: "Siswa", count: counts.student ?? 0 },
+                { value: "teacher", label: "Guru", count: counts.teacher ?? 0 },
+                { value: "company", label: "Mitra", count: counts.company ?? 0 },
+                { value: "bkk", label: "BKK", count: counts.bkk ?? 0 },
+                { value: "admin", label: "Admin", count: counts.admin ?? 0 },
+              ]}
+            />
 
             <button
               type="button"
               onClick={fetchUsers}
-              title="Segarkan data"
-              className="w-10 h-10 rounded-full border border-ink-150 bg-white flex items-center justify-center text-ink-300 hover:text-primary hover:border-primary transition cursor-pointer shrink-0"
+              title="Segarkan data pengguna"
+              className="p-2.5 rounded-xl border border-ink-150 bg-white text-ink-400 hover:text-primary hover:border-primary transition cursor-pointer shrink-0 shadow-2xs"
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
             </button>

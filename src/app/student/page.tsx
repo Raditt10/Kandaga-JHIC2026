@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import DashboardLayout, { DashboardTab } from "@/components/DashboardLayout"
 import AccountSettings from "@/components/settings/AccountSettings"
 import EmptyState from "@/components/ui/EmptyState"
+import { FilterDropdown } from "@/components/ui/FilterDropdown"
 import { useSession } from "next-auth/react"
 import {
   GraduationCap,
@@ -496,7 +497,7 @@ export default function StudentDashboardPage() {
             </div>
 
             {/* Model Chibi Siswa */}
-            <div className="absolute right-1 sm:right-6 md:right-8 lg:right-12 top-1 sm:top-1.5 md:top-2 w-36 sm:w-48 md:w-56 lg:w-64 h-48 sm:h-60 md:h-68 lg:h-76 pointer-events-none select-none z-10">
+            <div className="absolute right-1 sm:right-6 md:right-8 lg:right-12 -top-2 sm:-top-3 md:-top-4 w-36 sm:w-48 md:w-56 lg:w-64 h-48 sm:h-60 md:h-68 lg:h-76 pointer-events-none select-none z-10">
               <div className="relative w-full h-full">
                 <Image
                   src="/images/siswa.webp"
@@ -687,27 +688,18 @@ export default function StudentDashboardPage() {
               />
             </div>
 
-            {/* Filter Status Buttons */}
-            <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto">
-              {[
-                { id: "all", label: "Semua Karya", count: projects.length },
-                { id: "verified", label: "Terverifikasi", count: projects.filter((p) => p.status === "verified").length },
-                { id: "review", label: "Dalam Review", count: projects.filter((p) => p.status === "review").length },
-              ].map((f) => (
-                <button
-                  key={f.id}
-                  type="button"
-                  onClick={() => setFilterStatus(f.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
-                    filterStatus === f.id
-                      ? "bg-ink text-white"
-                      : "bg-ink-100 text-ink-600 hover:bg-ink-150"
-                  }`}
-                >
-                  <span>{f.label}</span>
-                  <span className="ml-1.5 text-[11px] opacity-75">({f.count})</span>
-                </button>
-              ))}
+            {/* Filter Status Dropdown */}
+            <div className="shrink-0">
+              <FilterDropdown
+                label="Status"
+                value={filterStatus}
+                onChange={(val) => setFilterStatus(val)}
+                options={[
+                  { value: "all", label: "Semua Karya", count: projects.length },
+                  { value: "verified", label: "Terverifikasi", count: projects.filter((p) => p.status === "verified").length },
+                  { value: "review", label: "Dalam Review", count: projects.filter((p) => p.status === "review").length },
+                ]}
+              />
             </div>
           </div>
 

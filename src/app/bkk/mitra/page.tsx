@@ -17,6 +17,7 @@
 import { useCallback, useEffect, useState, useTransition } from "react";
 import BKKLayout from "@/components/bkk/BKKLayout";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { FilterDropdown } from "@/components/ui/FilterDropdown";
 import {
   Building2, Search, Loader2, AlertCircle,
   Clock, CheckCircle2, XCircle, ExternalLink, Filter,
@@ -273,26 +274,19 @@ export default function BKKMitraPage() {
           </button>
         </form>
 
-        {/* Filter status dengan count badge */}
-        <div className={`flex gap-2 flex-wrap transition-opacity ${isPending ? "opacity-60" : ""}`}>
-          {FILTER_OPTIONS.map(({ value, label, key }) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => handleFilterChange(value)}
-              className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold border transition-colors ${
-                statusFilter === value
-                  ? "bg-primary text-white border-primary"
-                  : "bg-white text-ink-700 border-ink-150 hover:border-primary hover:text-primary"
-              }`}
-            >
-              <Filter className="w-3.5 h-3.5" aria-hidden="true" />
-              {label}
-              <span className={`font-bold text-xs ${statusFilter === value ? "text-white/80" : "text-ink-300"}`}>
-                ({summary[key as keyof Summary]})
-              </span>
-            </button>
-          ))}
+        {/* Filter status dropdown */}
+        <div className="shrink-0">
+          <FilterDropdown
+            label="Status"
+            value={statusFilter}
+            onChange={handleFilterChange}
+            disabled={isPending}
+            options={FILTER_OPTIONS.map(({ value, label, key }) => ({
+              value,
+              label,
+              count: summary[key as keyof Summary],
+            }))}
+          />
         </div>
       </div>
 

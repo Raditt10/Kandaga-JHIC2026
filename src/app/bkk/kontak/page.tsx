@@ -19,6 +19,7 @@
 import { useCallback, useEffect, useState } from "react";
 import BKKLayout from "@/components/bkk/BKKLayout";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { FilterDropdown } from "@/components/ui/FilterDropdown";
 import {
   MessageSquare, Clock, Loader2, AlertCircle, Eye,
   CheckCircle2, XCircle, Send, HelpCircle, Building2,
@@ -390,25 +391,18 @@ export default function BKKKontakPage() {
         </p>
       </div>
 
-      {/* Filter */}
-      <div className="mb-4 flex flex-wrap gap-2">
-        {([
-          { key: "aktif", label: "Antrian Aktif" },
-          { key: "semua", label: "Semua Status" },
-        ] as const).map(({ key, label }) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setFilter(key)}
-            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold border transition-colors ${
-              filter === key
-                ? "bg-primary text-white border-primary"
-                : "bg-white text-ink-700 border-ink-150 hover:border-primary hover:text-primary"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+      {/* Filter Dropdown */}
+      <div className="mb-4">
+        <FilterDropdown
+          label="Filter"
+          value={filter}
+          onChange={(val) => setFilter(val as "aktif" | "semua")}
+          options={[
+            { value: "aktif", label: "Antrian Aktif" },
+            { value: "semua", label: "Semua Status" },
+          ]}
+          align="left"
+        />
       </div>
 
       {error && (
