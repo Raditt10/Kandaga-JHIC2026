@@ -190,7 +190,7 @@ export default function ChatWidget() {
   }
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 print:hidden font-sans flex flex-col items-end gap-3">
+    <div className="fixed bottom-8 right-5 z-50 print:hidden font-sans flex flex-col items-end gap-3">
       {/* ────────────────── 1. CHAT POPUP WINDOW ────────────────── */}
       {isOpen && (
         <div className="w-[380px] sm:w-[420px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100vh-7.5rem)] bg-white rounded-3xl shadow-2xl border border-zinc-200/90 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-3 duration-200">
