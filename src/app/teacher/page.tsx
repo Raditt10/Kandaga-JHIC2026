@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react"
 import Image from "next/image"
 import DashboardLayout, { DashboardTab } from "@/components/DashboardLayout"
 import AccountSettings from "@/components/settings/AccountSettings"
+import { EmptyState } from "@/components/ui/EmptyState"
 import { useSession } from "next-auth/react"
 import {
   BookOpen,
@@ -310,11 +311,6 @@ export default function TeacherDashboardPage() {
       icon: History,
       badge: `${verifiedHistory.length}`,
     },
-    {
-      id: "pengaturan",
-      label: "Pengaturan",
-      icon: Settings,
-    },
   ]
 
   return (
@@ -354,13 +350,6 @@ export default function TeacherDashboardPage() {
         </div>
       )}
 
-      {scope?.majorName && (
-        <p className="text-xs text-ink-600">
-          Lingkup kurasi Anda: <strong className="text-ink">{scope.majorName}</strong> — hanya karya
-          jurusan ini yang tampil.
-        </p>
-      )}
-
       {/* ──────────────── TAB 1: DASHBOARD GURU ──────────────── */}
       {activeTab === "dashboard" && (
         <div className="space-y-8 animate-in fade-in duration-200">
@@ -369,11 +358,6 @@ export default function TeacherDashboardPage() {
             <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none" />
 
             <div className="relative z-10 max-w-xl pr-28 sm:pr-40 md:pr-0">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-amber-200 text-xs font-semibold mb-3">
-                <BookOpen className="w-3.5 h-3.5" />
-                <span>Portal Penilaian & Pembimbingan Karya Siswa</span>
-              </div>
-
               <h1 className="font-heading text-2xl sm:text-3xl font-extrabold tracking-tight leading-snug">
                 Selamat Bertugas, <span className="capitalize">{session?.user?.username || session?.user?.name || "Bapak/Ibu Guru"}</span>!
               </h1>
@@ -383,15 +367,15 @@ export default function TeacherDashboardPage() {
             </div>
 
             {/* Model Chibi Guru */}
-            <div className="absolute right-1 sm:right-6 md:right-10 bottom-0 pointer-events-none select-none z-10">
-              <div className="relative w-32 sm:w-44 md:w-52 lg:w-60 h-36 sm:h-48 md:h-56 lg:h-64">
+            <div className="absolute right-1 sm:right-6 md:right-8 lg:right-12 top-1 sm:top-1.5 md:top-2 w-36 sm:w-48 md:w-56 lg:w-64 h-48 sm:h-60 md:h-68 lg:h-76 pointer-events-none select-none z-10">
+              <div className="relative w-full h-full">
                 <Image
                   src="/images/guru.webp"
                   alt="Ilustrasi Guru"
                   fill
-                  sizes="(max-width: 640px) 128px, (max-width: 768px) 176px, 240px"
+                  sizes="(max-width: 640px) 144px, (max-width: 768px) 200px, 260px"
                   priority
-                  className="object-contain object-bottom drop-shadow-[0_12px_24px_rgba(0,0,0,0.35)]"
+                  className="object-contain object-top drop-shadow-[0_12px_24px_rgba(0,0,0,0.35)]"
                 />
               </div>
             </div>
@@ -505,10 +489,11 @@ export default function TeacherDashboardPage() {
 
           <div className="space-y-4">
             {curationQueue.length === 0 ? (
-              <div className="p-12 text-center bg-white rounded-2xl border border-ink-150">
-                <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
-                <h3 className="font-heading text-base font-bold text-ink">Semua Antrean Selesai</h3>
-                <p className="text-xs text-ink-600 mt-1">Tidak ada karya yang menunggu review saat ini.</p>
+              <div className="bg-white rounded-2xl border border-ink-150 shadow-xs">
+                <EmptyState
+                  title="Semua Antrean Selesai"
+                  description="Tidak ada karya yang menunggu review saat ini."
+                />
               </div>
             ) : (
               curationQueue.map((item) => {
@@ -681,8 +666,12 @@ export default function TeacherDashboardPage() {
               <tbody className="divide-y divide-ink-150">
                 {siswa.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="py-10 text-center text-ink-600">
-                      Belum ada siswa terdaftar di jurusan Anda.
+                    <td colSpan={5}>
+                      <EmptyState
+                        compact
+                        title="Belum Ada Siswa Terdaftar"
+                        description="Belum ada siswa terdaftar di jurusan Anda."
+                      />
                     </td>
                   </tr>
                 )}
@@ -738,10 +727,11 @@ export default function TeacherDashboardPage() {
 
           <div className="space-y-3">
             {verifiedHistory.length === 0 && (
-              <div className="p-12 text-center bg-white rounded-2xl border border-ink-150">
-                <History className="w-10 h-10 text-ink-300 mx-auto mb-2" />
-                <p className="text-sm font-bold text-ink-700">Belum ada riwayat kurasi</p>
-                <p className="text-xs text-ink-600 mt-1">Karya yang disetujui akan muncul di sini.</p>
+              <div className="bg-white rounded-2xl border border-ink-150 shadow-xs">
+                <EmptyState
+                  title="Belum Ada Riwayat Kurasi"
+                  description="Karya yang telah disetujui akan muncul di sini."
+                />
               </div>
             )}
 
