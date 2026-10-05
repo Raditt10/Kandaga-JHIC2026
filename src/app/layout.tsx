@@ -172,10 +172,8 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
         />
         <AuthProvider>
-          <SmoothScrollProvider>
-            {children}
-            <ChatWidget />
-          </SmoothScrollProvider>
+          <SmoothScrollProvider>{children}</SmoothScrollProvider>
+          <ChatWidget />
         </AuthProvider>
       </body>
     </html>

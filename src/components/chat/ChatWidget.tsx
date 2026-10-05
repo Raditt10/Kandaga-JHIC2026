@@ -190,10 +190,10 @@ export default function ChatWidget() {
   }
 
   return (
-    <div className="fixed bottom-8 right-5 z-50 print:hidden font-sans flex flex-col items-end gap-3">
+    <div className="fixed bottom-8 right-6 z-50 print:hidden font-sans flex flex-col items-end gap-3 pointer-events-none select-none">
       {/* ────────────────── 1. CHAT POPUP WINDOW ────────────────── */}
       {isOpen && (
-        <div className="w-[380px] sm:w-[420px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100vh-7.5rem)] bg-white rounded-3xl shadow-2xl border border-zinc-200/90 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-3 duration-200">
+        <div className="pointer-events-auto select-auto w-[380px] sm:w-[420px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100vh-7.5rem)] bg-white rounded-3xl shadow-2xl border border-zinc-200/90 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-3 duration-200">
           {/* Header Bar — Marun Simple Solid */}
           <div className="bg-[#8B1A2F] text-white px-4 py-3.5 flex items-center justify-between border-b border-[#731224] shrink-0">
             <div className="flex items-center gap-3">
@@ -335,7 +335,7 @@ export default function ChatWidget() {
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="group relative flex h-[76px] w-[76px] items-center justify-center rounded-full bg-[#8B1A2F] hover:bg-[#9E2037] shadow-xl shadow-black/25 border-[3px] border-white hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shrink-0"
+        className="pointer-events-auto group relative flex h-[76px] w-[76px] items-center justify-center rounded-full bg-[#8B1A2F] hover:bg-[#9E2037] shadow-xl shadow-black/25 border-[3px] border-white hover:scale-105 active:scale-95 transition-[transform,background-color,box-shadow] duration-150 cursor-pointer shrink-0"
         aria-label={isOpen ? "Tutup chat" : "Buka asisten KALA"}
       >
         {isOpen ? (

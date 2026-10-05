@@ -447,19 +447,14 @@ export default function AdminBkkPage() {
                       {antrian.map((item) => (
                         <tr key={item.userId} className="hover:bg-ink-100/50 transition-colors">
                           <td className="px-5 py-4">
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 font-bold text-xs flex items-center justify-center shrink-0">
-                                <Building2 className="w-4 h-4" />
-                              </div>
-                              <div>
-                                <span className="font-semibold text-ink block text-sm leading-tight">
-                                  {item.namaPerusahaan}
-                                </span>
-                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 mt-1">
-                                  <Clock className="w-3 h-3" />
-                                  Menunggu Verifikasi
-                                </span>
-                              </div>
+                            <div>
+                              <span className="font-semibold text-ink block text-sm leading-tight">
+                                {item.namaPerusahaan}
+                              </span>
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 mt-1">
+                                <Clock className="w-3 h-3" />
+                                Menunggu Verifikasi
+                              </span>
                             </div>
                           </td>
                           <td className="px-5 py-4">

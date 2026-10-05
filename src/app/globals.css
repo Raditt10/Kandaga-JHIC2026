@@ -54,6 +54,11 @@ body {
   overflow-x: clip;
 }
 
+html {
+  scrollbar-gutter: stable;
+  overflow-y: scroll;
+}
+
 /* ── Lenis Smooth Scroll Optimization ── */
 html.lenis, html.lenis body {
   height: auto;
