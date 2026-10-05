@@ -639,7 +639,7 @@ export default function StudentDashboardPage() {
             {/* Quick Action Card */}
             <div className="bg-gradient-to-br from-ink to-ink text-white rounded-2xl p-6 shadow-xs flex flex-col justify-between">
               <div>
-                <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-amber-300 mb-4">
+                <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-white mb-4">
                   <Award className="w-5 h-5" />
                 </div>
                 <h2 className="font-heading text-lg font-bold">Siapkan Portofolio PKL</h2>

@@ -15,7 +15,7 @@ import { useSession } from "next-auth/react";
 import CompanyLayout from "@/components/company/CompanyLayout";
 import {
   Search, Bookmark, ClipboardList, User,
-  ArrowRight, ArrowUpRight, Clock, Send, CheckCircle2, FileSearch,
+  ArrowRight, ArrowUpRight, Send, CheckCircle2, FileSearch,
 } from "lucide-react";
 
 const QUICK_ACTIONS = [
@@ -148,9 +148,6 @@ export default function CompanyDashboardPage() {
       <div className="mb-8 rounded-3xl bg-gradient-to-r from-primary-dark to-primary text-white p-7 sm:p-9 relative overflow-hidden shadow-xl shadow-primary/15">
         <div className="pointer-events-none absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/5 blur-3xl" aria-hidden="true" />
         <div className="relative z-10 max-w-xl pr-28 sm:pr-40 md:pr-0">
-          <p className="text-xs font-mono text-white/50 mb-1 uppercase tracking-widest">
-            Portal Mitra Industri
-          </p>
           {/* h1 — satu-satunya di halaman ini */}
           <h1 className="font-heading text-2xl sm:text-3xl font-extrabold tracking-tight">
             Selamat Datang, {companyName}!
@@ -159,18 +156,6 @@ export default function CompanyDashboardPage() {
             Anda memiliki akses ke katalog portofolio siswa SMKN 13 Bandung yang
             terverifikasi. Ajukan minat rekrutmen atau magang melalui jalur resmi BKK.
           </p>
-
-          {/* Info singkat */}
-          <div className="mt-5 flex flex-wrap gap-4">
-            <div className="flex items-center gap-2 text-xs text-white/60">
-              <Clock className="w-3.5 h-3.5" aria-hidden="true" />
-              <span>Layanan BKK: Senin–Jumat 08.00–15.00 WIB</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-white/60">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" aria-hidden="true" />
-              <span>Akun terverifikasi</span>
-            </div>
-          </div>
         </div>
 
         {/* Model Chibi Mitra Perusahaan */}

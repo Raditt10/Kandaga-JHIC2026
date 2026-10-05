@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   Check,
   RefreshCw,
+  ArrowUpRight,
 } from "lucide-react"
 import AdminLayout from "@/components/admin/AdminLayout"
 import { EmptyState } from "@/components/ui/EmptyState"
@@ -274,53 +275,86 @@ export default function AdminBkkPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="p-4 rounded-2xl bg-white border border-ink-150 shadow-xs flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-              <Clock className="w-5 h-5" />
+          <button
+            type="button"
+            onClick={() => setActiveTab("antrian")}
+            className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between text-left cursor-pointer"
+          >
+            <div className="flex items-center justify-between">
+              <Clock className="w-5 h-5 text-primary" />
+              <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-primary transition" />
             </div>
-            <div>
-              <span className="text-[11px] text-ink-300 font-medium block">Menunggu Verifikasi</span>
-              <span className="text-xl font-extrabold text-amber-600 block mt-0.5">
+            <div className="mt-4">
+              <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight block">
                 {countPending}
               </span>
+              <span className="text-xs font-bold text-ink-700 block mt-1">Menunggu Verifikasi</span>
+              <span className="text-[11px] text-ink-400 block mt-0.5">Perlu kurasi berkas</span>
             </div>
-          </div>
+          </button>
 
-          <div className="p-4 rounded-2xl bg-white border border-ink-150 shadow-xs flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-              <CheckCircle2 className="w-5 h-5" />
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("semua")
+              setStatusFilter("disetujui")
+            }}
+            className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between text-left cursor-pointer"
+          >
+            <div className="flex items-center justify-between">
+              <CheckCircle2 className="w-5 h-5 text-primary" />
+              <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-primary transition" />
             </div>
-            <div>
-              <span className="text-[11px] text-ink-300 font-medium block">Mitra Disetujui</span>
-              <span className="text-xl font-extrabold text-emerald-600 block mt-0.5">
+            <div className="mt-4">
+              <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight block">
                 {countDisetujui}
               </span>
+              <span className="text-xs font-bold text-ink-700 block mt-1">Mitra Disetujui</span>
+              <span className="text-[11px] text-ink-400 block mt-0.5">Akun industri aktif</span>
             </div>
-          </div>
+          </button>
 
-          <div className="p-4 rounded-2xl bg-white border border-ink-150 shadow-xs flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
-              <XCircle className="w-5 h-5" />
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("semua")
+              setStatusFilter("ditolak")
+            }}
+            className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between text-left cursor-pointer"
+          >
+            <div className="flex items-center justify-between">
+              <XCircle className="w-5 h-5 text-primary" />
+              <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-primary transition" />
             </div>
-            <div>
-              <span className="text-[11px] text-ink-300 font-medium block">Pengajuan Ditolak</span>
-              <span className="text-xl font-extrabold text-rose-600 block mt-0.5">
+            <div className="mt-4">
+              <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight block">
                 {countDitolak}
               </span>
+              <span className="text-xs font-bold text-ink-700 block mt-1">Pengajuan Ditolak</span>
+              <span className="text-[11px] text-ink-400 block mt-0.5">Berkas tidak memenuhi</span>
             </div>
-          </div>
+          </button>
 
-          <div className="p-4 rounded-2xl bg-white border border-ink-150 shadow-xs flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
-              <Building2 className="w-5 h-5" />
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("semua")
+              setStatusFilter("all")
+            }}
+            className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between text-left cursor-pointer"
+          >
+            <div className="flex items-center justify-between">
+              <Building2 className="w-5 h-5 text-primary" />
+              <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-primary transition" />
             </div>
-            <div>
-              <span className="text-[11px] text-ink-300 font-medium block">Total Mitra DUDI</span>
-              <span className="text-xl font-extrabold text-ink block mt-0.5">
+            <div className="mt-4">
+              <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight block">
                 {countTotal || countPending + countDisetujui + countDitolak}
               </span>
+              <span className="text-xs font-bold text-ink-700 block mt-1">Total Mitra DUDI</span>
+              <span className="text-[11px] text-ink-400 block mt-0.5">Seluruh pendaftaran</span>
             </div>
-          </div>
+          </button>
         </div>
 
         {/* Tab Navigation */}
@@ -335,11 +369,11 @@ export default function AdminBkkPage() {
             }`}
           >
             <ShieldCheck className="w-4 h-4" />
-            <span>Antrian Pendaftaran & Verifikasi</span>
+            <span>Antrian Pendaftaran &amp; Verifikasi</span>
             {countPending > 0 && (
               <span
                 className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                  activeTab === "antrian" ? "bg-white text-primary" : "bg-amber-100 text-amber-700"
+                  activeTab === "antrian" ? "bg-white text-primary" : "bg-ink-150 text-ink-700"
                 }`}
               >
                 {countPending}

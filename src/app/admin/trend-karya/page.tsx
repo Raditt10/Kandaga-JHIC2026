@@ -177,7 +177,7 @@ export default function AdminTrendKaryaPage() {
                 <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">
                   {state === "loading" ? loadingValue : (totals?.approved ?? 0)}
                 </span>
-                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
+                <span className="text-[10px] font-bold text-ink-700 bg-ink-100 px-1.5 py-0.5 rounded-full">
                   {totals ? `${totals.approvalRate}% lolos` : "—"}
                 </span>
               </div>
@@ -192,7 +192,7 @@ export default function AdminTrendKaryaPage() {
                 <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">
                   {state === "loading" ? loadingValue : (totals?.pending ?? 0)}
                 </span>
-                <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-full">
+                <span className="text-[10px] font-bold text-ink-700 bg-ink-100 px-1.5 py-0.5 rounded-full">
                   Antrean
                 </span>
               </div>
@@ -205,7 +205,7 @@ export default function AdminTrendKaryaPage() {
                 <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">
                   {state === "loading" ? loadingValue : (totals?.views ?? 0).toLocaleString("id-ID")}
                 </span>
-                <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-full">
+                <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">
                   <Eye className="w-3 h-3 inline" />
                 </span>
               </div>
@@ -219,7 +219,7 @@ export default function AdminTrendKaryaPage() {
                   {state === "loading" ? loadingValue : (dominant?.label ?? "—")}
                 </span>
               </div>
-              <span className="text-[11px] text-indigo-600 font-medium block">
+              <span className="text-[11px] text-ink-400 font-medium block">
                 {dominant ? `${dominantShare}% dari seluruh karya` : "Belum ada karya"}
               </span>
             </div>
@@ -257,7 +257,7 @@ export default function AdminTrendKaryaPage() {
                         <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${style.badgeColor}`}>
                           {j.code}
                         </span>
-                        <span className="text-xs font-bold text-emerald-600">{share}% karya</span>
+                        <span className="text-xs font-bold text-ink-600">{share}% karya</span>
                       </div>
                       <h3 className="font-heading text-sm font-bold text-ink mb-1">{j.label}</h3>
                       <p className="text-2xl font-extrabold text-ink">
