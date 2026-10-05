@@ -221,12 +221,9 @@ export default function ChatWidget() {
                 <h3 className="font-heading font-bold text-base tracking-wide text-white leading-tight">
                   Kala Assistant
                 </h3>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse" />
-                  <span className="text-[11px] font-sans text-emerald-200 font-medium leading-none">
-                    Online
-                  </span>
-                </div>
+                <span className="text-[11px] font-sans text-emerald-200/90 font-medium leading-none mt-1">
+                  Online
+                </span>
               </div>
             </div>
 
