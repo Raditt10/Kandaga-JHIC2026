@@ -107,6 +107,41 @@ type TNotif = {
   createdAt: string
 }
 
+let globalSidebarCollapsed: boolean | null = null
+
+function readSidebarCollapsedPreference(): boolean {
+  if (globalSidebarCollapsed !== null) {
+    return globalSidebarCollapsed
+  }
+  if (typeof window !== "undefined") {
+    try {
+      const match = document.cookie.match(/(?:^|; )kandaga_sidebar_collapsed=([^;]*)/)
+      if (match) {
+        const val = match[1] === "true"
+        globalSidebarCollapsed = val
+        return val
+      }
+      const local = localStorage.getItem("kandaga_sidebar_collapsed")
+      if (local !== null) {
+        const val = local === "true"
+        globalSidebarCollapsed = val
+        return val
+      }
+    } catch {}
+  }
+  return false
+}
+
+function writeSidebarCollapsedPreference(val: boolean) {
+  globalSidebarCollapsed = val
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem("kandaga_sidebar_collapsed", String(val))
+      document.cookie = `kandaga_sidebar_collapsed=${val}; path=/; max-age=31536000; SameSite=Lax`
+    } catch {}
+  }
+}
+
 export default function DashboardShell({
   navItems,
   roleLabel,
@@ -124,7 +159,27 @@ export default function DashboardShell({
   const { data: session } = useSession()
   const pathname = usePathname()
   const router = useRouter()
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    return readSidebarCollapsedPreference()
+  })
+
+  // Sinkronisasi preferensi jika ada pembaruan di client/storage
+  useEffect(() => {
+    const pref = readSidebarCollapsedPreference()
+    if (pref !== isSidebarCollapsed) {
+      setIsSidebarCollapsed(pref)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev
+      writeSidebarCollapsedPreference(next)
+      return next
+    })
+  }
+
   const [searchQuery, setSearchQuery] = useState("")
 
   const userRole = session?.user?.role?.toLowerCase()
@@ -219,9 +274,10 @@ export default function DashboardShell({
     <div className="min-h-screen w-full bg-white flex flex-col xl:flex-row font-sans antialiased text-ink">
       {/* ──────────────── 1. SIDEBAR ──────────────── */}
       <aside
+        suppressHydrationWarning
         className={`w-full ${
-          isSidebarCollapsed ? "xl:w-20 px-3 py-6" : "xl:w-64 2xl:w-72 p-6"
-        } shrink-0 border-b xl:border-b-0 xl:border-r border-ink-150 flex flex-col justify-between bg-white transition-all duration-300 ease-in-out xl:sticky xl:top-0 xl:h-screen xl:self-start xl:overflow-y-auto`}
+          isSidebarCollapsed ? "xl:w-20 px-3 py-6 xl:overflow-visible" : "xl:w-64 2xl:w-72 p-6 xl:overflow-y-auto"
+        } shrink-0 border-b xl:border-b-0 xl:border-r border-ink-150 flex flex-col justify-between bg-white transition-all duration-300 ease-in-out xl:sticky xl:top-0 xl:h-screen xl:self-start z-30`}
       >
         <div>
           {/* Brand + tombol lipat sidebar */}
@@ -255,8 +311,8 @@ export default function DashboardShell({
 
             <button
               type="button"
-              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              className="hidden xl:block p-1.5 rounded-xl text-ink-600 hover:text-ink hover:bg-ink-100 transition cursor-pointer shrink-0"
+              onClick={toggleSidebar}
+              className="group relative hidden xl:block p-1.5 rounded-xl text-ink-600 hover:text-ink hover:bg-ink-100 transition cursor-pointer shrink-0"
               title={isSidebarCollapsed ? "Perbesar Sidebar" : "Perkecil Sidebar"}
               aria-label={isSidebarCollapsed ? "Perbesar Sidebar" : "Perkecil Sidebar"}
             >
@@ -264,6 +320,14 @@ export default function DashboardShell({
                 <PanelLeftOpen className="w-5 h-5 text-ink-600" />
               ) : (
                 <PanelLeftClose className="w-5 h-5 text-ink-600" />
+              )}
+              {isSidebarCollapsed && (
+                <span
+                  role="tooltip"
+                  className="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 hidden xl:group-hover:flex items-center px-2.5 py-1 text-xs font-semibold text-white bg-ink rounded-lg shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                >
+                  Perbesar Sidebar
+                </span>
               )}
             </button>
           </div>
@@ -280,7 +344,7 @@ export default function DashboardShell({
                 const Icon = item.icon
                 const isActive = isItemActive(item)
 
-                const className = `relative w-full flex items-center ${
+                const className = `group relative w-full flex items-center ${
                   isSidebarCollapsed
                     ? "xl:justify-center px-3 py-2.5"
                     : "justify-between px-3.5 py-2.5"
@@ -320,6 +384,19 @@ export default function DashboardShell({
                     )}
                     {isSidebarCollapsed && item.badge && (
                       <span className="hidden xl:block absolute top-2 right-2 w-2 h-2 rounded-full bg-primary" />
+                    )}
+                    {isSidebarCollapsed && (
+                      <span
+                        role="tooltip"
+                        className="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 hidden xl:group-hover:flex items-center px-2.5 py-1 text-xs font-semibold text-white bg-ink rounded-lg shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                      >
+                        {item.label}
+                        {item.badge && (
+                          <span className="ml-1.5 text-[10px] px-1.5 py-0.2 rounded-md bg-white/20 text-white font-mono">
+                            {item.badge}
+                          </span>
+                        )}
+                      </span>
                     )}
                   </>
                 )
