@@ -19,6 +19,7 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import CompanyLayout from "@/components/company/CompanyLayout";
+import { EmptyState } from "@/components/ui/EmptyState";
 import {
   ClipboardList, Loader2, AlertCircle,
   Clock, Eye, MessageSquare, CheckCircle2, XCircle,
@@ -248,22 +249,15 @@ export default function RiwayatPage() {
           <Loader2 className="w-8 h-8 text-ink-300 animate-spin" aria-hidden="true" />
         </div>
       ) : items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-ink-200 bg-[#FBF9F6]/80 py-16 px-6 text-center max-w-md mx-auto">
-          <div className="w-14 h-14 rounded-2xl bg-white border border-ink-200/80 shadow-xs flex items-center justify-center mb-4">
-            <ClipboardList className="w-7 h-7 text-[#8B1A2F]" aria-hidden="true" />
-          </div>
-          <h3 className="font-heading text-lg font-bold text-ink">
-            Belum Ada Permintaan
-          </h3>
-          <p className="text-sm text-ink-700 mt-2 max-w-xs leading-relaxed">
-            Jelajahi katalog karya siswa dan ajukan minat rekrutmen atau magang pertama Anda.
-          </p>
-          <Link
-            href="/company/katalog"
-            className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-white hover:bg-primary-dark transition-colors shadow-xs"
-          >
-            Jelajahi Katalog
-          </Link>
+        <div className="bg-white rounded-3xl border border-ink-150 p-6 shadow-xs max-w-lg mx-auto">
+          <EmptyState
+            title="Belum Ada Permintaan"
+            description="Jelajahi katalog karya siswa dan ajukan minat rekrutmen atau magang pertama Anda."
+            action={{
+              label: "Jelajahi Katalog",
+              href: "/company/katalog",
+            }}
+          />
         </div>
       ) : (
         <div className="space-y-4">

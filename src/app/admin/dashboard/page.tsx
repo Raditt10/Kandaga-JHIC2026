@@ -17,6 +17,7 @@ import {
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 import AdminLayout from "@/components/admin/AdminLayout"
+import { EmptyState } from "@/components/ui/EmptyState"
 
 /**
  * Dashboard Administrator.
@@ -140,15 +141,15 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Model Chibi Admin */}
-          <div className="absolute right-1 sm:right-6 md:right-10 bottom-0 pointer-events-none select-none z-10">
-            <div className="relative w-32 sm:w-44 md:w-52 lg:w-60 h-36 sm:h-48 md:h-56 lg:h-64">
+          <div className="absolute right-1 sm:right-6 md:right-8 lg:right-12 top-1 sm:top-1.5 md:top-2 w-36 sm:w-48 md:w-56 lg:w-64 h-48 sm:h-60 md:h-68 lg:h-76 pointer-events-none select-none z-10">
+            <div className="relative w-full h-full">
               <Image
                 src="/images/admin.webp"
                 alt="Ilustrasi Administrator"
                 fill
-                sizes="(max-width: 640px) 128px, (max-width: 768px) 176px, 240px"
+                sizes="(max-width: 640px) 144px, (max-width: 768px) 200px, 260px"
                 priority
-                className="object-contain object-bottom drop-shadow-[0_12px_24px_rgba(0,0,0,0.35)]"
+                className="object-contain object-top drop-shadow-[0_12px_24px_rgba(0,0,0,0.35)]"
               />
             </div>
           </div>
@@ -262,11 +263,12 @@ export default function AdminDashboardPage() {
           </div>
 
           {state === "ready" && stats && stats.recentProjects.length === 0 ? (
-            <div className="p-8 rounded-2xl bg-white border border-dashed border-ink-150 text-center">
-              <p className="text-xs font-bold text-ink-700">Belum ada karya yang diunggah</p>
-              <p className="text-[11px] text-ink-300 mt-1">
-                Karya akan muncul di sini setelah siswa mengunggahnya.
-              </p>
+            <div className="bg-white rounded-2xl border border-ink-150 p-6 shadow-xs">
+              <EmptyState
+                title="Belum Ada Karya"
+                description="Karya akan muncul di sini setelah siswa mengunggahnya."
+                compact
+              />
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -300,11 +302,12 @@ export default function AdminDashboardPage() {
           </div>
 
           {state === "ready" && stats && stats.recentPartners.length === 0 ? (
-            <div className="p-8 rounded-2xl bg-white border border-dashed border-ink-150 text-center">
-              <p className="text-xs font-bold text-ink-700">Belum ada mitra terverifikasi</p>
-              <p className="text-[11px] text-ink-300 mt-1">
-                Pendaftaran mitra menunggu ditinjau di menu Verifikasi Mitra.
-              </p>
+            <div className="bg-white rounded-2xl border border-ink-150 p-6 shadow-xs">
+              <EmptyState
+                title="Belum Ada Mitra Terverifikasi"
+                description="Pendaftaran mitra menunggu ditinjau di menu Verifikasi Mitra."
+                compact
+              />
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

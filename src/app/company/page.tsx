@@ -174,15 +174,15 @@ export default function CompanyDashboardPage() {
         </div>
 
         {/* Model Chibi Mitra Perusahaan */}
-        <div className="absolute right-1 sm:right-6 md:right-10 bottom-0 pointer-events-none select-none z-10">
-          <div className="relative w-36 sm:w-48 md:w-56 lg:w-64 h-32 sm:h-44 md:h-52 lg:h-56">
+        <div className="absolute right-1 sm:right-6 md:right-8 lg:right-12 top-1 sm:top-1.5 md:top-2 w-36 sm:w-48 md:w-56 lg:w-64 h-48 sm:h-60 md:h-68 lg:h-76 pointer-events-none select-none z-10">
+          <div className="relative w-full h-full">
             <Image
               src="/images/perusahaan.webp"
               alt="Ilustrasi Mitra Perusahaan"
               fill
-              sizes="(max-width: 640px) 144px, (max-width: 768px) 192px, 256px"
+              sizes="(max-width: 640px) 144px, (max-width: 768px) 200px, 260px"
               priority
-              className="object-contain object-bottom drop-shadow-[0_12px_24px_rgba(0,0,0,0.35)]"
+              className="object-contain object-top drop-shadow-[0_12px_24px_rgba(0,0,0,0.35)]"
             />
           </div>
         </div>

@@ -16,6 +16,7 @@
 
 import { useCallback, useEffect, useState, useTransition } from "react";
 import BKKLayout from "@/components/bkk/BKKLayout";
+import { EmptyState } from "@/components/ui/EmptyState";
 import {
   Building2, Search, Loader2, AlertCircle,
   Clock, CheckCircle2, XCircle, ExternalLink, Filter,
@@ -309,14 +310,11 @@ export default function BKKMitraPage() {
           <Loader2 className="w-8 h-8 text-ink-300 animate-spin" aria-hidden="true" />
         </div>
       ) : items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-ink-150 py-20 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-violet-50 flex items-center justify-center mb-4">
-            <Building2 className="w-8 h-8 text-violet-400" aria-hidden="true" />
-          </div>
-          <p className="font-heading text-base font-semibold text-ink-600">
-            Tidak ada mitra yang cocok.
-          </p>
-          <p className="text-sm text-ink-300 mt-1">Coba ubah filter atau kata kunci pencarian.</p>
+        <div className="bg-white rounded-2xl border border-ink-150 shadow-xs">
+          <EmptyState
+            title="Tidak Ada Mitra yang Cocok"
+            description="Coba sesuaikan filter status atau kata kunci pencarian Anda."
+          />
         </div>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-ink-150">

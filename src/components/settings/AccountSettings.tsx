@@ -294,8 +294,8 @@ export default function AccountSettings() {
             </dd>
           </div>
 
-          {detail.map((d) => (
-            <div key={d.label}>
+          {detail.map((d, idx) => (
+            <div key={`${d.label}-${idx}`}>
               <dt className="text-[11px] font-bold text-ink-600 uppercase tracking-wider">
                 {d.label}
               </dt>

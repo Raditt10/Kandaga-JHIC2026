@@ -58,20 +58,18 @@ export async function GET() {
 
     // Ringkasan profil sesuai peran — ditampilkan sebagai daftar data akun.
     const detail: { label: string; value: string }[] = [];
-    if (user.studentProfile) {
+    if (auth.role === "student" && user.studentProfile) {
       detail.push(
         { label: "NIS", value: user.studentProfile.nis ?? "—" },
         { label: "Kelas", value: user.studentProfile.class ?? "—" },
         { label: "Jurusan", value: user.studentProfile.major?.name ?? "—" }
       );
-    }
-    if (user.teacherProfile) {
+    } else if (auth.role === "teacher" && user.teacherProfile) {
       detail.push(
         { label: "NIP", value: user.teacherProfile.nip ?? "—" },
         { label: "Jurusan", value: user.teacherProfile.major?.name ?? "—" }
       );
-    }
-    if (user.companyProfile) {
+    } else if (auth.role === "company" && user.companyProfile) {
       detail.push(
         { label: "Nama Perusahaan", value: user.companyProfile.name ?? "—" },
         { label: "Bidang", value: user.companyProfile.field ?? "—" },

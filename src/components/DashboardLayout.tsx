@@ -55,31 +55,37 @@ export default function DashboardLayout({
   pageTitle,
   children,
 }: DashboardLayoutProps) {
-  const navItems: ShellNavItem[] = tabs.map((tab) => ({
-    key: tab.id,
-    label: tab.label,
-    icon: tab.icon,
-    badge: tab.badge,
-    active: activeTab === tab.id,
-    onSelect: () => onTabChange?.(tab.id),
-  }))
+  // Menu Profil dan Pengaturan dipusatkan di dropdown header akun (navbar kanan atas)
+  const navItems: ShellNavItem[] = tabs
+    .filter((tab) => tab.id !== "profil" && tab.id !== "pengaturan")
+    .map((tab) => ({
+      key: tab.id,
+      label: tab.label,
+      icon: tab.icon,
+      badge: tab.badge,
+      active: activeTab === tab.id,
+      onSelect: () => onTabChange?.(tab.id),
+    }))
 
   const profileTab = tabs.find((t) => t.id === "profil")
   const onProfileSelect =
-    profileTab && onTabChange ? () => onTabChange(profileTab.id) : undefined
+    onTabChange && (profileTab || roleSlug === "student")
+      ? () => onTabChange("profil")
+      : undefined
 
   const settingsTab = tabs.find((t) => t.id === "pengaturan")
-  const settingsItems: ShellNavItem[] = settingsTab
-    ? [
-        {
-          key: "pengaturan",
-          label: settingsTab.label || "Pengaturan",
-          icon: settingsTab.icon || Settings,
-          active: activeTab === "pengaturan",
-          onSelect: () => onTabChange?.("pengaturan"),
-        },
-      ]
-    : []
+  const settingsItems: ShellNavItem[] =
+    onTabChange && (settingsTab || roleSlug === "student" || roleSlug === "teacher")
+      ? [
+          {
+            key: "pengaturan",
+            label: settingsTab?.label || "Pengaturan",
+            icon: settingsTab?.icon || Settings,
+            active: activeTab === "pengaturan",
+            onSelect: () => onTabChange("pengaturan"),
+          },
+        ]
+      : []
 
   const searchPlaceholder =
     roleSlug === "teacher"

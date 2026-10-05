@@ -2,20 +2,11 @@
 
 import React from "react";
 import Link from "next/link";
+import { SearchX } from "lucide-react";
 
 /**
- * EmptyState — tampilan untuk keadaan kosong atau gagal memuat.
- *
- * Komponen ini semula diimpor oleh GallerySection tetapi berkasnya tidak
- * pernah ada, sehingga `npm run build` gagal dengan TS2307 dan situs tidak
- * bisa di-deploy. Berkas ini melengkapinya.
- *
- * Dipakai di tempat yang tadinya hanya menyisakan ruang kosong: galeri yang
- * belum punya karya terpublikasi, atau daftar yang gagal diambil.
- *
- * `action` menerima salah satu dari dua bentuk:
- *   - { label, href }    -> dirender sebagai tautan (<Link>)
- *   - { label, onClick } -> dirender sebagai tombol (<button>)
+ * EmptyState — tampilan terstandar untuk keadaan kosong (empty state)
+ * di seluruh aplikasi Kandaga sesuai desain acuan.
  */
 export type EmptyStateAction =
   | { label: string; href: string; onClick?: never }
@@ -27,39 +18,38 @@ export interface EmptyStateProps {
   description?: string;
   action?: EmptyStateAction;
   className?: string;
+  compact?: boolean;
 }
 
-/*
- * Memakai token warna proyek (primary / primary-dark / ink-*), bukan nilai
- * heksadesimal literal, sesuai aturan desain di docs/AGENTS.md.
- */
 const ACTION_CLASS =
-  "mt-6 inline-flex items-center justify-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-primary-dark";
+  "mt-5 inline-flex items-center justify-center rounded-full bg-primary px-5 py-2.5 text-xs sm:text-sm font-bold text-white transition-all duration-200 hover:bg-primary-dark shadow-xs cursor-pointer";
 
 export function EmptyState({
-  icon,
+  icon = <SearchX className="w-8 h-8 text-[#8B1A2F]" />,
   title,
   description,
   action,
   className = "",
+  compact = false,
 }: EmptyStateProps) {
   return (
     <div
-      className={`flex w-full max-w-md flex-col items-center text-center ${className}`.trim()}
+      className={`flex w-full flex-col items-center justify-center text-center ${
+        compact ? "py-8 px-4" : "py-12 sm:py-16 px-4"
+      } ${className}`.trim()}
     >
-      {/*
-       * Ikon tampil polos: tanpa kotak, border, maupun latar. Kehadiran ikon
-       * saja sudah cukup sebagai penanda keadaan kosong — bingkai di
-       * belakangnya hanya menambah elemen visual yang tidak perlu.
-       */}
-      {icon && <div className="mb-3 text-primary">{icon}</div>}
+      {icon && (
+        <div className="mb-3 text-[#8B1A2F] flex items-center justify-center">
+          {icon}
+        </div>
+      )}
 
-      <h3 className="font-heading text-base font-bold tracking-tight text-ink-900/80">
+      <h3 className="font-heading text-base sm:text-lg font-bold tracking-tight text-ink">
         {title}
       </h3>
 
       {description && (
-        <p className="mt-1.5 text-xs leading-relaxed text-ink-600/80 sm:text-[13px]">
+        <p className="mt-1.5 text-xs sm:text-[13px] leading-relaxed text-ink-600/90 max-w-md mx-auto">
           {description}
         </p>
       )}

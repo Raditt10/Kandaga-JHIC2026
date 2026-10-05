@@ -211,74 +211,76 @@ export default function AdminBludPage() {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-ink-150 text-[10px] text-ink-300 uppercase tracking-wider">
-                  <th className="pb-2.5 font-bold">KLIEN INDUSTRI & PROYEK</th>
-                  <th className="pb-2.5 font-bold">BIDANG</th>
-                  <th className="pb-2.5 font-bold">TIM & PEMBIMBING</th>
-                  <th className="pb-2.5 font-bold">NILAI KONTRAK</th>
-                  <th className="pb-2.5 font-bold">STATUS</th>
-                  <th className="pb-2.5 font-bold text-right">AKSI</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-ink-100">
-                {filteredContracts.map((ctr) => (
-                  <tr key={ctr.id} className="hover:bg-ink-100/60 transition">
-                    <td className="py-3.5 pr-3">
-                      <span className="font-bold text-ink block leading-tight">
-                        {ctr.clientName}
-                      </span>
-                      <span className="text-[11px] text-ink-600 block mt-0.5">
-                        {ctr.serviceName}
-                      </span>
-                      <span className="text-[10px] text-ink-300 font-mono mt-0.5 block">
-                        No. SPK: {ctr.id} • Mulai: {ctr.startDate}
-                      </span>
-                    </td>
-                    <td className="py-3.5 pr-3">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-ink-100 text-ink-700">
-                        {ctr.jurusan}
-                      </span>
-                    </td>
-                    <td className="py-3.5 pr-3">
-                      <span className="font-semibold text-ink block">
-                        {ctr.studentsInvolved} Siswa Magang TEFA
-                      </span>
-                      <span className="text-[10px] text-ink-300 block mt-0.5">
-                        Pembimbing: {ctr.mentor}
-                      </span>
-                    </td>
-                    <td className="py-3.5 pr-3 font-mono font-bold text-ink text-xs">
-                      {ctr.contractValue}
-                    </td>
-                    <td className="py-3.5 pr-3">
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                          ctr.status === "Selesai"
-                            ? "bg-emerald-100 text-emerald-800"
-                            : ctr.status === "Pengerjaan"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-amber-100 text-amber-800"
-                        }`}
-                      >
-                        {ctr.status}
-                      </span>
-                    </td>
-                    <td className="py-3.5 text-right">
-                      <button
-                        type="button"
-                        onClick={() => alert(`Detail SPK ${ctr.id} - ${ctr.clientName}`)}
-                        className="px-2.5 py-1.5 rounded-lg border border-ink-150 hover:bg-ink-100 text-ink-700 text-[11px] font-semibold transition cursor-pointer"
-                      >
-                        Detail SPK
-                      </button>
-                    </td>
+          <div className="overflow-hidden rounded-2xl border border-ink-150 bg-white shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-ink-100 border-b border-ink-150">
+                    <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Klien Industri &amp; Proyek</th>
+                    <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Bidang</th>
+                    <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Tim &amp; Pembimbing</th>
+                    <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Nilai Kontrak</th>
+                    <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Status</th>
+                    <th className="text-right px-5 py-3.5 font-semibold text-ink-700 font-heading pr-5">Aksi</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-ink-150 bg-white">
+                  {filteredContracts.map((ctr) => (
+                    <tr key={ctr.id} className="hover:bg-ink-100/50 transition-colors">
+                      <td className="px-5 py-4">
+                        <span className="font-semibold text-ink block text-sm leading-tight">
+                          {ctr.clientName}
+                        </span>
+                        <span className="text-xs text-ink-600 block mt-0.5">
+                          {ctr.serviceName}
+                        </span>
+                        <span className="text-xs text-ink-300 font-mono mt-0.5 block">
+                          No. SPK: {ctr.id} • Mulai: {ctr.startDate}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                          {ctr.jurusan}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-sm">
+                        <span className="font-medium text-ink block">
+                          {ctr.studentsInvolved} Siswa Magang TEFA
+                        </span>
+                        <span className="text-xs text-ink-600 block mt-0.5">
+                          Pembimbing: {ctr.mentor}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 font-mono font-bold text-ink text-sm">
+                        {ctr.contractValue}
+                      </td>
+                      <td className="px-5 py-4">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-semibold ${
+                            ctr.status === "Selesai"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : ctr.status === "Pengerjaan"
+                              ? "bg-blue-50 text-blue-700 border-blue-200"
+                              : "bg-amber-50 text-amber-700 border-amber-200"
+                          }`}
+                        >
+                          {ctr.status}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-right pr-5">
+                        <button
+                          type="button"
+                          onClick={() => alert(`Detail SPK ${ctr.id} - ${ctr.clientName}`)}
+                          className="px-3 py-1.5 rounded-xl border border-ink-150 hover:bg-ink-100 text-ink text-xs font-semibold transition cursor-pointer"
+                        >
+                          Detail SPK
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>

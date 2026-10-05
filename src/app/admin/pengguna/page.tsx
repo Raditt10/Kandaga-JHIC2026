@@ -20,6 +20,7 @@ import {
   GraduationCap,
 } from "lucide-react"
 import AdminLayout from "@/components/admin/AdminLayout"
+import { EmptyState } from "@/components/ui/EmptyState"
 
 // ─── Tipe data dari /api/admin/users ────────────────────────────────────────
 
@@ -315,71 +316,82 @@ export default function AdminPenggunaPage() {
     <AdminLayout>
       <div className="space-y-6 animate-in fade-in duration-200 relative">
 
-        {/* ── Header & Filters ─────────────────────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white border border-ink-150 shadow-xs">
-          <div>
-            <h1 className="font-heading text-lg font-bold text-ink">Manajemen Pengguna</h1>
-            <p className="text-xs text-ink-600">
-              {isLoading
-                ? "Memuat data..."
-                : `${total.toLocaleString("id-ID")} pengguna terdaftar di Kandaga`}
-            </p>
-          </div>
+        {/* ── Header ──────────────────────────────────────────────────────── */}
+        <div className="mb-6">
+          <h1 className="font-heading text-2xl font-extrabold text-ink tracking-tight">
+            Manajemen Pengguna
+          </h1>
+          <p className="mt-1 text-base text-ink-700 max-w-[65ch]">
+            {isLoading
+              ? "Memuat data pengguna..."
+              : `Daftar seluruh ${total.toLocaleString("id-ID")} akun pengguna yang terdaftar di sistem Kandaga.`}
+          </p>
+        </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Search */}
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 text-ink-300 absolute left-3 top-1/2 -translate-y-1/2" />
+        {/* ── Filter & Search Bar ─────────────────────────────────────────── */}
+        <div className="mb-6 flex flex-col sm:flex-row gap-3">
+          <div className="flex-1 flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-300" aria-hidden="true" />
               <input
                 type="text"
-                placeholder="Cari nama / email..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-8 pr-3 py-1.5 rounded-xl border border-ink-150 text-xs bg-ink-100 focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary transition w-48"
+                placeholder="Cari nama atau email pengguna..."
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-ink-150 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
               />
             </div>
+          </div>
 
-            {/* Role Filter */}
-            <div className="flex items-center gap-2">
-              <Filter className="w-3.5 h-3.5 text-ink-300" />
-              <select
-                value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
-                className="text-xs px-3 py-1.5 rounded-xl border border-ink-150 bg-white text-ink-700 focus:outline-none focus:ring-2 focus:ring-primary/15 cursor-pointer"
+          <div className="flex gap-2 flex-wrap items-center">
+            {[
+              { value: "all", label: "Semua", count: counts.all ?? 0 },
+              { value: "student", label: "Siswa", count: counts.student ?? 0 },
+              { value: "teacher", label: "Guru", count: counts.teacher ?? 0 },
+              { value: "company", label: "Mitra", count: counts.company ?? 0 },
+              { value: "bkk", label: "BKK", count: counts.bkk ?? 0 },
+              { value: "admin", label: "Admin", count: counts.admin ?? 0 },
+            ].map(({ value, label, count }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setRoleFilter(value)}
+                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold border transition-colors cursor-pointer ${
+                  roleFilter === value
+                    ? "bg-primary text-white border-primary"
+                    : "bg-white text-ink-700 border-ink-150 hover:border-primary hover:text-primary"
+                }`}
               >
-                <option value="all">Semua ({counts.all ?? 0})</option>
-                <option value="student">Student ({counts.student ?? 0})</option>
-                <option value="teacher">Teacher ({counts.teacher ?? 0})</option>
-                <option value="company">Company ({counts.company ?? 0})</option>
-                <option value="bkk">BKK ({counts.bkk ?? 0})</option>
-                <option value="admin">Admin ({counts.admin ?? 0})</option>
-              </select>
-            </div>
+                <Filter className="w-3.5 h-3.5" aria-hidden="true" />
+                {label}
+                <span className={`font-bold text-xs ${roleFilter === value ? "text-white/80" : "text-ink-300"}`}>
+                  ({count})
+                </span>
+              </button>
+            ))}
 
-            {/* Refresh */}
             <button
               type="button"
               onClick={fetchUsers}
-              title="Muat ulang data"
-              className="w-8 h-8 rounded-xl border border-ink-150 flex items-center justify-center text-ink-300 hover:text-primary hover:border-primary/40 transition cursor-pointer"
+              title="Segarkan data"
+              className="w-10 h-10 rounded-full border border-ink-150 bg-white flex items-center justify-center text-ink-300 hover:text-primary hover:border-primary transition cursor-pointer shrink-0"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
+              <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
             </button>
           </div>
         </div>
 
         {/* ── Tabel Pengguna ───────────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-ink-150 p-5 shadow-xs">
-
+        <div>
           {/* Error State */}
           {fetchError && !isLoading && (
-            <div className="py-10 flex flex-col items-center gap-2 text-rose-600">
-              <AlertCircle className="w-6 h-6" />
-              <p className="text-xs font-semibold">{fetchError}</p>
+            <div className="mb-4 flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+              <AlertCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
+              <span>{fetchError}</span>
               <button
                 type="button"
                 onClick={fetchUsers}
-                className="text-xs text-primary underline underline-offset-2 cursor-pointer"
+                className="ml-auto text-xs text-primary underline underline-offset-2 cursor-pointer font-semibold"
               >
                 Coba lagi
               </button>
@@ -388,38 +400,42 @@ export default function AdminPenggunaPage() {
 
           {/* Loading State */}
           {isLoading && (
-            <div className="py-12 flex flex-col items-center gap-3 text-ink-300">
-              <Loader2 className="w-6 h-6 animate-spin" />
-              <p className="text-xs">Memuat daftar pengguna...</p>
+            <div className="flex justify-center py-20">
+              <Loader2 className="w-8 h-8 text-ink-300 animate-spin" aria-hidden="true" />
             </div>
           )}
 
           {/* Table */}
           {!isLoading && !fetchError && (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-ink-150 text-[10px] text-ink-300 uppercase tracking-wider">
-                    <th className="pb-3 font-bold">Pengguna</th>
-                    <th className="pb-3 font-bold">Role</th>
-                    <th className="pb-3 font-bold">Status</th>
-                    <th className="pb-3 font-bold hidden md:table-cell">Terdaftar</th>
-                    <th className="pb-3 font-bold hidden lg:table-cell">Detail</th>
-                    <th className="pb-3 font-bold text-right pr-2">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-ink-100">
-                  {users.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="py-8 text-center text-ink-300 text-xs">
-                        Tidak ada pengguna yang sesuai dengan pencarian.
-                      </td>
+            <div className="overflow-hidden rounded-2xl border border-ink-150 bg-white shadow-xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-ink-100 border-b border-ink-150">
+                      <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Pengguna</th>
+                      <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Role</th>
+                      <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Status</th>
+                      <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading hidden md:table-cell">Terdaftar</th>
+                      <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading hidden lg:table-cell">Detail</th>
+                      <th className="text-right px-5 py-3.5 font-semibold text-ink-700 font-heading pr-5">Aksi</th>
                     </tr>
-                  ) : (
-                    users.map((u) => (
-                      <tr key={u.id} className="hover:bg-ink-100/60 transition group">
-                        {/* Nama + Email */}
-                        <td className="py-3.5">
+                  </thead>
+                  <tbody className="divide-y divide-ink-150 bg-white">
+                    {users.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="p-8">
+                          <EmptyState
+                            title="Tidak Ada Pengguna yang Cocok"
+                            description="Tidak ada pengguna yang sesuai dengan filter role atau kata kunci pencarian Anda."
+                            compact
+                          />
+                        </td>
+                      </tr>
+                    ) : (
+                      users.map((u) => (
+                        <tr key={u.id} className="hover:bg-ink-100/50 transition-colors group">
+                          {/* Nama + Email */}
+                          <td className="px-5 py-4">
                           <div className="flex items-center gap-2.5">
                             <div
                               className={`w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center shrink-0 ${
@@ -442,15 +458,21 @@ export default function AdminPenggunaPage() {
                         </td>
 
                         {/* Role */}
-                        <td className="py-3.5">
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary uppercase">
+                        <td className="px-5 py-4">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
                             {ROLE_LABELS[u.role] ?? u.roleLabel}
                           </span>
                         </td>
 
                         {/* Status */}
-                        <td className="py-3.5">
-                          <span className={`text-[11px] font-semibold flex items-center gap-1 ${STATUS_COLORS[u.status] ?? "text-ink-600"}`}>
+                        <td className="px-5 py-4">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-semibold ${
+                            u.status === "aktif"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : u.status === "nonaktif"
+                              ? "bg-rose-50 text-rose-700 border-rose-200"
+                              : "bg-amber-50 text-amber-700 border-amber-200"
+                          }`}>
                             {u.status === "aktif" ? (
                               <CheckCircle2 className="w-3.5 h-3.5" />
                             ) : u.status === "nonaktif" ? (
@@ -463,24 +485,24 @@ export default function AdminPenggunaPage() {
                         </td>
 
                         {/* Tanggal daftar */}
-                        <td className="py-3.5 text-ink-300 hidden md:table-cell">
+                        <td className="px-5 py-4 text-ink-600 hidden md:table-cell text-sm">
                           {formatDate(u.createdAt)}
                         </td>
 
                         {/* Detail kontekstual */}
-                        <td className="py-3.5 text-ink-300 hidden lg:table-cell max-w-[160px]">
+                        <td className="px-5 py-4 text-ink-600 hidden lg:table-cell text-xs max-w-[200px]">
                           {u.role === "student" && u.nis && (
-                            <span className="truncate block text-[10px]">
+                            <span className="truncate block">
                               NIS {u.nis} · {u.kelas} · {u.majorFullName ?? u.major}
                             </span>
                           )}
                           {u.role === "teacher" && u.nip && (
-                            <span className="truncate block text-[10px]">
+                            <span className="truncate block">
                               NIP {u.nip} · {u.majorFullName ?? u.major}
                             </span>
                           )}
                           {u.role === "company" && u.companyName && (
-                            <span className="truncate block text-[10px]">
+                            <span className="truncate block">
                               {u.companyName}
                               {u.verificationStatus && (
                                 <span className={`ml-1 font-semibold ${
@@ -498,7 +520,7 @@ export default function AdminPenggunaPage() {
                         </td>
 
                         {/* Aksi */}
-                        <td className="py-3.5 text-right pr-2">
+                        <td className="px-5 py-4 text-right pr-5">
                           <div className="flex items-center justify-end gap-1">
                             <button
                               type="button"
@@ -525,7 +547,8 @@ export default function AdminPenggunaPage() {
                 </tbody>
               </table>
             </div>
-          )}
+          </div>
+        )}
 
           {/* ── Pagination ──────────────────────────────────────────────────── */}
           {!isLoading && !fetchError && totalPages > 1 && (

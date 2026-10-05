@@ -15,6 +15,7 @@ import {
   AlertCircle,
 } from "lucide-react"
 import AdminLayout from "@/components/admin/AdminLayout"
+import { EmptyState } from "@/components/ui/EmptyState"
 
 /**
  * Kurasi Karya & Moderasi Galeri.
@@ -259,21 +260,27 @@ export default function AdminModerasiPage() {
             <p className="text-xs text-ink-300 mt-2">Memuat karya dari database...</p>
           </div>
         ) : items.length === 0 ? (
-          <div className="p-12 text-center bg-white rounded-2xl border border-ink-150 shadow-xs">
-            <p className="text-xs text-ink-300">
-              {statusFilter === "pending"
-                ? "Tidak ada karya yang menunggu kurasi. Antrean bersih."
-                : "Tidak ada karya yang sesuai dengan filter atau kata kunci."}
-            </p>
-            {(searchQuery || categoryFilter !== "all" || statusFilter !== "all") && (
-              <button
-                type="button"
-                onClick={resetFilters}
-                className="mt-2 text-xs font-bold text-primary hover:underline cursor-pointer"
-              >
-                Reset Filter
-              </button>
-            )}
+          <div className="bg-white rounded-2xl border border-ink-150 shadow-xs">
+            <EmptyState
+              title={
+                statusFilter === "pending"
+                  ? "Antrean Kurasi Bersih"
+                  : "Karya Tidak Ditemukan"
+              }
+              description={
+                statusFilter === "pending"
+                  ? "Tidak ada karya yang menunggu kurasi saat ini."
+                  : "Tidak ada karya yang sesuai dengan filter atau kata kunci pencarian."
+              }
+              action={
+                searchQuery || categoryFilter !== "all" || statusFilter !== "all"
+                  ? {
+                      label: "Reset Filter",
+                      onClick: resetFilters,
+                    }
+                  : undefined
+              }
+            />
           </div>
         ) : (
           <div

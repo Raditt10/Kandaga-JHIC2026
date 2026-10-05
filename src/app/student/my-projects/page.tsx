@@ -10,6 +10,7 @@ import StudentProjectCard from "@/components/student/StudentProjectCard";
 import EditProjectModal from "@/components/student/EditProjectModal";
 import StudentProjectDetailModal from "@/components/student/StudentProjectDetailModal";
 import type { GalleryProjectItem } from "@/data/galleryData";
+import { EmptyState } from "@/components/ui/EmptyState";
 import {
   Plus,
   Globe,
@@ -425,40 +426,29 @@ export default function StudentMyProjectsPage() {
             </div>
           ) : !isLoading ? (
             /* Empty State */
-            <div className="p-12 sm:p-16 rounded-2xl border-2 border-dashed border-ink-150 bg-[#FBF9F6] text-center max-w-xl mx-auto flex flex-col items-center">
-              <div className="w-16 h-16 rounded-2xl bg-white border border-ink-150 flex items-center justify-center text-ink-300 mb-4 shadow-xs">
-                <FolderOpen className="w-8 h-8 text-primary" />
-              </div>
-              <h3 className="font-heading text-xl font-bold text-ink">
-                Belum Ada Karya Ditemukan
-              </h3>
-              <p className="mt-2 text-sm text-ink-600 max-w-md leading-relaxed">
-                {searchQuery || visibilityFilter !== "all"
-                  ? "Tidak ada karya yang cocok dengan filter atau kata kunci pencarian Anda."
-                  : "Anda belum mengunggah karya portofolio. Mulai bagikan proyek tugas akhir, riset laboratorium, atau aplikasi Anda sekarang!"}
-              </p>
-              <div className="mt-6 flex items-center gap-3">
-                {searchQuery || visibilityFilter !== "all" ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchQuery("");
-                      setVisibilityFilter("all");
-                    }}
-                    className="px-5 py-2.5 rounded-full border border-ink-300 text-xs sm:text-sm font-bold text-ink-700 hover:bg-ink-100 transition cursor-pointer"
-                  >
-                    Reset Filter
-                  </button>
-                ) : (
-                  <Link
-                    href="/student/create-project"
-                    className="px-6 py-2.5 rounded-full bg-primary text-white text-xs sm:text-sm font-bold hover:bg-[#6B1424] transition shadow-xs cursor-pointer flex items-center gap-2"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Unggah Karya Pertama</span>
-                  </Link>
-                )}
-              </div>
+            <div className="bg-white rounded-3xl border border-ink-150 p-6 shadow-xs max-w-xl mx-auto">
+              <EmptyState
+                title="Belum Ada Karya Ditemukan"
+                description={
+                  searchQuery || visibilityFilter !== "all"
+                    ? "Tidak ada karya yang cocok dengan filter atau kata kunci pencarian Anda."
+                    : "Anda belum mengunggah karya portofolio. Mulai bagikan proyek tugas akhir, riset laboratorium, atau aplikasi Anda sekarang!"
+                }
+                action={
+                  searchQuery || visibilityFilter !== "all"
+                    ? {
+                        label: "Reset Filter",
+                        onClick: () => {
+                          setSearchQuery("");
+                          setVisibilityFilter("all");
+                        },
+                      }
+                    : {
+                        label: "Unggah Karya Pertama",
+                        href: "/student/create-project",
+                      }
+                }
+              />
             </div>
           ) : null}
         </section>

@@ -19,6 +19,7 @@ import {
   Check,
 } from "lucide-react"
 import AdminLayout from "@/components/admin/AdminLayout"
+import { EmptyState } from "@/components/ui/EmptyState"
 
 type AntrianItem = {
   userId: string
@@ -320,104 +321,104 @@ export default function AdminBkkPage() {
                 <span className="text-xs">Memuat antrian verifikasi...</span>
               </div>
             ) : antrian.length === 0 ? (
-              <div className="py-12 text-center text-ink-300">
-                <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-2 opacity-80" />
-                <p className="text-xs font-bold text-ink-700">Semua Antrian Selesai Diproses</p>
-                <p className="text-[11px] text-ink-300 mt-0.5">
-                  Tidak ada pengajuan mitra perusahaan yang sedang menunggu verifikasi saat ini.
-                </p>
-              </div>
+              <EmptyState
+                title="Semua Antrian Selesai Diproses"
+                description="Tidak ada pengajuan mitra perusahaan yang sedang menunggu verifikasi saat ini."
+              />
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-ink-150 text-[10px] text-ink-300 uppercase tracking-wider">
-                      <th className="pb-2.5 font-bold">PERUSAHAAN</th>
-                      <th className="pb-2.5 font-bold">KONTAK PIC</th>
-                      <th className="pb-2.5 font-bold">BIDANG INDUSTRI</th>
-                      <th className="pb-2.5 font-bold">DOKUMEN</th>
-                      <th className="pb-2.5 font-bold">TANGGAL DAFTAR</th>
-                      <th className="pb-2.5 font-bold text-right">AKSI VERIFIKASI</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-ink-100">
-                    {antrian.map((item) => (
-                      <tr key={item.userId} className="hover:bg-ink-100/60 transition">
-                        <td className="py-3.5 pr-3">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 font-bold text-xs flex items-center justify-center shrink-0">
-                              <Building2 className="w-4 h-4" />
-                            </div>
-                            <div>
-                              <span className="font-bold text-ink block leading-tight">
-                                {item.namaPerusahaan}
-                              </span>
-                              <span className="text-[10px] text-amber-600 font-medium block mt-0.5">
-                                Menunggu Verifikasi
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-3.5 pr-3">
-                          <span className="font-semibold text-ink block">{item.namaKontak}</span>
-                          <span className="text-[11px] text-ink-300 block font-mono">{item.email}</span>
-                        </td>
-                        <td className="py-3.5 pr-3 text-ink-600">
-                          {item.bidang || "—"}
-                        </td>
-                        <td className="py-3.5 pr-3">
-                          {item.dokumenUrl ? (
-                            <a
-                              href={item.dokumenUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
-                            >
-                              <ExternalLink className="w-3.5 h-3.5" />
-                              <span>Berkas Legalitas</span>
-                            </a>
-                          ) : (
-                            <span className="text-ink-300 text-[11px] italic">Tidak ada berkas</span>
-                          )}
-                        </td>
-                        <td className="py-3.5 pr-3 text-ink-600 font-mono text-[11px]">
-                          {formatDate(item.terdaftarPada)}
-                        </td>
-                        <td className="py-3.5 text-right">
-                          <div className="inline-flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setSelectedItem(item)}
-                              className="px-2.5 py-1.5 rounded-lg border border-ink-150 hover:bg-ink-100 text-ink-700 text-[11px] font-semibold transition cursor-pointer"
-                            >
-                              <Eye className="w-3.5 h-3.5 inline mr-1" />
-                              Review
-                            </button>
-                            <button
-                              type="button"
-                              disabled={actionLoading === item.userId}
-                              onClick={() => handleAction(item.userId, "setujui")}
-                              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition cursor-pointer disabled:opacity-50"
-                            >
-                              Setujui
-                            </button>
-                            <button
-                              type="button"
-                              disabled={actionLoading === item.userId}
-                              onClick={() => {
-                                setSelectedItem(item)
-                                setShowTolakInput(true)
-                              }}
-                              className="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-bold transition cursor-pointer disabled:opacity-50"
-                            >
-                              Tolak
-                            </button>
-                          </div>
-                        </td>
+              <div className="overflow-hidden rounded-2xl border border-ink-150 bg-white shadow-xs">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-ink-100 border-b border-ink-150">
+                        <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Perusahaan</th>
+                        <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Kontak PIC</th>
+                        <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Bidang Industri</th>
+                        <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Dokumen</th>
+                        <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Terdaftar</th>
+                        <th className="text-right px-5 py-3.5 font-semibold text-ink-700 font-heading pr-5">Aksi</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-ink-150 bg-white">
+                      {antrian.map((item) => (
+                        <tr key={item.userId} className="hover:bg-ink-100/50 transition-colors">
+                          <td className="px-5 py-4">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 font-bold text-xs flex items-center justify-center shrink-0">
+                                <Building2 className="w-4 h-4" />
+                              </div>
+                              <div>
+                                <span className="font-semibold text-ink block text-sm leading-tight">
+                                  {item.namaPerusahaan}
+                                </span>
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 mt-1">
+                                  <Clock className="w-3 h-3" />
+                                  Menunggu Verifikasi
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-5 py-4">
+                            <span className="font-medium text-ink block text-sm">{item.namaKontak}</span>
+                            <span className="text-xs text-ink-600 block font-mono mt-0.5">{item.email}</span>
+                          </td>
+                          <td className="px-5 py-4 text-ink-700 text-sm">
+                            {item.bidang || "—"}
+                          </td>
+                          <td className="px-5 py-4">
+                            {item.dokumenUrl ? (
+                              <a
+                                href={item.dokumenUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary-dark transition"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                                <span>Berkas Legalitas</span>
+                              </a>
+                            ) : (
+                              <span className="text-ink-600 text-xs italic">Tidak ada berkas</span>
+                            )}
+                          </td>
+                          <td className="px-5 py-4 text-ink-600 text-sm">
+                            {formatDate(item.terdaftarPada)}
+                          </td>
+                          <td className="px-5 py-4 text-right pr-5">
+                            <div className="inline-flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedItem(item)}
+                                className="px-3 py-1.5 rounded-xl border border-ink-150 hover:bg-ink-100 text-ink text-xs font-semibold transition cursor-pointer"
+                              >
+                                <Eye className="w-3.5 h-3.5 inline mr-1" />
+                                Review
+                              </button>
+                              <button
+                                type="button"
+                                disabled={actionLoading === item.userId}
+                                onClick={() => handleAction(item.userId, "setujui")}
+                                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition cursor-pointer disabled:opacity-50"
+                              >
+                                Setujui
+                              </button>
+                              <button
+                                type="button"
+                                disabled={actionLoading === item.userId}
+                                onClick={() => {
+                                  setSelectedItem(item)
+                                  setShowTolakInput(true)
+                                }}
+                                className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition cursor-pointer disabled:opacity-50"
+                              >
+                                Tolak
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>
@@ -427,30 +428,42 @@ export default function AdminBkkPage() {
         {activeTab === "semua" && (
           <div className="bg-white rounded-2xl border border-ink-150 p-5 shadow-xs space-y-4">
             {/* Search and Filters */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="relative flex-1 max-w-sm">
-                <Search className="w-3.5 h-3.5 text-ink-300 absolute left-3 top-1/2 -translate-y-1/2" />
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-ink-300 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Cari perusahaan, PIC, atau email..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-ink-150 text-xs bg-ink-100 focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary"
+                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-ink-150 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
                 />
               </div>
 
-              <div className="flex items-center gap-2">
-                <Filter className="w-3.5 h-3.5 text-ink-300" />
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="text-xs px-3 py-1.5 rounded-xl border border-ink-150 bg-white text-ink-700 focus:outline-none focus:ring-2 focus:ring-primary/15 cursor-pointer"
-                >
-                  <option value="all">Semua Status</option>
-                  <option value="disetujui">Disetujui</option>
-                  <option value="pending">Menunggu</option>
-                  <option value="ditolak">Ditolak</option>
-                </select>
+              <div className="flex gap-2 flex-wrap items-center">
+                {[
+                  { value: "all", label: "Semua", count: allMitra.length },
+                  { value: "disetujui", label: "Disetujui", count: countDisetujui },
+                  { value: "pending", label: "Menunggu", count: countPending },
+                  { value: "ditolak", label: "Ditolak", count: countDitolak },
+                ].map(({ value, label, count }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setStatusFilter(value)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold border transition-colors cursor-pointer ${
+                      statusFilter === value
+                        ? "bg-primary text-white border-primary"
+                        : "bg-white text-ink-700 border-ink-150 hover:border-primary hover:text-primary"
+                    }`}
+                  >
+                    <Filter className="w-3.5 h-3.5" aria-hidden="true" />
+                    {label}
+                    <span className={`font-bold text-xs ${statusFilter === value ? "text-white/80" : "text-ink-300"}`}>
+                      ({count})
+                    </span>
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -460,65 +473,71 @@ export default function AdminBkkPage() {
                 <span className="text-xs">Memuat direktori mitra...</span>
               </div>
             ) : filteredMitra.length === 0 ? (
-              <div className="py-12 text-center text-ink-300">
-                <Building2 className="w-10 h-10 text-ink-300 mx-auto mb-2" />
-                <p className="text-xs font-bold text-ink-600">Tidak ada mitra ditemukan</p>
-                <p className="text-[11px] text-ink-300 mt-0.5">
-                  Sesuaikan kata kunci pencarian atau filter status Anda.
-                </p>
-              </div>
+              <EmptyState
+                title="Tidak Ada Mitra Ditemukan"
+                description="Sesuaikan kata kunci pencarian atau filter status Anda."
+              />
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-ink-150 text-[10px] text-ink-300 uppercase tracking-wider">
-                      <th className="pb-2.5 font-bold">PERUSAHAAN</th>
-                      <th className="pb-2.5 font-bold">KONTAK PIC</th>
-                      <th className="pb-2.5 font-bold">BIDANG</th>
-                      <th className="pb-2.5 font-bold">STATUS</th>
-                      <th className="pb-2.5 font-bold">TANGGAL VERIFIKASI</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-ink-100">
-                    {filteredMitra.map((mitra) => (
-                      <tr key={mitra.userId} className="hover:bg-ink-100/60 transition">
-                        <td className="py-3.5 pr-3">
-                          <span className="font-bold text-ink block leading-tight">
-                            {mitra.namaPerusahaan}
-                          </span>
-                          {mitra.catatanVerifikasi && (
-                            <span className="text-[10px] text-rose-600 block mt-0.5">
-                              Alasan: {mitra.catatanVerifikasi}
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-3.5 pr-3">
-                          <span className="font-semibold text-ink block">{mitra.namaKontak}</span>
-                          <span className="text-[11px] text-ink-300 block font-mono">{mitra.email}</span>
-                        </td>
-                        <td className="py-3.5 pr-3 text-ink-600">
-                          {mitra.bidang || "—"}
-                        </td>
-                        <td className="py-3.5 pr-3">
-                          <span
-                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                              mitra.status === "disetujui"
-                                ? "bg-emerald-100 text-emerald-800"
-                                : mitra.status === "ditolak"
-                                ? "bg-rose-100 text-rose-800"
-                                : "bg-amber-100 text-amber-800"
-                            }`}
-                          >
-                            {mitra.status}
-                          </span>
-                        </td>
-                        <td className="py-3.5 pr-3 text-ink-600 font-mono text-[11px]">
-                          {mitra.verifiedAt ? formatDate(mitra.verifiedAt) : formatDate(mitra.terdaftarPada)}
-                        </td>
+              <div className="overflow-hidden rounded-2xl border border-ink-150 bg-white shadow-xs">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-ink-100 border-b border-ink-150">
+                        <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Perusahaan</th>
+                        <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Kontak PIC</th>
+                        <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Bidang</th>
+                        <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Status</th>
+                        <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Tanggal</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-ink-150 bg-white">
+                      {filteredMitra.map((mitra) => (
+                        <tr key={mitra.userId} className="hover:bg-ink-100/50 transition-colors">
+                          <td className="px-5 py-4">
+                            <span className="font-semibold text-ink block text-sm leading-tight">
+                              {mitra.namaPerusahaan}
+                            </span>
+                            {mitra.catatanVerifikasi && (
+                              <span className="text-xs text-rose-600 block mt-0.5">
+                                Alasan: {mitra.catatanVerifikasi}
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-5 py-4">
+                            <span className="font-medium text-ink block text-sm">{mitra.namaKontak}</span>
+                            <span className="text-xs text-ink-600 block font-mono mt-0.5">{mitra.email}</span>
+                          </td>
+                          <td className="px-5 py-4 text-ink-700 text-sm">
+                            {mitra.bidang || "—"}
+                          </td>
+                          <td className="px-5 py-4">
+                            <span
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-semibold ${
+                                mitra.status === "disetujui"
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : mitra.status === "ditolak"
+                                  ? "bg-rose-50 text-rose-700 border-rose-200"
+                                  : "bg-amber-50 text-amber-700 border-amber-200"
+                              }`}
+                            >
+                              {mitra.status === "disetujui" ? (
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                              ) : mitra.status === "ditolak" ? (
+                                <XCircle className="w-3.5 h-3.5" />
+                              ) : (
+                                <Clock className="w-3.5 h-3.5" />
+                              )}
+                              <span className="capitalize">{mitra.status}</span>
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 text-ink-600 text-sm">
+                            {mitra.verifiedAt ? formatDate(mitra.verifiedAt) : formatDate(mitra.terdaftarPada)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>

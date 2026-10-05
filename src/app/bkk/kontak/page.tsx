@@ -18,6 +18,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import BKKLayout from "@/components/bkk/BKKLayout";
+import { EmptyState } from "@/components/ui/EmptyState";
 import {
   MessageSquare, Clock, Loader2, AlertCircle, Eye,
   CheckCircle2, XCircle, Send, HelpCircle, Building2,
@@ -399,10 +400,10 @@ export default function BKKKontakPage() {
             key={key}
             type="button"
             onClick={() => setFilter(key)}
-            className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold border transition-colors ${
               filter === key
-                ? "bg-primary/8 text-primary border-primary/30"
-                : "bg-white text-ink-700 border-ink-150 hover:bg-ink-100"
+                ? "bg-primary text-white border-primary"
+                : "bg-white text-ink-700 border-ink-150 hover:border-primary hover:text-primary"
             }`}
           >
             {label}
@@ -422,20 +423,19 @@ export default function BKKKontakPage() {
           <Loader2 className="w-8 h-8 text-ink-300 animate-spin" aria-hidden="true" />
         </div>
       ) : items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-ink-150 py-20 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mb-4">
-            <MessageSquare className="w-8 h-8 text-blue-500" aria-hidden="true" />
-          </div>
-          <p className="font-heading text-base font-semibold text-ink-600">
-            {filter === "aktif"
-              ? "Tidak ada permintaan yang menunggu tindakan."
-              : "Belum ada permintaan kontak dari perusahaan."}
-          </p>
-          <p className="text-sm text-ink-300 mt-1 max-w-sm">
-            {filter === "aktif"
-              ? "Semua permintaan sudah diputuskan. Lihat tab Semua Status untuk riwayatnya."
-              : "Permintaan akan muncul di sini setelah perusahaan mengajukan minat pada sebuah karya."}
-          </p>
+        <div className="bg-white rounded-2xl border border-ink-150 shadow-xs">
+          <EmptyState
+            title={
+              filter === "aktif"
+                ? "Tidak Ada Permintaan Aktif"
+                : "Belum Ada Permintaan Kontak"
+            }
+            description={
+              filter === "aktif"
+                ? "Semua permintaan sudah diputuskan. Lihat tab Semua Status untuk riwayatnya."
+                : "Permintaan akan muncul di sini setelah perusahaan mengajukan minat pada sebuah karya."
+            }
+          />
         </div>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-ink-150">

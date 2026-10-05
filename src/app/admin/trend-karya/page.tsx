@@ -12,6 +12,7 @@ import {
   AlertCircle,
 } from "lucide-react"
 import AdminLayout from "@/components/admin/AdminLayout"
+import { EmptyState } from "@/components/ui/EmptyState"
 
 /**
  * Analitik Tren Karya.
@@ -232,8 +233,12 @@ export default function AdminTrendKaryaPage() {
           </h2>
 
           {state === "ready" && byMajor.length === 0 ? (
-            <div className="p-8 rounded-2xl bg-white border border-dashed border-ink-150 text-center">
-              <p className="text-xs font-bold text-ink-700">Belum ada karya per jurusan</p>
+            <div className="p-4 rounded-2xl bg-white border border-ink-150 shadow-xs">
+              <EmptyState
+                title="Belum Ada Karya per Jurusan"
+                description="Statistik performa kompetensi keahlian akan muncul setelah ada karya yang diunggah."
+                compact
+              />
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -294,9 +299,11 @@ export default function AdminTrendKaryaPage() {
             </div>
 
             {state === "ready" && topViewed.length === 0 ? (
-              <div className="p-8 rounded-2xl border border-dashed border-ink-150 text-center">
-                <p className="text-xs font-bold text-ink-700">Belum ada data tayangan</p>
-              </div>
+              <EmptyState
+                title="Belum Ada Data Tayangan"
+                description="Karya paling banyak dilihat akan muncul setelah galeri memiliki pengunjung."
+                compact
+              />
             ) : (
               <div className="space-y-3">
                 {topViewed.map((proj, idx) => (
@@ -352,10 +359,11 @@ export default function AdminTrendKaryaPage() {
               </div>
 
               {state === "ready" && monthly.length === 0 ? (
-                <div className="py-8 text-center">
-                  <BarChart3 className="w-6 h-6 text-ink-300 mx-auto mb-2" />
-                  <p className="text-[11px] text-ink-300">Belum ada data bulanan</p>
-                </div>
+                <EmptyState
+                  title="Belum Ada Data Bulanan"
+                  description="Grafik pertumbuhan karya akan terisi seiring waktu."
+                  compact
+                />
               ) : (
                 <div className="space-y-3 pt-2">
                   {monthly.map((d) => (

@@ -652,62 +652,64 @@ export default function TeacherDashboardPage() {
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-ink-150 p-6 shadow-xs overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-ink-150 text-ink-300 font-bold uppercase tracking-wider">
-                  <th className="pb-3 px-3">Nama Siswa</th>
-                  <th className="pb-3 px-3">Kelas / Jurusan</th>
-                  <th className="pb-3 px-3">Judul Proyek Tugas Akhir</th>
-                  <th className="pb-3 px-3">Status Kurasi</th>
-                  <th className="pb-3 px-3">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-ink-150">
-                {siswa.length === 0 && (
-                  <tr>
-                    <td colSpan={5}>
-                      <EmptyState
-                        compact
-                        title="Belum Ada Siswa Terdaftar"
-                        description="Belum ada siswa terdaftar di jurusan Anda."
-                      />
-                    </td>
+          <div className="overflow-hidden rounded-2xl border border-ink-150 bg-white shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-ink-100 border-b border-ink-150">
+                    <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Nama Siswa</th>
+                    <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Kelas / Jurusan</th>
+                    <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Judul Proyek Tugas Akhir</th>
+                    <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Status Kurasi</th>
+                    <th className="text-right px-5 py-3.5 font-semibold text-ink-700 font-heading pr-5">Aksi</th>
                   </tr>
-                )}
-
-                {siswa.flatMap((s) => {
-                  // Satu baris per karya; siswa tanpa karya tetap ditampilkan.
-                  const karya =
-                    s.karya.length > 0
-                      ? s.karya
-                      : [{ id: `${s.id}-kosong`, title: "Belum mengajukan karya", status: "", score: null }];
-
-                  return karya.map((k) => (
-                    <tr key={k.id} className="hover:bg-ink-100 transition">
-                      <td className="py-3 px-3 font-bold text-ink">{s.name}</td>
-                      <td className="py-3 px-3 text-ink-600 font-mono">{s.class}</td>
-                      <td className="py-3 px-3 text-ink">{k.title}</td>
-                      <td className="py-3 px-3">
-                        <span className="px-2.5 py-1 bg-ink-100 text-ink rounded-md font-semibold text-[11px]">
-                          {STATUS_KURASI[k.status] ?? k.status}
-                          {typeof k.score === "number" ? ` • Nilai ${k.score}` : ""}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3">
-                        <button
-                          type="button"
-                          onClick={() => setActiveTab("antrean")}
-                          className="text-amber-700 font-bold hover:underline cursor-pointer"
-                        >
-                          Lihat antrean
-                        </button>
+                </thead>
+                <tbody className="divide-y divide-ink-150 bg-white">
+                  {siswa.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="p-8">
+                        <EmptyState
+                          compact
+                          title="Belum Ada Siswa Terdaftar"
+                          description="Belum ada siswa terdaftar di jurusan Anda."
+                        />
                       </td>
                     </tr>
-                  ));
-                })}
-              </tbody>
-            </table>
+                  )}
+
+                  {siswa.flatMap((s) => {
+                    // Satu baris per karya; siswa tanpa karya tetap ditampilkan.
+                    const karya =
+                      s.karya.length > 0
+                        ? s.karya
+                        : [{ id: `${s.id}-kosong`, title: "Belum mengajukan karya", status: "", score: null }];
+
+                    return karya.map((k) => (
+                      <tr key={k.id} className="hover:bg-ink-100/50 transition-colors">
+                        <td className="px-5 py-4 font-semibold text-ink text-sm">{s.name}</td>
+                        <td className="px-5 py-4 text-ink-600 font-mono text-sm">{s.class}</td>
+                        <td className="px-5 py-4 text-ink text-sm">{k.title}</td>
+                        <td className="px-5 py-4">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-ink-100 text-ink-700 rounded-full border border-ink-200 font-semibold text-xs">
+                            {STATUS_KURASI[k.status] ?? k.status}
+                            {typeof k.score === "number" ? ` • Nilai ${k.score}` : ""}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 text-right pr-5">
+                          <button
+                            type="button"
+                            onClick={() => setActiveTab("antrean")}
+                            className="px-3 py-1.5 rounded-xl border border-ink-150 hover:bg-ink-100 text-primary hover:text-primary-dark text-xs font-semibold transition cursor-pointer"
+                          >
+                            Lihat antrean
+                          </button>
+                        </td>
+                      </tr>
+                    ));
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

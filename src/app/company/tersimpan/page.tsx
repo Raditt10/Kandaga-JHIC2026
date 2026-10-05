@@ -13,6 +13,7 @@ import Image from "next/image";
 import Link from "next/link";
 import CompanyLayout from "@/components/company/CompanyLayout";
 import AjukanMinatModal, { type MinatProject } from "@/components/company/AjukanMinatModal";
+import { EmptyState } from "@/components/ui/EmptyState";
 import {
   Bookmark, BookmarkX, Eye, ArrowRight,
   Loader2, AlertCircle,
@@ -107,23 +108,15 @@ export default function TersimpanPage() {
         </div>
       ) : items.length === 0 ? (
         /* Empty state */
-        <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-ink-200 bg-[#FBF9F6]/80 py-16 px-6 text-center max-w-md mx-auto">
-          <div className="w-14 h-14 rounded-2xl bg-white border border-ink-200/80 shadow-xs flex items-center justify-center mb-4">
-            <Bookmark className="w-7 h-7 text-[#8B1A2F]" aria-hidden="true" />
-          </div>
-          <h3 className="font-heading text-lg font-bold text-ink">
-            Belum Ada Karya yang Disimpan
-          </h3>
-          <p className="text-sm text-ink-700 mt-2 max-w-xs leading-relaxed">
-            Kunjungi katalog karya siswa dan simpan proyek favorit Anda untuk ditinjau nanti.
-          </p>
-          <Link
-            href="/company/katalog"
-            className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-white hover:bg-primary-dark transition-colors shadow-xs"
-          >
-            Jelajahi Katalog
-            <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
-          </Link>
+        <div className="bg-white rounded-3xl border border-ink-150 p-6 shadow-xs max-w-lg mx-auto">
+          <EmptyState
+            title="Belum Ada Karya yang Disimpan"
+            description="Kunjungi katalog karya siswa dan simpan proyek favorit Anda untuk ditinjau nanti."
+            action={{
+              label: "Jelajahi Katalog",
+              href: "/company/katalog",
+            }}
+          />
         </div>
       ) : (
         /* Grid karya tersimpan */

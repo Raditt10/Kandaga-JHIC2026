@@ -16,6 +16,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import BKKLayout from "@/components/bkk/BKKLayout";
+import { EmptyState } from "@/components/ui/EmptyState";
 import {
   ShieldCheck, Clock, Loader2, AlertCircle,
   CheckCircle2, XCircle, Eye, ExternalLink,
@@ -277,14 +278,11 @@ export default function VerifikasiPage() {
           <Loader2 className="w-8 h-8 text-ink-300 animate-spin" aria-hidden="true" />
         </div>
       ) : items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-ink-150 py-20 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mb-4">
-            <ShieldCheck className="w-8 h-8 text-emerald-500" aria-hidden="true" />
-          </div>
-          <p className="font-heading text-base font-semibold text-ink-600">
-            Tidak ada pengajuan yang menunggu.
-          </p>
-          <p className="text-sm text-ink-300 mt-1">Semua pengajuan sudah diproses.</p>
+        <div className="bg-white rounded-2xl border border-ink-150 shadow-xs">
+          <EmptyState
+            title="Tidak Ada Pengajuan Menunggu"
+            description="Semua pengajuan pendaftaran mitra baru sudah selesai diproses."
+          />
         </div>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-ink-150">

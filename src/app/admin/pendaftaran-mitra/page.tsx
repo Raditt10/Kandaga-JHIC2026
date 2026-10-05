@@ -19,6 +19,7 @@ import {
   FileText,
 } from "lucide-react"
 import AdminLayout from "@/components/admin/AdminLayout"
+import { EmptyState } from "@/components/ui/EmptyState"
 
 type RegistrationItem = {
   userId: string
@@ -242,97 +243,97 @@ export default function AdminPendaftaranMitraPage() {
               <span className="text-xs">Memuat pengajuan mitra baru...</span>
             </div>
           ) : items.length === 0 ? (
-            <div className="py-12 text-center text-ink-300">
-              <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-2 opacity-80" />
-              <p className="text-xs font-bold text-ink-700">Tidak Ada Pendaftaran Tertunda</p>
-              <p className="text-[11px] text-ink-300 mt-0.5">
-                Semua pengajuan pendaftaran mitra industri baru telah selesai diproses.
-              </p>
-            </div>
+            <EmptyState
+              title="Tidak Ada Pendaftaran Tertunda"
+              description="Semua pengajuan pendaftaran mitra industri baru telah selesai diproses."
+            />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-ink-150 text-[10px] text-ink-300 uppercase tracking-wider">
-                    <th className="pb-2.5 font-bold">NAMA PERUSAHAAN</th>
-                    <th className="pb-2.5 font-bold">KONTAK PIC</th>
-                    <th className="pb-2.5 font-bold">BIDANG INDUSTRI</th>
-                    <th className="pb-2.5 font-bold">DOKUMEN LEGALITAS</th>
-                    <th className="pb-2.5 font-bold">TANGGAL SUBMIT</th>
-                    <th className="pb-2.5 font-bold text-right">AKSI VERIFIKASI</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-ink-100">
-                  {items.map((item) => (
-                    <tr key={item.userId} className="hover:bg-ink-100/60 transition">
-                      <td className="py-3.5 pr-3">
-                        <span className="font-bold text-ink block leading-tight">
-                          {item.namaPerusahaan}
-                        </span>
-                        <span className="text-[10px] text-amber-600 font-semibold block mt-0.5">
-                          Menunggu Persetujuan
-                        </span>
-                      </td>
-                      <td className="py-3.5 pr-3">
-                        <span className="font-semibold text-ink block">{item.namaKontak}</span>
-                        <span className="text-[11px] text-ink-300 block font-mono">{item.email}</span>
-                      </td>
-                      <td className="py-3.5 pr-3 text-ink-600">
-                        {item.bidang || "—"}
-                      </td>
-                      <td className="py-3.5 pr-3">
-                        {item.dokumenUrl ? (
-                          <a
-                            href={item.dokumenUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                            <span>Lihat Berkas</span>
-                          </a>
-                        ) : (
-                          <span className="text-ink-300 italic text-[11px]">Tidak ada berkas</span>
-                        )}
-                      </td>
-                      <td className="py-3.5 pr-3 text-ink-600 font-mono text-[11px]">
-                        {formatDate(item.terdaftarPada)}
-                      </td>
-                      <td className="py-3.5 text-right">
-                        <div className="inline-flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedItem(item)}
-                            className="px-2.5 py-1.5 rounded-lg border border-ink-150 hover:bg-ink-100 text-ink-700 text-[11px] font-semibold transition cursor-pointer"
-                          >
-                            <Eye className="w-3.5 h-3.5 inline mr-1" />
-                            Detail
-                          </button>
-                          <button
-                            type="button"
-                            disabled={actionLoading === item.userId}
-                            onClick={() => handleAction(item.userId, "setujui")}
-                            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition cursor-pointer disabled:opacity-50"
-                          >
-                            Setujui
-                          </button>
-                          <button
-                            type="button"
-                            disabled={actionLoading === item.userId}
-                            onClick={() => {
-                              setSelectedItem(item)
-                              setShowTolakInput(true)
-                            }}
-                            className="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-bold transition cursor-pointer disabled:opacity-50"
-                          >
-                            Tolak
-                          </button>
-                        </div>
-                      </td>
+            <div className="overflow-hidden rounded-2xl border border-ink-150 bg-white shadow-xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-ink-100 border-b border-ink-150">
+                      <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Perusahaan</th>
+                      <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Kontak PIC</th>
+                      <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Bidang</th>
+                      <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Dokumen</th>
+                      <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Terdaftar</th>
+                      <th className="text-right px-5 py-3.5 font-semibold text-ink-700 font-heading pr-5">Aksi</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-ink-150 bg-white">
+                    {items.map((item) => (
+                      <tr key={item.userId} className="hover:bg-ink-100/50 transition-colors">
+                        <td className="px-5 py-4">
+                          <span className="font-semibold text-ink block text-sm leading-tight">
+                            {item.namaPerusahaan}
+                          </span>
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 mt-1">
+                            <Clock className="w-3 h-3" />
+                            Menunggu Persetujuan
+                          </span>
+                        </td>
+                        <td className="px-5 py-4">
+                          <span className="font-medium text-ink block text-sm">{item.namaKontak}</span>
+                          <span className="text-xs text-ink-600 block font-mono mt-0.5">{item.email}</span>
+                        </td>
+                        <td className="px-5 py-4 text-ink-700 text-sm">
+                          {item.bidang || "—"}
+                        </td>
+                        <td className="px-5 py-4">
+                          {item.dokumenUrl ? (
+                            <a
+                              href={item.dokumenUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary-dark transition"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                              <span>Lihat Berkas</span>
+                            </a>
+                          ) : (
+                            <span className="text-ink-600 italic text-xs">Tidak ada</span>
+                          )}
+                        </td>
+                        <td className="px-5 py-4 text-ink-600 text-sm">
+                          {formatDate(item.terdaftarPada)}
+                        </td>
+                        <td className="px-5 py-4 text-right pr-5">
+                          <div className="inline-flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedItem(item)}
+                              className="px-3 py-1.5 rounded-xl border border-ink-150 hover:bg-ink-100 text-ink text-xs font-semibold transition cursor-pointer"
+                            >
+                              <Eye className="w-3.5 h-3.5 inline mr-1" />
+                              Detail
+                            </button>
+                            <button
+                              type="button"
+                              disabled={actionLoading === item.userId}
+                              onClick={() => handleAction(item.userId, "setujui")}
+                              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition cursor-pointer disabled:opacity-50"
+                            >
+                              Setujui
+                            </button>
+                            <button
+                              type="button"
+                              disabled={actionLoading === item.userId}
+                              onClick={() => {
+                                setSelectedItem(item)
+                                setShowTolakInput(true)
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition cursor-pointer disabled:opacity-50"
+                            >
+                              Tolak
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>

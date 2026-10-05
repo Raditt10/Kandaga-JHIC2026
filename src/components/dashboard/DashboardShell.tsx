@@ -27,6 +27,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
+import { EmptyState } from "@/components/ui/EmptyState"
 import {
   Bell,
   ChevronDown,
@@ -506,9 +507,11 @@ export default function DashboardShell({
 
                   <div className="max-h-80 overflow-y-auto divide-y divide-ink-150">
                     {notifs.length === 0 ? (
-                      <p className="px-4 py-6 text-center text-xs text-ink-600">
-                        Belum ada notifikasi.
-                      </p>
+                      <EmptyState
+                        compact
+                        title="Belum Ada Notifikasi"
+                        description="Notifikasi terbaru Anda akan muncul di sini."
+                      />
                     ) : (
                       notifs.map((n) => (
                         <button

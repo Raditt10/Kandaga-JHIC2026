@@ -434,16 +434,6 @@ export default function StudentDashboardPage() {
       icon: Briefcase,
       badge: `${lowongan.length + kontak.length}`,
     },
-    {
-      id: "profil",
-      label: "Profil Siswa",
-      icon: User,
-    },
-    {
-      id: "pengaturan",
-      label: "Pengaturan",
-      icon: Settings,
-    },
   ]
 
   return (
@@ -506,15 +496,15 @@ export default function StudentDashboardPage() {
             </div>
 
             {/* Model Chibi Siswa */}
-            <div className="absolute right-1 sm:right-6 md:right-10 bottom-0 pointer-events-none select-none z-10">
-              <div className="relative w-32 sm:w-44 md:w-52 lg:w-60 h-36 sm:h-48 md:h-56 lg:h-64">
+            <div className="absolute right-1 sm:right-6 md:right-8 lg:right-12 top-1 sm:top-1.5 md:top-2 w-36 sm:w-48 md:w-56 lg:w-64 h-48 sm:h-60 md:h-68 lg:h-76 pointer-events-none select-none z-10">
+              <div className="relative w-full h-full">
                 <Image
                   src="/images/siswa.webp"
                   alt="Ilustrasi Siswa"
                   fill
-                  sizes="(max-width: 640px) 128px, (max-width: 768px) 176px, 240px"
+                  sizes="(max-width: 640px) 144px, (max-width: 768px) 200px, 260px"
                   priority
-                  className="object-contain object-bottom drop-shadow-[0_12px_24px_rgba(0,0,0,0.35)]"
+                  className="object-contain object-top drop-shadow-[0_12px_24px_rgba(0,0,0,0.35)]"
                 />
               </div>
             </div>
@@ -891,13 +881,11 @@ export default function StudentDashboardPage() {
               )}
 
               {!memuatKontak && kontak.length === 0 && (
-                <div className="py-8 px-4 text-center flex flex-col items-center rounded-2xl bg-[#FBF9F6] border border-ink-150">
-                  <div className="w-10 h-10 rounded-xl bg-white border border-ink-150 shadow-2xs flex items-center justify-center text-[#8B1A2F] mb-2">
-                    <Inbox className="w-5 h-5" />
-                  </div>
-                  <p className="text-xs font-bold text-ink">Belum Ada Permintaan Kontak</p>
-                  <p className="text-[11px] text-ink-600 mt-0.5">Belum ada perusahaan yang menghubungi Anda melalui BKK.</p>
-                </div>
+                <EmptyState
+                  title="Belum Ada Permintaan Kontak"
+                  description="Belum ada perusahaan yang menghubungi Anda melalui BKK."
+                  compact
+                />
               )}
 
               {!memuatKontak && kontak.length > 0 && (
@@ -964,14 +952,11 @@ export default function StudentDashboardPage() {
           )}
 
           {!memuatLowongan && lowongan.length === 0 && (
-            <div className="p-12 text-center bg-[#FBF9F6] rounded-3xl border-2 border-dashed border-ink-200 flex flex-col items-center">
-              <div className="w-14 h-14 rounded-2xl bg-white border border-ink-200/80 shadow-xs flex items-center justify-center text-[#8B1A2F] mb-3">
-                <Briefcase className="w-7 h-7" />
-              </div>
-              <h3 className="font-heading text-base font-bold text-ink">Belum Ada Lowongan Aktif</h3>
-              <p className="text-sm text-ink-700 mt-1 max-w-sm">
-                BKK SMKN 13 belum memposting lowongan magang saat ini. Pantau terus pembaruan informasi di sini.
-              </p>
+            <div className="bg-white rounded-3xl border border-ink-150 p-6 shadow-xs">
+              <EmptyState
+                title="Belum Ada Lowongan Aktif"
+                description="BKK SMKN 13 belum memposting lowongan magang saat ini. Pantau terus pembaruan informasi di sini."
+              />
             </div>
           )}
 
