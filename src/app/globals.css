@@ -109,75 +109,11 @@ body {
   background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='%239CA3AF' stroke-width='2' stroke-dasharray='12%2c 8'/%3e%3c/svg%3e");
 }
 
-/* ── Standarisasi Icon ke Marun Kandaga (#8B1A2F) & Penjagaan Kontras ── */
-/* 1. Ikon Lucide secara umum memakai warna marun khas Kandaga */
-svg.lucide {
-  color: var(--color-primary, #8B1A2F);
-}
 
-/* 2. Tombol & tautan: ikon HARUS selalu mengikuti warna teks agar kontras terjaga */
-button svg.lucide,
-a svg.lucide,
-[role="button"] svg.lucide,
-label svg.lucide {
-  color: currentColor !important;
-}
 
-/* 3. Sidebar: ikuti warna aktif (marun) dan inaktif (abu-abu/ink) bawaan */
-aside svg.lucide,
-[data-sidebar] svg.lucide {
-  color: currentColor !important;
-}
 
-/* 4. Kontainer atau ikon dengan warna semantik/spesifik (status, alert, netral) */
-[class*="text-amber-"] svg.lucide,
-[class*="text-emerald-"] svg.lucide,
-[class*="text-rose-"] svg.lucide,
-[class*="text-indigo-"] svg.lucide,
-[class*="text-blue-"] svg.lucide,
-[class*="text-zinc-"] svg.lucide,
-[class*="text-gray-"] svg.lucide,
-[class*="text-ink-"] svg.lucide,
-svg.lucide[class*="text-amber-"],
-svg.lucide[class*="text-emerald-"],
-svg.lucide[class*="text-rose-"],
-svg.lucide[class*="text-indigo-"],
-svg.lucide[class*="text-blue-"],
-svg.lucide[class*="text-zinc-"],
-svg.lucide[class*="text-gray-"],
-svg.lucide[class*="text-ink-"],
-.no-maroon,
-svg.lucide.no-maroon {
-  color: currentColor !important;
-}
 
-/* 5. Tombol / elemen dengan latar belakang marun, gelap, atau bertulisan putih:
-      ikon WAJIB putih murni (#ffffff) agar tidak hilang (marun di atas marun) atau minim kontras */
-.text-white svg.lucide,
-[class*="text-white"] svg.lucide,
-svg.lucide.text-white,
-svg.lucide[class*="text-white"],
-button.text-white svg.lucide,
-button[class*="text-white"] svg.lucide,
-a.text-white svg.lucide,
-a[class*="text-white"] svg.lucide,
-[class*="bg-primary"] svg.lucide:not([class*="text-primary"]),
-[class*="bg-primary-dark"] svg.lucide:not([class*="text-primary"]),
-[class*="bg-ink"] svg.lucide:not([class*="text-primary"]),
-[class*="bg-black"] svg.lucide:not([class*="text-primary"]),
-button[class*="bg-primary"] svg.lucide,
-button[class*="bg-primary-dark"] svg.lucide,
-button[class*="bg-ink"] svg.lucide,
-button[class*="bg-black"] svg.lucide {
-  color: #ffffff !important;
-}
-
-/* 6. Animasi spinner di tombol putih tetap putih, spinner di tempat lain tetap marun */
-button.text-white svg.lucide.animate-spin,
-button[class*="text-white"] svg.lucide.animate-spin {
-  color: #ffffff !important;
-}
-
+/* ── Reduced motion — aksesibilitas wajib ── */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
