@@ -14,6 +14,7 @@ import {
   EyeOff,
   AlertCircle,
   ArrowLeft,
+  ArrowRight,
   CheckCircle2,
   Loader2,
 } from "lucide-react";
@@ -295,27 +296,39 @@ export default function DaftarMitraPage() {
               <ArrowLeft className="w-4 h-4" />
             </Link>
 
-            {/* Step Pills */}
-            <div className="flex items-center gap-1.5 text-xs">
-              <span
-                className={`px-2.5 py-1 rounded-full font-semibold transition ${
-                  step === 1
-                    ? "bg-[#a61743] text-white"
-                    : "bg-emerald-100 text-emerald-800"
-                }`}
-              >
-                1. Akun
-              </span>
-              <span className="text-zinc-300">/</span>
-              <span
-                className={`px-2.5 py-1 rounded-full font-semibold transition ${
-                  step === 2
-                    ? "bg-[#a61743] text-white"
-                    : "bg-zinc-100 text-zinc-500"
-                }`}
-              >
-                2. Perusahaan
-              </span>
+            {/* Step Pills & Waiting Page Navigation */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 text-xs">
+                <span
+                  className={`px-2.5 py-1 rounded-full font-semibold transition ${
+                    step === 1
+                      ? "bg-[#a61743] text-white"
+                      : "bg-emerald-100 text-emerald-800"
+                  }`}
+                >
+                  1. Akun
+                </span>
+                <span className="text-zinc-300">/</span>
+                <span
+                  className={`px-2.5 py-1 rounded-full font-semibold transition ${
+                    step === 2
+                      ? "bg-[#a61743] text-white"
+                      : "bg-zinc-100 text-zinc-500"
+                  }`}
+                >
+                  2. Perusahaan
+                </span>
+              </div>
+              {hasPendingSubmission && (
+                <Link
+                  href="/mitra/menunggu"
+                  aria-label="Kembali ke Status Menunggu"
+                  title="Kembali ke Halaman Status Menunggu"
+                  className="w-8 h-8 rounded-md bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center text-zinc-600 hover:text-zinc-900 transition shadow-2xs"
+                >
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              )}
             </div>
           </div>
 
@@ -329,21 +342,6 @@ export default function DaftarMitraPage() {
                 ? "Lengkapi informasi akun narahubung perwakilan perusahaan Anda."
                 : "Lengkapi profil industri untuk verifikasi rekrutmen BKK."}
             </p>
-
-            {/* Pending Submission Alert if returning from waiting page */}
-            {hasPendingSubmission && (
-              <div className="mb-5 p-3.5 rounded-xl bg-amber-50 border border-amber-200/80 text-xs text-amber-900 flex items-center justify-between gap-3 animate-in fade-in">
-                <span className="font-medium">
-                  Anda memiliki pengajuan kemitraan yang sedang diverifikasi BKK.
-                </span>
-                <Link
-                  href="/mitra/menunggu"
-                  className="font-bold underline text-[#a61743] hover:text-[#8B1A2F] shrink-0"
-                >
-                  Status Menunggu →
-                </Link>
-              </div>
-            )}
 
             {/* Error Alert */}
             {error && (
