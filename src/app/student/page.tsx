@@ -1016,7 +1016,7 @@ export default function StudentDashboardPage() {
                 <div key={m.id} className="p-6 bg-white rounded-2xl border border-ink-150 shadow-xs flex flex-col justify-between space-y-4">
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+                      <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/20">
                         Target: {m.majorTarget}
                       </span>
                       <span className={`text-xs font-semibold font-mono ${

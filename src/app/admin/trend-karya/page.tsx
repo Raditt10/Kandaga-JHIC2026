@@ -78,9 +78,9 @@ type Trends = {
 }
 
 const MAJOR_STYLE: Record<string, { color: string; badgeColor: string }> = {
-  RPL: { color: "border-rose-200 bg-rose-50/50 text-primary", badgeColor: "bg-rose-100 text-primary" },
-  TKJ: { color: "border-blue-200 bg-blue-50/50 text-blue-700", badgeColor: "bg-blue-100 text-blue-800" },
-  KA: { color: "border-emerald-200 bg-emerald-50/50 text-emerald-700", badgeColor: "bg-emerald-100 text-emerald-800" },
+  RPL: { color: "border-ink-150 hover:border-primary/40", badgeColor: "bg-primary/10 text-primary border border-primary/20" },
+  TKJ: { color: "border-ink-150 hover:border-primary/40", badgeColor: "bg-primary/10 text-primary border border-primary/20" },
+  KA: { color: "border-ink-150 hover:border-primary/40", badgeColor: "bg-primary/10 text-primary border border-primary/20" },
 }
 
 export default function AdminTrendKaryaPage() {

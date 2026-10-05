@@ -47,19 +47,19 @@ export interface ProjectCardProps {
 }
 
 export default function ProjectCard({ project }: ProjectCardProps) {
-  // Department color schemes
+  // Department color schemes (Konsisten tema marun & netral Kandaga)
   const majorStyles: Record<string, { badge: string; border: string }> = {
     rpl: {
       badge: "bg-[#8B1A2F]/10 text-[#8B1A2F] border-[#8B1A2F]/20",
       border: "hover:border-[#8B1A2F]/40",
     },
     tkj: {
-      badge: "bg-blue-50 text-blue-700 border-blue-200",
-      border: "hover:border-blue-400/50",
+      badge: "bg-[#8B1A2F]/10 text-[#8B1A2F] border-[#8B1A2F]/20",
+      border: "hover:border-[#8B1A2F]/40",
     },
     "analis-kimia": {
-      badge: "bg-amber-50 text-amber-800 border-amber-200",
-      border: "hover:border-amber-400/50",
+      badge: "bg-[#8B1A2F]/10 text-[#8B1A2F] border-[#8B1A2F]/20",
+      border: "hover:border-[#8B1A2F]/40",
     },
   };
 

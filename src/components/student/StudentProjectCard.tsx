@@ -35,18 +35,19 @@ export default function StudentProjectCard({
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Department color schemes
+  // Department color schemes (Konsisten tema marun & netral Kandaga)
   const majorStyles: Record<string, { badge: string; border: string }> = {
     rpl: {
       badge: "bg-primary/10 text-primary border-primary/20",
       border: "hover:border-primary/40",
     },
     tkj: {
-      badge: "bg-blue-50 text-blue-700 border-blue-200",
-      border: "hover:border-blue-400/50",
+      badge: "bg-primary/10 text-primary border-primary/20",
+      border: "hover:border-primary/40",
     },
     "analis-kimia": {
-      badge: "bg-amber-50 text-amber-800 border-amber-200",
-      border: "hover:border-amber-400/50",
+      badge: "bg-primary/10 text-primary border-primary/20",
+      border: "hover:border-primary/40",
     },
   };
 

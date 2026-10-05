@@ -122,14 +122,14 @@ const MAJOR_THEME: Record<MajorSlug, { badge: string; text: string; bg: string }
     bg: "bg-[#8B1A2F]",
   },
   tkj: {
-    badge: "bg-blue-50 text-blue-700 border-blue-200",
-    text: "text-blue-700",
-    bg: "bg-blue-600",
+    badge: "bg-[#8B1A2F]/10 text-[#8B1A2F] border-[#8B1A2F]/20",
+    text: "text-[#8B1A2F]",
+    bg: "bg-[#8B1A2F]",
   },
   "analis-kimia": {
-    badge: "bg-amber-50 text-amber-800 border-amber-200",
-    text: "text-amber-800",
-    bg: "bg-amber-600",
+    badge: "bg-[#8B1A2F]/10 text-[#8B1A2F] border-[#8B1A2F]/20",
+    text: "text-[#8B1A2F]",
+    bg: "bg-[#8B1A2F]",
   },
 }
 
