@@ -78,6 +78,7 @@ export default function CompanyLayout({
 }: CompanyLayoutProps) {
   return (
     <DashboardShell
+      brandHref="/company"
       navItems={NAV_ITEMS}
       settingsItems={[
         {

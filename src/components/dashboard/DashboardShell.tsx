@@ -95,6 +95,8 @@ interface DashboardShellProps {
   signOutCallbackUrl?: string
   /** Bila diisi, tampilkan breadcrumb di atas konten. */
   pageTitle?: string
+  /** Tujuan tautan logo/brand Kandaga di sidebar (default: ke beranda dashboard role). */
+  brandHref?: string
   /** Tujuan tautan "Dashboard" pada breadcrumb. */
   breadcrumbHref?: string
   children: React.ReactNode
@@ -157,6 +159,7 @@ export default function DashboardShell({
   settingsItems = [],
   signOutCallbackUrl = "/auth/login",
   pageTitle,
+  brandHref,
   breadcrumbHref = "/",
   children,
 }: DashboardShellProps) {
@@ -192,6 +195,32 @@ export default function DashboardShell({
   const [searchQuery, setSearchQuery] = useState("")
 
   const userRole = session?.user?.role?.toLowerCase()
+  const computedBrandHref =
+    brandHref ||
+    (pathname?.startsWith("/company")
+      ? "/company"
+      : pathname?.startsWith("/bkk")
+      ? "/bkk"
+      : pathname?.startsWith("/admin")
+      ? "/admin/dashboard"
+      : pathname?.startsWith("/student")
+      ? "/student"
+      : pathname?.startsWith("/teacher")
+      ? "/teacher"
+      : navItems.find((item) => item.key === "dashboard" || item.exact)?.href ||
+        (breadcrumbHref && breadcrumbHref !== "/" ? breadcrumbHref : "/") ||
+        (userRole === "student"
+          ? "/student"
+          : userRole === "company"
+          ? "/company"
+          : userRole === "teacher"
+          ? "/teacher"
+          : userRole === "bkk"
+          ? "/bkk"
+          : userRole === "admin"
+          ? "/admin/dashboard"
+          : "/"))
+
   const computedProfileHref =
     profileHref ||
     (userRole === "student"
@@ -299,8 +328,8 @@ export default function DashboardShell({
             } mb-8`}
           >
             <Link
-              href="/"
-              aria-label="Beranda Kandaga"
+              href={computedBrandHref}
+              aria-label="Dashboard Kandaga"
               className="flex items-center gap-2 group shrink-0"
             >
               <div className="w-8 h-8 relative rounded-full overflow-hidden shadow-xs ring-1 ring-ink/5 transition-transform duration-200 group-hover:scale-105 shrink-0">

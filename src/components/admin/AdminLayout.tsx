@@ -92,6 +92,7 @@ export default function AdminLayout({
   return (
     <AdminLayoutContext.Provider value={true}>
       <DashboardShell
+        brandHref="/admin/dashboard"
         initialCollapsed={initialCollapsed}
         navItems={navItems}
         settingsItems={settingsItems}

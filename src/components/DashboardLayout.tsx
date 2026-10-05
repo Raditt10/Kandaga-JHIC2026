@@ -94,6 +94,7 @@ export default function DashboardLayout({
 
   return (
     <DashboardShell
+      brandHref={`/${roleSlug}`}
       navItems={navItems}
       settingsItems={settingsItems}
       onProfileSelect={onProfileSelect}

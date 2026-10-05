@@ -70,6 +70,7 @@ export default function BKKLayout({
 }) {
   return (
     <DashboardShell
+      brandHref="/bkk"
       navItems={NAV_ITEMS}
       settingsItems={[
         {

@@ -6,16 +6,12 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  Clock,
   CheckCircle2,
   XCircle,
   Mail,
   ArrowLeft,
   ArrowRight,
-  Building2,
   Loader2,
-  RefreshCw,
-  Sparkles,
 } from "lucide-react";
 
 export default function MitraMenungguPage() {
@@ -25,8 +21,6 @@ export default function MitraMenungguPage() {
   const [companyName, setCompanyName] = useState<string>("");
   const [liveStatus, setLiveStatus] = useState<"pending" | "disetujui" | "ditolak">("pending");
   const [catatanVerifikasi, setCatatanVerifikasi] = useState<string | null>(null);
-  const [isSyncing, setIsSyncing] = useState<boolean>(false);
-  const [lastCheckedTime, setLastCheckedTime] = useState<string>("");
 
   // 1. Validasi izin akses (hanya boleh jika baru mendaftar atau memiliki akun pending)
   useEffect(() => {
@@ -76,7 +70,6 @@ export default function MitraMenungguPage() {
     if (!targetUserId) return;
 
     try {
-      setIsSyncing(true);
       const res = await fetch(`/api/mitra/status?userId=${encodeURIComponent(targetUserId)}`, {
         cache: "no-store",
       });
@@ -94,16 +87,6 @@ export default function MitraMenungguPage() {
             setCatatanVerifikasi(data.catatanVerifikasi);
           }
 
-          // Format jam pemeriksaan terakhir
-          const now = new Date();
-          setLastCheckedTime(
-            now.toLocaleTimeString("id-ID", {
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
-            })
-          );
-
           // Jika status sudah berubah menjadi disetujui, bersihkan penanda pendaftaran lokal
           if (data.status === "disetujui") {
             try {
@@ -116,8 +99,6 @@ export default function MitraMenungguPage() {
       }
     } catch (err) {
       console.warn("Gagal polling status mitra:", err);
-    } finally {
-      setIsSyncing(false);
     }
   }, [session]);
 
@@ -216,43 +197,6 @@ export default function MitraMenungguPage() {
               <ArrowLeft className="w-4 h-4" />
             </Link>
 
-            {/* Real-time Badge */}
-            <div className="flex items-center gap-2">
-              {liveStatus === "pending" && (
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200/80 text-[11px] font-semibold text-amber-800 shadow-2xs">
-                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-                  <span>Sinkronisasi Real-Time</span>
-                  {lastCheckedTime && (
-                    <span className="text-[10px] text-amber-600 font-mono hidden sm:inline">
-                      ({lastCheckedTime})
-                    </span>
-                  )}
-                </div>
-              )}
-
-              {liveStatus === "disetujui" && (
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-semibold text-emerald-800 shadow-2xs animate-in fade-in">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Resmi Disetujui BKK</span>
-                </div>
-              )}
-
-              {liveStatus === "ditolak" && (
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-[11px] font-semibold text-rose-800 shadow-2xs animate-in fade-in">
-                  <XCircle className="w-3.5 h-3.5 text-rose-600" />
-                  <span>Pengajuan Ditolak</span>
-                </div>
-              )}
-
-              <button
-                type="button"
-                onClick={() => pollVerificationStatus()}
-                title="Periksa status sekarang"
-                className="p-1 rounded-md text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition cursor-pointer"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin text-[#a61743]" : ""}`} />
-              </button>
-            </div>
           </div>
 
           {/* Content Heading */}
@@ -439,30 +383,18 @@ export default function MitraMenungguPage() {
               )}
             </div>
 
-            {/* Link Tambahan: Coba Login & Reset */}
-            <div className="text-center text-xs text-zinc-500 mt-5 space-y-1.5">
-              {liveStatus !== "disetujui" && (
-                <div>
-                  Sudah diverifikasi?{" "}
-                  <Link
-                    href="/auth/login"
-                    className="font-semibold text-[#a61743] underline underline-offset-2 hover:text-[#8B1A2F] transition"
-                  >
-                    Coba login
-                  </Link>
-                </div>
-              )}
-
-              <div>
-                <button
-                  type="button"
-                  onClick={handleResetRegistration}
-                  className="text-[11px] text-zinc-400 hover:text-zinc-600 underline cursor-pointer"
+            {/* Link Tambahan: Coba Login */}
+            {liveStatus !== "disetujui" && (
+              <div className="text-center text-xs text-zinc-500 mt-5">
+                Sudah diverifikasi?{" "}
+                <Link
+                  href="/auth/login"
+                  className="font-semibold text-[#a61743] underline underline-offset-2 hover:text-[#8B1A2F] transition"
                 >
-                  Ingin mendaftarkan akun perusahaan lain?
-                </button>
+                  Coba login
+                </Link>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
