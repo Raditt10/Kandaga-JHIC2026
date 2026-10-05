@@ -495,10 +495,6 @@ export default function StudentDashboardPage() {
             <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none" />
 
             <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-rose-100 text-xs font-semibold mb-3">
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>Portal Portofolio Siswa SMKN 13 Bandung</span>
-              </div>
 
               <h1 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight">
                 Halo, {session?.user?.username || "Siswa Kandaga"}! 🎓
