@@ -216,15 +216,17 @@ export default function ChatWidget() {
           {/* Header Bar — Marun Simple Solid */}
           <div className="bg-[#8B1A2F] text-white px-4 py-3.5 flex items-center justify-between border-b border-[#731224] shrink-0">
             <div className="flex items-center gap-3">
-              <div className="relative">
-                <KalaMark size={38} className="shadow-xs ring-2 ring-white/30" />
-                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 border-2 border-[#8B1A2F] rounded-full" />
-              </div>
-              <div className="flex items-center">
-                <h3 className="font-heading font-extrabold text-lg tracking-wide text-white flex items-center gap-1.5 leading-none">
-                  Kala
-                  <span className="text-amber-300 text-xs inline-block animate-pulse">✨</span>
+              <KalaMark size={38} className="shadow-xs ring-2 ring-white/30 shrink-0" />
+              <div className="flex flex-col">
+                <h3 className="font-heading font-bold text-base tracking-wide text-white leading-tight">
+                  Kala Assistant
                 </h3>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse" />
+                  <span className="text-[11px] font-sans text-emerald-200 font-medium leading-none">
+                    Online
+                  </span>
+                </div>
               </div>
             </div>
 
