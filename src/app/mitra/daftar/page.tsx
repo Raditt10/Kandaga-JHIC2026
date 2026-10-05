@@ -115,6 +115,12 @@ export default function DaftarMitraPage() {
         return;
       }
 
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("mitra_pendaftaran_berhasil", "true");
+        if (form.namaPerusahaan) {
+          sessionStorage.setItem("mitra_nama_perusahaan", form.namaPerusahaan.trim());
+        }
+      }
       router.push("/mitra/menunggu");
     } catch {
       setError("Terjadi kesalahan koneksi. Silakan coba lagi.");

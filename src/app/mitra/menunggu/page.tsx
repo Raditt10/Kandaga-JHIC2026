@@ -1,4 +1,8 @@
-import type { Metadata } from "next";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -9,14 +13,54 @@ import {
   Building2,
   Calendar,
   Sparkles,
+  Loader2,
 } from "lucide-react";
 
-export const metadata: Metadata = {
-  title: "Menunggu Verifikasi — KANDAGA",
-  description: "Akun perusahaan Anda sedang ditinjau oleh Koordinator BKK SMKN 13 Bandung.",
-};
-
 export default function MitraMenungguPage() {
+  const router = useRouter();
+  const { data: session, status } = useSession();
+  const [isAllowed, setIsAllowed] = useState<boolean | null>(null);
+  const [companyName, setCompanyName] = useState<string>("");
+
+  useEffect(() => {
+    // 1. Cek dari sessionStorage (baru saja berhasil mendaftar di tab browser ini)
+    const justRegistered =
+      typeof window !== "undefined" &&
+      sessionStorage.getItem("mitra_pendaftaran_berhasil") === "true";
+
+    const savedCompany =
+      typeof window !== "undefined"
+        ? sessionStorage.getItem("mitra_nama_perusahaan") || ""
+        : "";
+
+    // 2. Cek apakah session sedang login sebagai company yang statusnya pending
+    const isPendingCompany =
+      status === "authenticated" &&
+      session?.user?.role?.toLowerCase() === "company" &&
+      (!session?.user?.verificationStatus || session?.user?.verificationStatus === "pending");
+
+    if (justRegistered || isPendingCompany) {
+      setIsAllowed(true);
+      if (savedCompany) {
+        setCompanyName(savedCompany);
+      } else if (session?.user?.name) {
+        setCompanyName(session.user.name);
+      }
+    } else if (status !== "loading") {
+      // Tidak terdaftar sebagai akun perusahaan yang pending -> tolak akses & arahkan ke halaman pendaftaran
+      setIsAllowed(false);
+      router.replace("/mitra/daftar");
+    }
+  }, [session, status, router]);
+
+  if (isAllowed !== true) {
+    return (
+      <div className="min-h-screen w-full bg-[#a61743] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-white animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div
       suppressHydrationWarning
@@ -86,7 +130,7 @@ export default function MitraMenungguPage() {
               Pendaftaran Berhasil!
             </h1>
             <p className="text-sm text-zinc-500 mt-2 mb-6 leading-relaxed">
-              Akun perusahaan Anda sudah dibuat dan sedang menunggu verifikasi dari{" "}
+              Akun perusahaan {companyName ? <strong className="text-zinc-800 font-semibold">{companyName} </strong> : "Anda "}sudah dibuat dan sedang menunggu verifikasi dari{" "}
               <strong className="text-zinc-800 font-semibold">Koordinator BKK SMKN 13 Bandung</strong>.
             </p>
 

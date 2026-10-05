@@ -1,14 +1,42 @@
-import type { Metadata } from "next";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
-import { XCircle, Mail, RefreshCw, ArrowLeft } from "lucide-react";
-
-export const metadata: Metadata = {
-  title: "Pendaftaran Tidak Disetujui — KANDAGA",
-  description: "Pendaftaran akun perusahaan Anda tidak dapat diproses oleh BKK SMKN 13 Bandung.",
-};
+import { XCircle, Mail, RefreshCw, ArrowLeft, Loader2 } from "lucide-react";
 
 export default function MitraDitolakPage() {
+  const router = useRouter();
+  const { data: session, status } = useSession();
+  const [isAllowed, setIsAllowed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const isRejectedFlag =
+      typeof window !== "undefined" &&
+      sessionStorage.getItem("mitra_status_ditolak") === "true";
+
+    const isRejectedCompany =
+      status === "authenticated" &&
+      session?.user?.role?.toLowerCase() === "company" &&
+      session?.user?.verificationStatus === "ditolak";
+
+    if (isRejectedFlag || isRejectedCompany) {
+      setIsAllowed(true);
+    } else if (status !== "loading") {
+      setIsAllowed(false);
+      router.replace("/auth/login");
+    }
+  }, [session, status, router]);
+
+  if (isAllowed !== true) {
+    return (
+      <div className="min-h-screen w-full bg-[#a61743] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-white animate-spin" />
+      </div>
+    );
+  }
   return (
     <div
       suppressHydrationWarning

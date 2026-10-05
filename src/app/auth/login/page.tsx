@@ -73,10 +73,19 @@ function LoginFormContent() {
       // Khusus company: cek status verifikasi sebelum redirect ke dashboard
       if (normalizedRole === "company") {
         if (!verificationStatus || verificationStatus === "pending") {
+          if (typeof window !== "undefined") {
+            sessionStorage.setItem("mitra_pendaftaran_berhasil", "true");
+            if (sessionData?.user?.name) {
+              sessionStorage.setItem("mitra_nama_perusahaan", sessionData.user.name);
+            }
+          }
           router.push("/mitra/menunggu")
           return
         }
         if (verificationStatus === "ditolak") {
+          if (typeof window !== "undefined") {
+            sessionStorage.setItem("mitra_status_ditolak", "true");
+          }
           router.push("/mitra/ditolak")
           return
         }
