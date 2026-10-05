@@ -197,13 +197,13 @@ export default function ChatWidget() {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="group relative flex h-16 w-16 items-center justify-center rounded-full bg-[#8B1A2F] hover:bg-[#9E2037] shadow-lg shadow-black/20 border-2 border-white/90 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
+          className="group relative flex h-[84px] w-[84px] items-center justify-center rounded-full bg-[#8B1A2F] hover:bg-[#9E2037] shadow-xl shadow-black/25 border-[3px] border-white hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
           aria-label="Buka asisten KALA"
         >
-          <KalaMark size={44} className="shadow-xs" />
+          <KalaMark size={64} className="shadow-xs" />
 
           {hasUnread && (
-            <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-emerald-500 text-white font-bold text-[11px] rounded-full flex items-center justify-center shadow-sm">
+            <span className="absolute top-0.5 right-0.5 w-5 h-5 bg-emerald-500 text-white font-bold text-[11px] rounded-full flex items-center justify-center shadow-md">
               1
             </span>
           )}
