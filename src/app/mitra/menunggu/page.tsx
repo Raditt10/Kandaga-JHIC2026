@@ -69,7 +69,7 @@ export default function MitraMenungguPage() {
         
         {/* Left Column: Status Information */}
         <div className="w-full flex flex-col justify-between py-2 sm:py-4">
-          {/* Top Header: Back Link & Status Badge */}
+          {/* Top Header: Back Link */}
           <div className="flex items-center justify-between mb-4">
             <Link
               href="/"
@@ -78,11 +78,6 @@ export default function MitraMenungguPage() {
             >
               <ArrowLeft className="w-4 h-4" />
             </Link>
-
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/80 flex items-center gap-1.5 shadow-2xs">
-              <Clock className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
-              Menunggu Verifikasi BKK
-            </span>
           </div>
 
           {/* Content Heading */}
@@ -187,25 +182,25 @@ export default function MitraMenungguPage() {
               </span>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center gap-3">
+            {/* Action Button */}
+            <div className="pt-1">
               <Link
                 href="/"
-                className="py-2.5 px-4 rounded-md border border-zinc-200 hover:bg-zinc-50 text-zinc-700 text-xs font-semibold transition text-center"
+                className="w-full bg-[#242c4b] hover:bg-[#1a2038] text-white py-2.5 rounded-md text-xs font-semibold transition-colors duration-150 flex items-center justify-center shadow-xs text-center"
               >
                 Kembali ke Beranda
               </Link>
-              <Link
-                href="/auth/login"
-                className="flex-1 bg-[#242c4b] hover:bg-[#1a2038] text-white py-2.5 rounded-md text-xs font-semibold transition-colors duration-150 flex items-center justify-center gap-1.5 shadow-xs text-center"
-              >
-                Coba Masuk ke Akun
-              </Link>
             </div>
 
-            {/* Footer link */}
-            <div className="text-center text-[11px] text-zinc-400 mt-5">
-              Portal Kemitraan Industri SMKN 13 Bandung • Kandaga
+            {/* Link Coba Login */}
+            <div className="text-center text-xs text-zinc-500 mt-5">
+              Sudah diverifikasi?{" "}
+              <Link
+                href="/auth/login"
+                className="font-semibold text-[#a61743] underline underline-offset-2 hover:text-[#8B1A2F] transition"
+              >
+                Coba login
+              </Link>
             </div>
           </div>
         </div>
