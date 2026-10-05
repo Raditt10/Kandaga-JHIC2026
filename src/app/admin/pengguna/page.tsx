@@ -18,6 +18,7 @@ import {
   UserX,
   RefreshCw,
   GraduationCap,
+  Users,
 } from "lucide-react"
 import AdminLayout from "@/components/admin/AdminLayout"
 import { EmptyState } from "@/components/ui/EmptyState"
@@ -318,15 +319,25 @@ export default function AdminPenggunaPage() {
       <div className="space-y-6 animate-in fade-in duration-200 relative">
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
-        <div className="mb-6">
-          <h1 className="font-heading text-2xl font-extrabold text-ink tracking-tight">
-            Manajemen Pengguna
-          </h1>
-          <p className="mt-1 text-base text-ink-700 max-w-[65ch]">
-            {isLoading
-              ? "Memuat data pengguna..."
-              : `Daftar seluruh ${total.toLocaleString("id-ID")} akun pengguna yang terdaftar di sistem Kandaga.`}
-          </p>
+        <div className="p-5 rounded-2xl bg-white border border-ink-150 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="font-heading text-lg font-bold text-ink flex items-center gap-2">
+              <Users className="w-5 h-5 text-primary" />
+              <span>Manajemen Pengguna</span>
+            </h1>
+            <p className="text-xs text-ink-600 mt-0.5">
+              {isLoading
+                ? "Memuat data pengguna..."
+                : `Daftar seluruh ${total.toLocaleString("id-ID")} akun pengguna yang terdaftar di sistem Kandaga.`}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-ink-100 text-ink-700 rounded-xl text-xs font-semibold shrink-0">
+              <Shield className="w-3.5 h-3.5 text-primary" />
+              <span>Otoritas Administrator</span>
+            </span>
+          </div>
         </div>
 
         {/* ── Filter & Search Bar ─────────────────────────────────────────── */}
