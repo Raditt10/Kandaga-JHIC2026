@@ -17,6 +17,7 @@ import {
   Loader2,
   AlertCircle,
   FileText,
+  RefreshCw,
 } from "lucide-react"
 import AdminLayout from "@/components/admin/AdminLayout"
 import { EmptyState } from "@/components/ui/EmptyState"
@@ -231,9 +232,11 @@ export default function AdminPendaftaranMitraPage() {
             <button
               type="button"
               onClick={fetchQueue}
-              className="text-xs font-bold text-primary hover:underline"
+              title="Segarkan antrian"
+              aria-label="Segarkan antrian"
+              className="p-2.5 rounded-xl border border-ink-150 bg-white text-ink-400 hover:text-primary hover:border-primary transition cursor-pointer shrink-0 shadow-2xs"
             >
-              Segarkan Antrian
+              <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             </button>
           </div>
 
