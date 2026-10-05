@@ -249,9 +249,6 @@ export default function ChatWidget() {
 
           {/* Quick Prompts Carousel */}
           <div className="bg-zinc-50 border-b border-zinc-200/80 px-3 py-2 flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
-            <span className="text-[10px] font-bold text-zinc-400 font-mono shrink-0 pl-1 uppercase tracking-wider">
-              Cepat:
-            </span>
             {QUICK_PROMPTS.map((prompt) => (
               <button
                 key={prompt.id}
