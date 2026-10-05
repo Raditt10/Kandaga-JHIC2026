@@ -5,15 +5,14 @@ import {
   MessageSquare,
   X,
   Send,
-  Sparkles,
   RotateCcw,
   Minimize2,
-  Bot,
   User,
   ChevronDown,
   ExternalLink,
   Loader2,
 } from "lucide-react"
+import Image from "next/image"
 import { QUICK_PROMPTS } from "@/lib/kandaga-knowledge"
 
 interface Message {
@@ -22,6 +21,34 @@ interface Message {
   content: string
   timestamp: string
   source?: "gemini_api" | "local_knowledge_base"
+}
+
+/**
+ * Logo resmi Kandaga AI sebagai badge bulat.
+ *
+ * Catatan teknis: `kala.webp` sebenarnya berkas PNG berlatar krem solid
+ * (bukan transparan), dengan padding kosong cukup lebar di sekeliling mark.
+ * Karena itu `object-cover` dipakai untuk memangkas keempat sudut latar lewat
+ * mask bulat, lalu `scale-110` memangkas sisa padding agar huruf "K" tetap
+ * terbaca jelas pada ukuran kecil (28-40px). Mark aslinya hanya menempati
+ * ~62% lebar gambar, sehingga zoom 110% masih aman tanpa memotong logo.
+ */
+function KalaMark({ size = 32, className = "" }: { size?: number; className?: string }) {
+  return (
+    <span
+      className={`relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-white ${className}`}
+      style={{ width: size, height: size }}
+    >
+      <Image
+        src="/images/kala.webp"
+        alt="Logo Kandaga AI"
+        width={size}
+        height={size}
+        sizes={`${size}px`}
+        className="h-full w-full scale-110 object-cover"
+      />
+    </span>
+  )
 }
 
 export default function ChatWidget() {
@@ -176,9 +203,7 @@ export default function ChatWidget() {
           {/* Glowing pulse aura */}
           <span className="absolute -inset-0.5 rounded-full bg-rose-500/40 blur-xs group-hover:opacity-100 opacity-60 transition duration-300 animate-pulse" />
 
-          <div className="relative w-8 h-8 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
-            <Sparkles className="w-4 h-4 text-amber-300 animate-spin-slow" />
-          </div>
+          <KalaMark size={36} className="shadow-sm ring-1 ring-white/30" />
 
           <div className="relative flex flex-col text-left">
             <span className="font-heading font-extrabold text-xs tracking-tight leading-none text-white flex items-center gap-1.5">
