@@ -50,12 +50,6 @@ export default function AdminLayout({
       exact: true,
     },
     {
-      key: "pengguna",
-      label: "Kelola Pengguna",
-      href: "/admin/pengguna",
-      icon: Users,
-    },
-    {
       key: "moderasi",
       label: "Kurasi Karya",
       href: "/admin/moderasi",
@@ -84,6 +78,12 @@ export default function AdminLayout({
       label: "Pendaftaran Mitra",
       href: "/admin/pendaftaran-mitra",
       icon: UserPlus,
+    },
+    {
+      key: "pengguna",
+      label: "Kelola Pengguna",
+      href: "/admin/pengguna",
+      icon: Users,
     },
   ]
 
