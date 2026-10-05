@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -8,12 +8,14 @@ import Image from "next/image";
 import {
   Clock,
   CheckCircle2,
+  XCircle,
   Mail,
   ArrowLeft,
+  ArrowRight,
   Building2,
-  Calendar,
-  Sparkles,
   Loader2,
+  RefreshCw,
+  Sparkles,
 } from "lucide-react";
 
 export default function MitraMenungguPage() {
@@ -21,9 +23,13 @@ export default function MitraMenungguPage() {
   const { data: session, status } = useSession();
   const [isAllowed, setIsAllowed] = useState<boolean | null>(null);
   const [companyName, setCompanyName] = useState<string>("");
+  const [liveStatus, setLiveStatus] = useState<"pending" | "disetujui" | "ditolak">("pending");
+  const [catatanVerifikasi, setCatatanVerifikasi] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [lastCheckedTime, setLastCheckedTime] = useState<string>("");
 
+  // 1. Validasi izin akses (hanya boleh jika baru mendaftar atau memiliki akun pending)
   useEffect(() => {
-    // 1. Cek dari sessionStorage (baru saja berhasil mendaftar di tab browser ini)
     const justRegistered =
       typeof window !== "undefined" &&
       sessionStorage.getItem("mitra_pendaftaran_berhasil") === "true";
@@ -33,7 +39,6 @@ export default function MitraMenungguPage() {
         ? sessionStorage.getItem("mitra_nama_perusahaan") || ""
         : "";
 
-    // 2. Cek apakah session sedang login sebagai company yang statusnya pending
     const isPendingCompany =
       status === "authenticated" &&
       session?.user?.role?.toLowerCase() === "company" &&
@@ -47,11 +52,99 @@ export default function MitraMenungguPage() {
         setCompanyName(session.user.name);
       }
     } else if (status !== "loading") {
-      // Tidak terdaftar sebagai akun perusahaan yang pending -> tolak akses & arahkan ke halaman pendaftaran
       setIsAllowed(false);
       router.replace("/mitra/daftar");
     }
   }, [session, status, router]);
+
+  // 2. Pemantauan status real-time dari API
+  const pollVerificationStatus = useCallback(async () => {
+    if (typeof window === "undefined") return;
+
+    const targetUserId =
+      sessionStorage.getItem("mitra_user_id") ||
+      (() => {
+        try {
+          const raw = localStorage.getItem("kandaga_mitra_registration");
+          return raw ? JSON.parse(raw)?.userId : null;
+        } catch {
+          return null;
+        }
+      })() ||
+      session?.user?.id;
+
+    if (!targetUserId) return;
+
+    try {
+      setIsSyncing(true);
+      const res = await fetch(`/api/mitra/status?userId=${encodeURIComponent(targetUserId)}`, {
+        cache: "no-store",
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.registered) {
+          if (data.companyName) {
+            setCompanyName(data.companyName);
+          }
+          if (data.status) {
+            setLiveStatus(data.status);
+          }
+          if (data.catatanVerifikasi) {
+            setCatatanVerifikasi(data.catatanVerifikasi);
+          }
+
+          // Format jam pemeriksaan terakhir
+          const now = new Date();
+          setLastCheckedTime(
+            now.toLocaleTimeString("id-ID", {
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            })
+          );
+
+          // Jika status sudah berubah menjadi disetujui, bersihkan penanda pendaftaran lokal
+          if (data.status === "disetujui") {
+            try {
+              localStorage.removeItem("kandaga_mitra_registration");
+            } catch {
+              // ignore
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("Gagal polling status mitra:", err);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [session]);
+
+  useEffect(() => {
+    if (!isAllowed) return;
+
+    // Ambil status pertama kali
+    pollVerificationStatus();
+
+    // Polling periodik setiap 3 detik agar status berubah secara real-time
+    const interval = setInterval(pollVerificationStatus, 3000);
+
+    return () => clearInterval(interval);
+  }, [isAllowed, pollVerificationStatus]);
+
+  // Handler jika user ingin membatalkan/mendaftarkan akun baru
+  const handleResetRegistration = () => {
+    try {
+      localStorage.removeItem("kandaga_mitra_registration");
+      sessionStorage.removeItem("mitra_pendaftaran_berhasil");
+      sessionStorage.removeItem("mitra_user_id");
+      sessionStorage.removeItem("mitra_nama_perusahaan");
+    } catch {
+      // ignore
+    }
+    router.replace("/mitra/daftar");
+  };
 
   if (isAllowed !== true) {
     return (
@@ -113,7 +206,7 @@ export default function MitraMenungguPage() {
         
         {/* Left Column: Status Information */}
         <div className="w-full flex flex-col justify-between py-2 sm:py-4">
-          {/* Top Header: Back Link */}
+          {/* Top Header: Back Link & Real-time Indicator */}
           <div className="flex items-center justify-between mb-4">
             <Link
               href="/"
@@ -122,23 +215,98 @@ export default function MitraMenungguPage() {
             >
               <ArrowLeft className="w-4 h-4" />
             </Link>
+
+            {/* Real-time Badge */}
+            <div className="flex items-center gap-2">
+              {liveStatus === "pending" && (
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200/80 text-[11px] font-semibold text-amber-800 shadow-2xs">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                  <span>Sinkronisasi Real-Time</span>
+                  {lastCheckedTime && (
+                    <span className="text-[10px] text-amber-600 font-mono hidden sm:inline">
+                      ({lastCheckedTime})
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {liveStatus === "disetujui" && (
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-semibold text-emerald-800 shadow-2xs animate-in fade-in">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Resmi Disetujui BKK</span>
+                </div>
+              )}
+
+              {liveStatus === "ditolak" && (
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-[11px] font-semibold text-rose-800 shadow-2xs animate-in fade-in">
+                  <XCircle className="w-3.5 h-3.5 text-rose-600" />
+                  <span>Pengajuan Ditolak</span>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => pollVerificationStatus()}
+                title="Periksa status sekarang"
+                className="p-1 rounded-md text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition cursor-pointer"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin text-[#a61743]" : ""}`} />
+              </button>
+            </div>
           </div>
 
           {/* Content Heading */}
           <div className="w-full max-w-[440px] mx-auto">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">
-              Pendaftaran Berhasil!
-            </h1>
-            <p className="text-sm text-zinc-500 mt-2 mb-6 leading-relaxed">
-              Akun perusahaan {companyName ? <strong className="text-zinc-800 font-semibold">{companyName} </strong> : "Anda "}sudah dibuat dan sedang menunggu verifikasi dari{" "}
-              <strong className="text-zinc-800 font-semibold">Koordinator BKK SMKN 13 Bandung</strong>.
-            </p>
+            {liveStatus === "pending" && (
+              <>
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">
+                  Pendaftaran Berhasil!
+                </h1>
+                <p className="text-sm text-zinc-500 mt-2 mb-6 leading-relaxed">
+                  Akun perusahaan {companyName ? <strong className="text-zinc-800 font-semibold">{companyName} </strong> : "Anda "}sudah dibuat dan sedang menunggu verifikasi dari{" "}
+                  <strong className="text-zinc-800 font-semibold">Koordinator BKK SMKN 13 Bandung</strong>.
+                </p>
+              </>
+            )}
+
+            {liveStatus === "disetujui" && (
+              <>
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-emerald-700">
+                  Selamat, Akun Telah Disetujui!
+                </h1>
+                <p className="text-sm text-zinc-600 mt-2 mb-6 leading-relaxed">
+                  Koordinator BKK SMKN 13 Bandung telah memverifikasi profil kemitraan {companyName ? <strong className="text-zinc-800 font-semibold">{companyName}</strong> : "Anda"}. Akun Anda kini aktif penuh dan siap digunakan.
+                </p>
+              </>
+            )}
+
+            {liveStatus === "ditolak" && (
+              <>
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-rose-700">
+                  Pendaftaran Belum Disetujui
+                </h1>
+                <p className="text-sm text-zinc-600 mt-2 mb-4 leading-relaxed">
+                  Mohon maaf, pengajuan akun kemitraan perusahaan Anda tidak dapat disetujui oleh Koordinator BKK SMKN 13 Bandung.
+                </p>
+                {catatanVerifikasi && (
+                  <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 mb-6">
+                    <span className="font-bold block mb-1">Catatan Koordinator BKK:</span>
+                    <p className="leading-relaxed">{catatanVerifikasi}</p>
+                  </div>
+                )}
+              </>
+            )}
 
             {/* Stepper / Timeline Card */}
             <div className="bg-zinc-50/80 rounded-2xl border border-zinc-200/80 p-4 sm:p-5 mb-5 space-y-3.5">
-              <h2 className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
-                Langkah Selanjutnya
-              </h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+                  Progres Verifikasi Akun
+                </h2>
+                <span className="text-[11px] font-semibold text-zinc-400">
+                  {liveStatus === "disetujui" ? "4 dari 4 Selesai" : liveStatus === "ditolak" ? "Dihentikan" : "Tahap 2 dari 4"}
+                </span>
+              </div>
 
               <ol className="space-y-3">
                 {[
@@ -150,22 +318,33 @@ export default function MitraMenungguPage() {
                   },
                   {
                     no: "02",
-                    done: false,
-                    current: true,
+                    done: liveStatus === "disetujui",
+                    current: liveStatus === "pending",
+                    failed: liveStatus === "ditolak",
                     title: "Tinjauan Koordinator BKK",
-                    desc: "Tim BKK memeriksa kelengkapan data & profil industri (maks. 1×24 jam kerja).",
+                    desc: liveStatus === "disetujui"
+                      ? "Verifikasi profil & berkas kemitraan telah disetujui."
+                      : liveStatus === "ditolak"
+                      ? "Pengajuan ditolak oleh tim BKK."
+                      : "Tim BKK sedang memeriksa kelengkapan data & profil industri.",
                   },
                   {
                     no: "03",
-                    done: false,
+                    done: liveStatus === "disetujui",
+                    current: false,
                     title: "Notifikasi persetujuan",
-                    desc: "Anda akan menerima email konfirmasi begitu akun disetujui.",
+                    desc: liveStatus === "disetujui"
+                      ? "Akun Anda diaktifkan dan siap masuk ke galeri."
+                      : "Anda akan menerima konfirmasi begitu akun disetujui.",
                   },
                   {
                     no: "04",
-                    done: false,
+                    done: liveStatus === "disetujui",
+                    current: false,
                     title: "Akses katalog & talenta",
-                    desc: "Login dan mulai rekrut siswa magang PKL atau portofolio terverifikasi.",
+                    desc: liveStatus === "disetujui"
+                      ? "Akses penuh telah dibuka untuk eksplorasi karya siswa."
+                      : "Login dan mulai rekrut siswa magang PKL atau portofolio terverifikasi.",
                   },
                 ].map((s) => (
                   <li key={s.no} className="flex items-start gap-3 text-xs">
@@ -173,13 +352,17 @@ export default function MitraMenungguPage() {
                       className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
                         s.done
                           ? "bg-emerald-100 text-emerald-700"
+                          : s.failed
+                          ? "bg-rose-100 text-rose-700"
                           : s.current
-                          ? "bg-[#a61743] text-white shadow-2xs"
+                          ? "bg-[#a61743] text-white shadow-2xs animate-pulse"
                           : "bg-zinc-200 text-zinc-500"
                       }`}
                     >
                       {s.done ? (
                         <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
+                      ) : s.failed ? (
+                        <XCircle className="w-3.5 h-3.5" aria-hidden="true" />
                       ) : (
                         s.no
                       )}
@@ -189,6 +372,8 @@ export default function MitraMenungguPage() {
                         className={`font-semibold ${
                           s.done
                             ? "text-emerald-700"
+                            : s.failed
+                            ? "text-rose-700"
                             : s.current
                             ? "text-[#a61743]"
                             : "text-zinc-800"
@@ -226,25 +411,57 @@ export default function MitraMenungguPage() {
               </span>
             </div>
 
-            {/* Action Button */}
-            <div className="pt-1">
-              <Link
-                href="/"
-                className="w-full bg-[#242c4b] hover:bg-[#1a2038] text-white py-2.5 rounded-md text-xs font-semibold transition-colors duration-150 flex items-center justify-center shadow-xs text-center"
-              >
-                Kembali ke Beranda
-              </Link>
+            {/* Action Buttons Sesuai Status Real-Time */}
+            <div className="pt-1 space-y-2.5">
+              {liveStatus === "disetujui" ? (
+                <Link
+                  href="/auth/login"
+                  className="w-full bg-emerald-700 hover:bg-emerald-800 text-white py-3 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md flex items-center justify-center gap-2 text-center"
+                >
+                  <span>Masuk ke Akun Perusahaan Sekarang</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              ) : liveStatus === "ditolak" ? (
+                <button
+                  type="button"
+                  onClick={handleResetRegistration}
+                  className="w-full bg-[#a61743] hover:bg-[#8B1A2F] text-white py-2.5 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center shadow-xs cursor-pointer text-center"
+                >
+                  <span>Daftar Ulang Akun Mitra</span>
+                </button>
+              ) : (
+                <Link
+                  href="/"
+                  className="w-full bg-[#242c4b] hover:bg-[#1a2038] text-white py-2.5 rounded-xl text-xs font-semibold transition-colors duration-150 flex items-center justify-center shadow-xs text-center"
+                >
+                  Kembali ke Beranda
+                </Link>
+              )}
             </div>
 
-            {/* Link Coba Login */}
-            <div className="text-center text-xs text-zinc-500 mt-5">
-              Sudah diverifikasi?{" "}
-              <Link
-                href="/auth/login"
-                className="font-semibold text-[#a61743] underline underline-offset-2 hover:text-[#8B1A2F] transition"
-              >
-                Coba login
-              </Link>
+            {/* Link Tambahan: Coba Login & Reset */}
+            <div className="text-center text-xs text-zinc-500 mt-5 space-y-1.5">
+              {liveStatus !== "disetujui" && (
+                <div>
+                  Sudah diverifikasi?{" "}
+                  <Link
+                    href="/auth/login"
+                    className="font-semibold text-[#a61743] underline underline-offset-2 hover:text-[#8B1A2F] transition"
+                  >
+                    Coba login
+                  </Link>
+                </div>
+              )}
+
+              <div>
+                <button
+                  type="button"
+                  onClick={handleResetRegistration}
+                  className="text-[11px] text-zinc-400 hover:text-zinc-600 underline cursor-pointer"
+                >
+                  Ingin mendaftarkan akun perusahaan lain?
+                </button>
+              </div>
             </div>
           </div>
         </div>

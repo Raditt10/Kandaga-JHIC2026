@@ -442,23 +442,16 @@ export default function DashboardShell({
           </div>
         </div>
 
-        {/* Footer Sidebar / Copyright */}
-        <div className="pt-2 mt-auto shrink-0">
-          {!isSidebarCollapsed ? (
+        {/* Footer Sidebar / Copyright - hanya tampil saat sidebar terbuka */}
+        {!isSidebarCollapsed && (
+          <div className="pt-2 mt-auto shrink-0">
             <div className="px-2 text-[11px] text-ink-400 select-none">
               <p>
                 &copy; {new Date().getFullYear()} SMK Negeri 13 Bandung
               </p>
             </div>
-          ) : (
-            <div
-              className="text-center text-[10px] font-mono text-ink-400 select-none py-1"
-              title={`© ${new Date().getFullYear()} SMK Negeri 13 Bandung`}
-            >
-              &copy; {new Date().getFullYear()}
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </aside>
 
       {/* ──────────────── 2. AREA KONTEN ──────────────── */}
