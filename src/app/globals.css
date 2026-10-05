@@ -54,6 +54,17 @@ body {
   overflow-x: clip;
 }
 
+/* ── Lenis Smooth Scroll Optimization ── */
+html.lenis, html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
 /* ── Font utility classes ── */
 /* ── 3D utilities (untuk carousel/kartu) ── */
 .perspective-1000 {

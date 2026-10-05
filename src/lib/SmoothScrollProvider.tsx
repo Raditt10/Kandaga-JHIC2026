@@ -31,8 +31,11 @@ export default function SmoothScrollProvider({
     if (prefersReduced) return;
 
     const lenis = new Lenis({
-      duration: 1.0,
+      duration: 0.85,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      wheelMultiplier: 1.2,
+      touchMultiplier: 1.5,
+      smoothWheel: true,
     });
 
     // Expose lenis instance globally for smooth programmatic scroll navigation
