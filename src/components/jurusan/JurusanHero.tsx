@@ -8,7 +8,7 @@ import { JurusanDetail } from "@/data/jurusanData";
 
 /** Foto model per jurusan (rasio 2:3). TKJ menyusul. */
 const MODEL_BY_MAJOR: Record<string, string> = {
-  "analis-kimia": "/images/model-ka.webp",
+  "analis-kimia": "/images/model-ka1.webp",
   rpl: "/images/model-rpl.webp",
 };
 
