@@ -298,11 +298,7 @@ export default function ChatWidget() {
                     </span>
                   </div>
 
-                  {!isAssistant && (
-                    <div className="w-7 h-7 rounded-full bg-zinc-700 text-white flex items-center justify-center shrink-0 mt-0.5">
-                      <User className="w-3.5 h-3.5" />
-                    </div>
-                  )}
+
                 </div>
               )
             })}
