@@ -13,7 +13,7 @@
  * ditambah Trend Karya, BLUD, dan Pendaftaran Mitra.
  */
 
-import React from "react"
+import React, { createContext, useContext } from "react"
 import {
   Briefcase,
   FileCheck2,
@@ -28,11 +28,19 @@ import DashboardShell, {
   type ShellNavItem,
 } from "@/components/dashboard/DashboardShell"
 
+const AdminLayoutContext = createContext(false)
+
 export default function AdminLayout({
   children,
+  initialCollapsed,
 }: {
   children: React.ReactNode
+  initialCollapsed?: boolean
 }) {
+  const isNested = useContext(AdminLayoutContext)
+  if (isNested) {
+    return <>{children}</>
+  }
   const navItems: ShellNavItem[] = [
     {
       key: "dashboard",
@@ -89,14 +97,17 @@ export default function AdminLayout({
   ]
 
   return (
-    <DashboardShell
-      navItems={navItems}
-      settingsItems={settingsItems}
-      profileHref="/admin/pengaturan?tab=akun"
-      roleLabel="Administrator"
-      searchPlaceholder="Cari karya siswa, pengguna, atau audit log..."
-    >
-      {children}
-    </DashboardShell>
+    <AdminLayoutContext.Provider value={true}>
+      <DashboardShell
+        initialCollapsed={initialCollapsed}
+        navItems={navItems}
+        settingsItems={settingsItems}
+        profileHref="/admin/pengaturan?tab=akun"
+        roleLabel="Administrator"
+        searchPlaceholder="Cari karya siswa, pengguna, atau audit log..."
+      >
+        {children}
+      </DashboardShell>
+    </AdminLayoutContext.Provider>
   )
 }

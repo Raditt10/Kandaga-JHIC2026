@@ -89,6 +89,8 @@ interface DashboardShellProps {
    * Dipakai supaya setiap role punya entri pengaturan yang seragam.
    */
   settingsItems?: ShellNavItem[]
+  /** Status awal sidebar terlipat (opsional, dari server cookie). */
+  initialCollapsed?: boolean
   signOutCallbackUrl?: string
   /** Bila diisi, tampilkan breadcrumb di atas konten. */
   pageTitle?: string
@@ -143,6 +145,7 @@ function writeSidebarCollapsedPreference(val: boolean) {
 }
 
 export default function DashboardShell({
+  initialCollapsed,
   navItems,
   roleLabel,
   navSectionLabel = "OVERVIEW",
@@ -160,24 +163,29 @@ export default function DashboardShell({
   const pathname = usePathname()
   const router = useRouter()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    if (typeof initialCollapsed === "boolean") {
+      globalSidebarCollapsed = initialCollapsed
+      return initialCollapsed
+    }
     return readSidebarCollapsedPreference()
   })
 
   // Sinkronisasi preferensi jika ada pembaruan di client/storage
   useEffect(() => {
     const pref = readSidebarCollapsedPreference()
-    if (pref !== isSidebarCollapsed) {
+    if (typeof initialCollapsed !== "boolean" && pref !== isSidebarCollapsed) {
       setIsSidebarCollapsed(pref)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Selalu persist ke localStorage & cookie bila state berubah
+  useEffect(() => {
+    writeSidebarCollapsedPreference(isSidebarCollapsed)
+  }, [isSidebarCollapsed])
+
   const toggleSidebar = () => {
-    setIsSidebarCollapsed((prev) => {
-      const next = !prev
-      writeSidebarCollapsedPreference(next)
-      return next
-    })
+    setIsSidebarCollapsed((prev) => !prev)
   }
 
   const [searchQuery, setSearchQuery] = useState("")
