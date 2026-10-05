@@ -226,7 +226,7 @@ export default function RegisterPage() {
                     tabIndex={-1}
                     aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? <EyeOff className="w-4 h-4 no-maroon" /> : <Eye className="w-4 h-4 no-maroon" />}
                   </button>
                 </div>
               </div>

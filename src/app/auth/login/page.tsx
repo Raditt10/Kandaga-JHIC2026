@@ -227,7 +227,7 @@ function LoginFormContent() {
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition cursor-pointer"
                     tabIndex={-1}
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? <EyeOff className="w-4 h-4 no-maroon" /> : <Eye className="w-4 h-4 no-maroon" />}
                   </button>
                 </div>
               </div>

@@ -282,7 +282,7 @@ export default function DaftarMitraPage() {
                       className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition cursor-pointer"
                       tabIndex={-1}
                     >
-                      {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showPass ? <EyeOff className="w-4 h-4 no-maroon" /> : <Eye className="w-4 h-4 no-maroon" />}
                     </button>
                   </div>
                 </div>
@@ -306,7 +306,7 @@ export default function DaftarMitraPage() {
                       className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition cursor-pointer"
                       tabIndex={-1}
                     >
-                      {showConfirmPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showConfirmPass ? <EyeOff className="w-4 h-4 no-maroon" /> : <Eye className="w-4 h-4 no-maroon" />}
                     </button>
                   </div>
                 </div>
