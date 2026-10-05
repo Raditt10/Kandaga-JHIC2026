@@ -15,6 +15,7 @@
  */
 
 import React from "react"
+import { Settings } from "lucide-react"
 import DashboardShell, {
   type ShellNavItem,
 } from "@/components/dashboard/DashboardShell"
@@ -63,6 +64,23 @@ export default function DashboardLayout({
     onSelect: () => onTabChange?.(tab.id),
   }))
 
+  const profileTab = tabs.find((t) => t.id === "profil")
+  const onProfileSelect =
+    profileTab && onTabChange ? () => onTabChange(profileTab.id) : undefined
+
+  const settingsTab = tabs.find((t) => t.id === "pengaturan")
+  const settingsItems: ShellNavItem[] = settingsTab
+    ? [
+        {
+          key: "pengaturan",
+          label: settingsTab.label || "Pengaturan",
+          icon: settingsTab.icon || Settings,
+          active: activeTab === "pengaturan",
+          onSelect: () => onTabChange?.("pengaturan"),
+        },
+      ]
+    : []
+
   const searchPlaceholder =
     roleSlug === "teacher"
       ? "Cari karya, siswa bimbingan, atau riwayat kurasi..."
@@ -71,6 +89,9 @@ export default function DashboardLayout({
   return (
     <DashboardShell
       navItems={navItems}
+      settingsItems={settingsItems}
+      onProfileSelect={onProfileSelect}
+      profileHref={`/${roleSlug}`}
       roleLabel={roleTitle}
       roleIcon={icon}
       roleAccent={badgeColor}

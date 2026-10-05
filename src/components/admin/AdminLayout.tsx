@@ -83,7 +83,7 @@ export default function AdminLayout({
     {
       key: "pengaturan",
       label: "Pengaturan",
-      href: "/admin/pengaturan",
+      href: "/admin/pengaturan?tab=sistem",
       icon: Settings,
     },
   ]
@@ -92,6 +92,7 @@ export default function AdminLayout({
     <DashboardShell
       navItems={navItems}
       settingsItems={settingsItems}
+      profileHref="/admin/pengaturan?tab=akun"
       roleLabel="Administrator"
       searchPlaceholder="Cari karya siswa, pengguna, atau audit log..."
     >

@@ -1,22 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
-import Link from "next/link"
-import {
-  Landmark,
-  Briefcase,
-  Layers,
-  Building2,
-  DollarSign,
-  Users,
-  CheckCircle2,
-  Clock,
-  ArrowUpRight,
-  Plus,
-  Search,
-  Filter,
-  FileCheck2,
-} from "lucide-react"
+import { Landmark, Plus, Search } from "lucide-react"
 import AdminLayout from "@/components/admin/AdminLayout"
 
 interface BludContract {
@@ -145,44 +130,6 @@ export default function AdminBludPage() {
           </div>
         </div>
 
-        {/* 4 Metric Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-2xl bg-white border border-ink-150 shadow-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] text-ink-300 font-medium">Kontrak Aktif</span>
-              <FileCheck2 className="w-4 h-4 text-emerald-600" />
-            </div>
-            <span className="text-2xl font-extrabold text-ink block mt-2">12 Proyek</span>
-            <span className="text-[11px] text-emerald-600 font-bold block mt-1">Sedang dikerjakan</span>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-white border border-ink-150 shadow-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] text-ink-300 font-medium">Pendapatan BLUD 2026</span>
-              <DollarSign className="w-4 h-4 text-amber-500" />
-            </div>
-            <span className="text-2xl font-extrabold text-ink block mt-2">Rp 148,5 Jt</span>
-            <span className="text-[11px] text-emerald-600 font-bold block mt-1">+18.2% vs 2025</span>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-white border border-ink-150 shadow-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] text-ink-300 font-medium">Siswa Terlibat TEFA</span>
-              <Users className="w-4 h-4 text-indigo-500" />
-            </div>
-            <span className="text-2xl font-extrabold text-ink block mt-2">45 Siswa</span>
-            <span className="text-[11px] text-ink-600 block mt-1">Mendapat honor jasa</span>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-white border border-ink-150 shadow-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] text-ink-300 font-medium">Mitra Industri Klien</span>
-              <Building2 className="w-4 h-4 text-blue-500" />
-            </div>
-            <span className="text-2xl font-extrabold text-ink block mt-2">18 Perusahaan</span>
-            <span className="text-[11px] text-ink-600 block mt-1">Klien repeat order</span>
-          </div>
-        </div>
 
         {/* Section: Layanan Komersial BLUD */}
         <div className="space-y-3">

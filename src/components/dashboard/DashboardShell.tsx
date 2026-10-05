@@ -78,11 +78,15 @@ interface DashboardShellProps {
   /** Judul grup menu di sidebar. */
   navSectionLabel?: string
   searchPlaceholder?: string
-  /** Label menu kanan bawah; default "Lihat Website". */
+  /** URL tujuan menu Profil Saya di header dropdown. */
+  profileHref?: string
+  /** Callback opsional jika Profil Saya berbasis tab halaman. */
+  onProfileSelect?: () => void
+  /** Label menu pengaturan tambahan (opsional). */
   settingsLabel?: string
   /**
-   * Menu tambahan di blok SETTINGS, dirender di atas "Lihat Website".
-   * Dipakai supaya setiap role punya entri "Pengaturan" yang seragam.
+   * Menu tambahan di blok dropdown profil (mis. "Pengaturan").
+   * Dipakai supaya setiap role punya entri pengaturan yang seragam.
    */
   settingsItems?: ShellNavItem[]
   signOutCallbackUrl?: string
@@ -108,6 +112,8 @@ export default function DashboardShell({
   roleLabel,
   navSectionLabel = "OVERVIEW",
   searchPlaceholder = "Cari...",
+  profileHref,
+  onProfileSelect,
   settingsLabel = "Lihat Website",
   settingsItems = [],
   signOutCallbackUrl = "/auth/login",
@@ -120,6 +126,19 @@ export default function DashboardShell({
   const router = useRouter()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+
+  const userRole = session?.user?.role?.toLowerCase()
+  const computedProfileHref =
+    profileHref ||
+    (userRole === "student"
+      ? "/student"
+      : userRole === "company"
+      ? "/company/profil"
+      : userRole === "teacher"
+      ? "/teacher"
+      : userRole === "bkk"
+      ? "/bkk/pengaturan"
+      : "/admin/pengaturan?tab=akun")
 
   // ── Notifikasi nyata dari database (sebelumnya lonceng hanya hiasan) ──
   const [notifOpen, setNotifOpen] = useState(false)
@@ -489,8 +508,41 @@ export default function DashboardShell({
                     </div>
                   </div>
 
-                  {/* Navigasi Settings & Website */}
+                  {/* Navigasi Profil & Pengaturan */}
                   <div className="space-y-0.5 py-1">
+                    {/* Profil Saya */}
+                    {onProfileSelect ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUserMenuOpen(false)
+                          onProfileSelect()
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-ink-700 hover:bg-ink-100 hover:text-ink transition cursor-pointer text-left"
+                      >
+                        <User className="w-4 h-4 text-ink-500" />
+                        <span>Profil Saya</span>
+                      </button>
+                    ) : (
+                      <Link
+                        href={computedProfileHref}
+                        onClick={() => setUserMenuOpen(false)}
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                          pathname === computedProfileHref
+                            ? "bg-primary/10 text-primary font-bold"
+                            : "text-ink-700 hover:bg-ink-100 hover:text-ink"
+                        }`}
+                      >
+                        <User
+                          className={`w-4 h-4 ${
+                            pathname === computedProfileHref ? "text-primary" : "text-ink-500"
+                          }`}
+                        />
+                        <span>Profil Saya</span>
+                      </Link>
+                    )}
+
+                    {/* Menu Pengaturan Tambahan */}
                     {settingsItems.map((item) => {
                       const Icon = item.icon
                       const active =
@@ -499,6 +551,27 @@ export default function DashboardShell({
                           ? pathname === item.href ||
                             (!item.exact && pathname.startsWith(`${item.href}/`))
                           : false)
+
+                      if (item.onSelect) {
+                        return (
+                          <button
+                            key={item.key}
+                            type="button"
+                            onClick={() => {
+                              setUserMenuOpen(false)
+                              item.onSelect?.()
+                            }}
+                            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition cursor-pointer text-left ${
+                              active
+                                ? "bg-primary/10 text-primary font-bold"
+                                : "text-ink-700 hover:bg-ink-100 hover:text-ink"
+                            }`}
+                          >
+                            <Icon className={`w-4 h-4 ${active ? "text-primary" : "text-ink-500"}`} />
+                            <span>{item.label}</span>
+                          </button>
+                        )
+                      }
 
                       return (
                         <Link
@@ -516,15 +589,6 @@ export default function DashboardShell({
                         </Link>
                       )
                     })}
-
-                    <Link
-                      href="/"
-                      onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-ink-700 hover:bg-ink-100 hover:text-ink transition"
-                    >
-                      <ExternalLink className="w-4 h-4 text-ink-500" />
-                      <span>{settingsLabel}</span>
-                    </Link>
                   </div>
 
                   {/* Garis Pemisah */}

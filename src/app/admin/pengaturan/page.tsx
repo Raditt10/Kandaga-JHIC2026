@@ -1,10 +1,31 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { Suspense, useEffect, useState } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import AdminLayout from "@/components/admin/AdminLayout"
-import { Settings, Shield, Bell, Globe, Save, Check } from "lucide-react"
+import AccountSettings from "@/components/settings/AccountSettings"
+import { Settings, Shield, Bell, Globe, Save, Check, User } from "lucide-react"
 
-export default function AdminPengaturanPage() {
+function AdminPengaturanContent() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const tabParam = searchParams.get("tab")
+  const [activeTab, setActiveTab] = useState<"akun" | "sistem">(
+    tabParam === "akun" ? "akun" : "sistem"
+  )
+
+  useEffect(() => {
+    const tab = searchParams.get("tab")
+    if (tab === "akun" || tab === "sistem") {
+      setActiveTab(tab)
+    }
+  }, [searchParams])
+
+  const handleTabChange = (tab: "akun" | "sistem") => {
+    setActiveTab(tab)
+    router.replace(`/admin/pengaturan?tab=${tab}`)
+  }
+
   const [siteName, setSiteName] = useState("Kandaga — Galeri Digital SMKN 13 Bandung")
   const [siteDescription, setSiteDescription] = useState(
     "Etalase digital karya terbaik siswa SMKN 13 Bandung — terverifikasi sekolah, terbuka untuk industri."
@@ -21,27 +42,58 @@ export default function AdminPengaturanPage() {
   }
 
   return (
-    <AdminLayout>
-      <div className="space-y-6 max-w-4xl animate-in fade-in duration-200">
-        {/* Header */}
-        <div className="p-5 rounded-2xl bg-white border border-ink-150 shadow-xs flex items-center justify-between">
-          <div>
-            <h1 className="font-heading text-lg font-bold text-ink flex items-center gap-2">
-              <Settings className="w-5 h-5 text-primary" />
-              Pengaturan Sistem
-            </h1>
-            <p className="text-xs text-ink-600 mt-0.5">
-              Konfigurasi umum aplikasi, kebijakan moderasi, dan preferensi notifikasi admin.
-            </p>
-          </div>
+    <div className="space-y-6 max-w-4xl animate-in fade-in duration-200">
+      {/* Tab Switcher */}
+      <div className="inline-flex p-1 bg-ink-100 rounded-2xl border border-ink-150 gap-1">
+        <button
+          type="button"
+          onClick={() => handleTabChange("akun")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+            activeTab === "akun"
+              ? "bg-white text-ink shadow-xs"
+              : "text-ink-600 hover:text-ink hover:bg-white/50"
+          }`}
+        >
+          <User className="w-4 h-4 text-primary" />
+          Profil & Akun Saya
+        </button>
+        <button
+          type="button"
+          onClick={() => handleTabChange("sistem")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+            activeTab === "sistem"
+              ? "bg-white text-ink shadow-xs"
+              : "text-ink-600 hover:text-ink hover:bg-white/50"
+          }`}
+        >
+          <Settings className="w-4 h-4 text-primary" />
+          Pengaturan Sistem
+        </button>
+      </div>
 
-          {isSaved && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold animate-in fade-in">
-              <Check className="w-3.5 h-3.5" />
-              Tersimpan
+      {activeTab === "akun" ? (
+        <AccountSettings />
+      ) : (
+        <>
+          {/* Header */}
+          <div className="p-5 rounded-2xl bg-white border border-ink-150 shadow-xs flex items-center justify-between">
+            <div>
+              <h1 className="font-heading text-lg font-bold text-ink flex items-center gap-2">
+                <Settings className="w-5 h-5 text-primary" />
+                Pengaturan Sistem
+              </h1>
+              <p className="text-xs text-ink-600 mt-0.5">
+                Konfigurasi umum aplikasi, kebijakan moderasi, dan preferensi notifikasi admin.
+              </p>
             </div>
-          )}
-        </div>
+
+            {isSaved && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold animate-in fade-in">
+                <Check className="w-3.5 h-3.5" />
+                Tersimpan
+              </div>
+            )}
+          </div>
 
         <form onSubmit={handleSave} className="space-y-6">
           {/* General Site Config */}
@@ -160,7 +212,18 @@ export default function AdminPengaturanPage() {
             </button>
           </div>
         </form>
-      </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+export default function AdminPengaturanPage() {
+  return (
+    <AdminLayout>
+      <Suspense fallback={<div className="p-6 text-xs text-ink-500">Memuat pengaturan...</div>}>
+        <AdminPengaturanContent />
+      </Suspense>
     </AdminLayout>
   )
 }
