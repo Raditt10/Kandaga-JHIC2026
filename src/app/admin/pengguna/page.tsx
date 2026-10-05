@@ -17,6 +17,7 @@ import {
   Loader2,
   UserX,
   RefreshCw,
+  GraduationCap,
 } from "lucide-react"
 import AdminLayout from "@/components/admin/AdminLayout"
 
@@ -30,6 +31,7 @@ type ApiUser = {
   roleLabel: string
   status: string
   createdAt: string
+  majorId: string | null
   major: string | null
   majorFullName: string | null
   nis: string | null
@@ -42,6 +44,12 @@ type ApiUser = {
   verifiedAt: string | null
 }
 
+export type MajorOption = {
+  id: string
+  name: string
+  fullName: string
+}
+
 type ApiResponse = {
   items: ApiUser[]
   total: number
@@ -49,6 +57,7 @@ type ApiResponse = {
   pageSize: number
   totalPages: number
   counts: Record<string, number>
+  majors?: MajorOption[]
 }
 
 // ─── Konstanta tampilan ──────────────────────────────────────────────────────
@@ -77,6 +86,7 @@ export default function AdminPenggunaPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
+  const [majorsList, setMajorsList] = useState<MajorOption[]>([])
 
   // ── Filters & Pagination ───────────────────────────────────────────────────
   const [search, setSearch] = useState("")
@@ -89,6 +99,8 @@ export default function AdminPenggunaPage() {
   const [editingUser, setEditingUser] = useState<ApiUser | null>(null)
   const [formRole, setFormRole] = useState("")
   const [formStatus, setFormStatus] = useState("")
+  const [formMajorId, setFormMajorId] = useState("")
+  const [formNip, setFormNip] = useState("")
   const [isSaving, setIsSaving] = useState(false)
   const [editError, setEditError] = useState("")
 
@@ -136,6 +148,9 @@ export default function AdminPenggunaPage() {
       setTotal(data.total)
       setTotalPages(data.totalPages)
       setCounts(data.counts)
+      if (data.majors && data.majors.length > 0) {
+        setMajorsList(data.majors)
+      }
     } catch (err) {
       setFetchError(err instanceof Error ? err.message : "Gagal memuat data pengguna.")
     } finally {
@@ -146,6 +161,18 @@ export default function AdminPenggunaPage() {
   useEffect(() => {
     fetchUsers()
   }, [fetchUsers])
+
+  // Fetch daftar jurusan jika belum tersedia
+  useEffect(() => {
+    fetch("/api/majors")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setMajorsList(data)
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   // Reset page when filter changes
   useEffect(() => {
@@ -169,6 +196,16 @@ export default function AdminPenggunaPage() {
     setEditingUser(user)
     setFormRole(user.role)
     setFormStatus(user.status)
+    setFormNip(user.nip || "")
+
+    // Pre-select major jika user sudah memiliki jurusan
+    const matched = majorsList.find(
+      (m) =>
+        m.id === user.majorId ||
+        m.name.toLowerCase() === user.major?.toLowerCase() ||
+        m.fullName.toLowerCase() === user.majorFullName?.toLowerCase()
+    )
+    setFormMajorId(matched?.id || user.majorId || (majorsList[0]?.id ?? ""))
     setEditError("")
     setIsEditModalOpen(true)
   }
@@ -176,6 +213,8 @@ export default function AdminPenggunaPage() {
   const handleCloseEdit = () => {
     setIsEditModalOpen(false)
     setEditingUser(null)
+    setFormMajorId("")
+    setFormNip("")
     setEditError("")
   }
 
@@ -183,9 +222,21 @@ export default function AdminPenggunaPage() {
     e.preventDefault()
     if (!editingUser) return
 
+    // Validasi jurusan jika role teacher atau student
+    if ((formRole === "teacher" || formRole === "student") && !formMajorId) {
+      setEditError("Silakan pilih jurusan terlebih dahulu.")
+      return
+    }
+
     const changes: Record<string, string> = {}
     if (formRole !== editingUser.role) changes.role = formRole
     if (formStatus !== editingUser.status) changes.status = formStatus
+    if ((formRole === "teacher" || formRole === "student") && formMajorId) {
+      changes.majorId = formMajorId
+    }
+    if (formRole === "teacher" && formNip !== (editingUser.nip || "")) {
+      changes.nip = formNip
+    }
 
     if (Object.keys(changes).length === 0) {
       handleCloseEdit()
@@ -589,15 +640,55 @@ export default function AdminPenggunaPage() {
                       <option value="admin">Admin (Administrator)</option>
                     </select>
                   </div>
-                  {(formRole === "student" || formRole === "teacher") &&
-                    formRole !== editingUser.role && (
-                      <p className="mt-1.5 text-[10px] text-amber-600 flex items-center gap-1">
-                        <AlertTriangle className="w-3 h-3 shrink-0" />
-                        Mengubah ke role ini membutuhkan data profil tambahan (jurusan, NIS, dll).
-                        Perlu diatur langsung dari panel siswa/guru.
-                      </p>
-                    )}
                 </div>
+
+                {/* Section Jurusan (Wajib jika Guru atau Siswa) */}
+                {(formRole === "teacher" || formRole === "student") && (
+                  <div className="p-3.5 rounded-xl bg-ink-100/60 border border-ink-150 space-y-3 animate-in fade-in duration-150">
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-bold text-ink-700 flex items-center gap-1.5">
+                          <GraduationCap className="w-3.5 h-3.5 text-primary" />
+                          <span>Bidang / Jurusan SMKN 13</span>
+                        </label>
+                        <span className="text-[10px] text-primary font-bold">*Wajib</span>
+                      </div>
+                      <select
+                        value={formMajorId}
+                        onChange={(e) => setFormMajorId(e.target.value)}
+                        required
+                        className="w-full px-3 py-2 rounded-lg border border-ink-150 text-xs text-ink bg-white focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary transition cursor-pointer"
+                      >
+                        <option value="" disabled>-- Pilih Jurusan SMKN 13 --</option>
+                        {majorsList.map((m) => (
+                          <option key={m.id} value={m.id}>
+                            {m.name} — {m.fullName}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="mt-1 text-[10px] text-ink-300">
+                        {formRole === "teacher"
+                          ? "Guru akan memiliki wewenang kurasi & verifikasi karya pada jurusan ini."
+                          : "Siswa akan terdaftar dan dikelompokkan portofolionya pada jurusan ini."}
+                      </p>
+                    </div>
+
+                    {formRole === "teacher" && (
+                      <div>
+                        <label className="block text-xs font-bold text-ink-700 mb-1">
+                          NIP Guru <span className="text-[10px] text-ink-300 font-normal">(Opsional)</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Contoh: 198203152010011002"
+                          value={formNip}
+                          onChange={(e) => setFormNip(e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-ink-150 text-xs text-ink bg-white focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary transition"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Status */}
                 <div>

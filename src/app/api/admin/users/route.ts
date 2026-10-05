@@ -31,10 +31,10 @@ const USER_SELECT = {
   status: true,
   createdAt: true,
   studentProfile: {
-    select: { nis: true, class: true, generation: true, major: { select: { name: true, fullName: true } } },
+    select: { majorId: true, nis: true, class: true, generation: true, major: { select: { id: true, name: true, fullName: true } } },
   },
   teacherProfile: {
-    select: { nip: true, major: { select: { name: true, fullName: true } } },
+    select: { majorId: true, nip: true, major: { select: { id: true, name: true, fullName: true } } },
   },
   companyProfile: {
     select: { name: true, field: true, verificationStatus: true, verifiedAt: true },
@@ -53,6 +53,7 @@ function mapUser(u: UserRow) {
     roleLabel: String(u.role),
     status: u.status,
     createdAt: u.createdAt.toISOString(),
+    majorId: u.studentProfile?.majorId ?? u.teacherProfile?.majorId ?? null,
     major: u.studentProfile?.major?.name ?? u.teacherProfile?.major?.name ?? null,
     majorFullName: u.studentProfile?.major?.fullName ?? u.teacherProfile?.major?.fullName ?? null,
     nis: u.studentProfile?.nis ?? null,
@@ -94,7 +95,7 @@ export async function GET(req: NextRequest) {
       ]
     }
 
-    const [rows, total, byRole] = await Promise.all([
+    const [rows, total, byRole, majors] = await Promise.all([
       prisma.users.findMany({
         where,
         select: USER_SELECT,
@@ -104,6 +105,10 @@ export async function GET(req: NextRequest) {
       }),
       prisma.users.count({ where }),
       prisma.users.groupBy({ by: ["role"], _count: { _all: true } }),
+      prisma.major.findMany({
+        select: { id: true, name: true, fullName: true },
+        orderBy: { name: "asc" },
+      }),
     ])
 
     const counts: Record<string, number> = { all: 0, student: 0, teacher: 0, company: 0, bkk: 0, admin: 0 }
@@ -120,6 +125,7 @@ export async function GET(req: NextRequest) {
       pageSize,
       totalPages: Math.max(1, Math.ceil(total / pageSize)),
       counts,
+      majors,
     })
   } catch (error) {
     console.error("Error in GET /api/admin/users:", error)

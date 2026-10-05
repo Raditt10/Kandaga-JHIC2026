@@ -58,8 +58,8 @@ export async function PATCH(
         name: true,
         role: true,
         status: true,
-        studentProfile: { select: { userId: true } },
-        teacherProfile: { select: { userId: true } },
+        studentProfile: { select: { userId: true, majorId: true } },
+        teacherProfile: { select: { userId: true, majorId: true } },
         companyProfile: { select: { userId: true } },
       },
     })
@@ -101,32 +101,25 @@ export async function PATCH(
       if (roleKey !== currentKey) {
         // Peran yang butuh profil tambahan: pastikan datanya lengkap.
         if (roleKey === "student" && !target.studentProfile) {
-          const majorId = typeof body.majorId === "string" ? body.majorId.trim() : ""
-          const nis = typeof body.nis === "string" ? body.nis.trim() : ""
-          const kelas = typeof body.kelas === "string" ? body.kelas.trim() : ""
-          const generation = Number(body.generation)
-          const kurang = [
-            !majorId && "majorId (jurusan)",
-            !nis && "nis",
-            !kelas && "kelas",
-            !Number.isInteger(generation) && "generation (angkatan)",
-          ].filter(Boolean)
-          if (kurang.length) {
+          const majorId =
+            typeof body.majorId === "string" && body.majorId.trim()
+              ? body.majorId.trim()
+              : target.teacherProfile?.majorId || ""
+          if (!majorId) {
             return NextResponse.json(
-              {
-                error: `Untuk menjadikan pengguna ini Siswa, data berikut wajib dikirim: ${kurang.join(
-                  ", "
-                )}.`,
-              },
+              { error: "Untuk menjadikan pengguna ini Siswa, data jurusan wajib dipilih." },
               { status: 400 }
             )
           }
         }
         if (roleKey === "teacher" && !target.teacherProfile) {
-          const majorId = typeof body.majorId === "string" ? body.majorId.trim() : ""
+          const majorId =
+            typeof body.majorId === "string" && body.majorId.trim()
+              ? body.majorId.trim()
+              : target.studentProfile?.majorId || ""
           if (!majorId) {
             return NextResponse.json(
-              { error: "Untuk menjadikan pengguna ini Guru, data majorId (jurusan) wajib dikirim." },
+              { error: "Untuk menjadikan pengguna ini Guru, data jurusan (majorId) wajib dipilih." },
               { status: 400 }
             )
           }
@@ -158,7 +151,10 @@ export async function PATCH(
       changes.verificationStatus = verificationStatus
     }
 
-    if (Object.keys(data).length === 0 && !verificationStatus) {
+    const inputMajorId = typeof body.majorId === "string" ? body.majorId.trim() : ""
+    const inputNip = typeof body.nip === "string" ? body.nip.trim() : ""
+
+    if (Object.keys(data).length === 0 && !verificationStatus && !inputMajorId) {
       return NextResponse.json({ error: "Tidak ada perubahan yang dikirim." }, { status: 400 })
     }
 
@@ -166,25 +162,70 @@ export async function PATCH(
       // Buat profil yang dibutuhkan lebih dulu, supaya peran baru tidak pernah
       // berdiri tanpa profil.
       const roleKey = typeof changes.role === "string" ? (changes.role as RoleKey) : null
-      if (roleKey === "student" && !target.studentProfile) {
-        await tx.student.create({
-          data: {
-            userId: id,
-            majorId: String(body.majorId).trim(),
-            nis: String(body.nis).trim(),
-            class: String(body.kelas).trim(),
-            generation: Number(body.generation),
-          },
-        })
+      const effectiveMajorId =
+        inputMajorId ||
+        target.studentProfile?.majorId ||
+        target.teacherProfile?.majorId ||
+        ""
+
+      if (roleKey === "student") {
+        if (!target.studentProfile && effectiveMajorId) {
+          const nis = typeof body.nis === "string" && body.nis.trim() ? body.nis.trim() : `13-${Date.now().toString().slice(-6)}`
+          const kelas = typeof body.kelas === "string" && body.kelas.trim() ? body.kelas.trim() : "X"
+          const generation = Number(body.generation) || new Date().getFullYear()
+          await tx.student.create({
+            data: {
+              userId: id,
+              majorId: effectiveMajorId,
+              nis,
+              class: kelas,
+              generation,
+            },
+          })
+        } else if (target.studentProfile && effectiveMajorId) {
+          await tx.student.update({
+            where: { userId: id },
+            data: { majorId: effectiveMajorId },
+          })
+        }
       }
-      if (roleKey === "teacher" && !target.teacherProfile) {
-        await tx.teacher.create({
-          data: {
-            userId: id,
-            majorId: String(body.majorId).trim(),
-            nip: typeof body.nip === "string" && body.nip.trim() ? body.nip.trim() : null,
-          },
-        })
+
+      if (roleKey === "teacher") {
+        if (!target.teacherProfile && effectiveMajorId) {
+          await tx.teacher.create({
+            data: {
+              userId: id,
+              majorId: effectiveMajorId,
+              nip: inputNip || null,
+            },
+          })
+        } else if (target.teacherProfile) {
+          await tx.teacher.update({
+            where: { userId: id },
+            data: {
+              ...(effectiveMajorId ? { majorId: effectiveMajorId } : {}),
+              ...(inputNip ? { nip: inputNip } : {}),
+            },
+          })
+        }
+      }
+
+      // Jika role tidak berubah tetapi admin mengubah jurusan pada guru/siswa
+      if (!roleKey && effectiveMajorId) {
+        if (target.teacherProfile) {
+          await tx.teacher.update({
+            where: { userId: id },
+            data: {
+              majorId: effectiveMajorId,
+              ...(inputNip ? { nip: inputNip } : {}),
+            },
+          })
+        } else if (target.studentProfile) {
+          await tx.student.update({
+            where: { userId: id },
+            data: { majorId: effectiveMajorId },
+          })
+        }
       }
 
       if (Object.keys(data).length > 0) {
