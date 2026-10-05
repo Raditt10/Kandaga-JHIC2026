@@ -254,7 +254,7 @@ export default function RegisterPage() {
                   href="/auth/login"
                   className="font-semibold text-[#a61743] underline underline-offset-2 hover:text-[#8B1A2F] transition"
                 >
-                  Masuk ke portal
+                  Coba login
                 </Link>
               </p>
             </div>
