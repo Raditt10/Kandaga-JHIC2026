@@ -195,7 +195,7 @@ export default function RiwayatPage() {
   }, {});
 
   return (
-    <CompanyLayout pageTitle="Riwayat Permintaan">
+    <CompanyLayout>
 
       {/* Header */}
       <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
@@ -249,16 +249,14 @@ export default function RiwayatPage() {
           <Loader2 className="w-8 h-8 text-ink-300 animate-spin" aria-hidden="true" />
         </div>
       ) : items.length === 0 ? (
-        <div className="bg-white rounded-3xl border border-ink-150 p-6 shadow-xs max-w-lg mx-auto">
-          <EmptyState
-            title="Belum Ada Permintaan"
-            description="Jelajahi katalog karya siswa dan ajukan minat rekrutmen atau magang pertama Anda."
-            action={{
-              label: "Jelajahi Katalog",
-              href: "/company/katalog",
-            }}
-          />
-        </div>
+        <EmptyState
+          title="Belum Ada Permintaan"
+          description="Jelajahi katalog karya siswa dan ajukan minat rekrutmen atau magang pertama Anda."
+          action={{
+            label: "Jelajahi Katalog",
+            href: "/company/katalog",
+          }}
+        />
       ) : (
         <div className="space-y-4">
           {items.map((item) => (

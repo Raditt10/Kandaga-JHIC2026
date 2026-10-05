@@ -13,7 +13,7 @@ import AccountSettings from "@/components/settings/AccountSettings"
 
 export default function CompanyPengaturanPage() {
   return (
-    <CompanyLayout pageTitle="Pengaturan">
+    <CompanyLayout>
       <AccountSettings />
     </CompanyLayout>
   )

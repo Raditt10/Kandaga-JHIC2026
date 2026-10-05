@@ -442,7 +442,26 @@ export default function DashboardShell({
           </div>
         </div>
 
-
+        {/* Footer Sidebar / Copyright */}
+        <div className="pt-4 border-t border-ink-150 mt-auto shrink-0">
+          {!isSidebarCollapsed ? (
+            <div className="px-2 text-[11px] text-ink-600 leading-normal select-none">
+              <p className="font-bold text-ink">
+                Kandaga &bull; Portofolio Siswa
+              </p>
+              <p className="text-[10px] text-ink-400 mt-0.5">
+                &copy; {new Date().getFullYear()} SMK Negeri 13 Bandung
+              </p>
+            </div>
+          ) : (
+            <div
+              className="text-center text-[10px] font-mono text-ink-400 select-none py-1"
+              title={`Kandaga © ${new Date().getFullYear()} SMK Negeri 13 Bandung`}
+            >
+              &copy; {new Date().getFullYear()}
+            </div>
+          )}
+        </div>
       </aside>
 
       {/* ──────────────── 2. AREA KONTEN ──────────────── */}

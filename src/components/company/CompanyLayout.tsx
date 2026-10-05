@@ -75,7 +75,6 @@ interface CompanyLayoutProps {
 
 export default function CompanyLayout({
   children,
-  pageTitle,
 }: CompanyLayoutProps) {
   return (
     <DashboardShell
@@ -91,8 +90,6 @@ export default function CompanyLayout({
       roleLabel="Mitra Perusahaan"
       roleIcon={Building2}
       searchPlaceholder="Cari karya siswa atau talenta tersimpan..."
-      pageTitle={pageTitle}
-      breadcrumbHref="/company"
       signOutCallbackUrl="/"
     >
       {children}

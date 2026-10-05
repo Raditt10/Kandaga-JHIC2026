@@ -256,7 +256,7 @@ export default function KatalogPage() {
   };
 
   return (
-    <CompanyLayout pageTitle="Jelajahi Katalog">
+    <CompanyLayout>
 
       {/* h1 */}
       <div className="mb-6">
