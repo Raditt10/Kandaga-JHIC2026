@@ -109,11 +109,32 @@ body {
   background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='%239CA3AF' stroke-width='2' stroke-dasharray='12%2c 8'/%3e%3c/svg%3e");
 }
 
+/* ── Standarisasi Semua Icon ke Marun Kandaga (#8B1A2F) ── */
+svg.lucide:not([class*="text-white"]):not([class*="text-cream"]):not([class*="text-accent"]):not(.no-maroon) {
+  color: var(--color-primary, #8B1A2F);
+}
 
+/* Pertahankan warna teks putih jika icon berada di dalam tombol / badge / banner dengan teks putih */
+.text-white svg.lucide,
+[class*="text-white"] svg.lucide,
+[class*="bg-primary"] svg.lucide:not([class*="text-primary"]),
+[class*="bg-primary-dark"] svg.lucide:not([class*="text-primary"]),
+[class*="bg-ink"] svg.lucide:not([class*="text-primary"]),
+[class*="bg-black"] svg.lucide:not([class*="text-primary"]),
+button[class*="bg-primary"] svg.lucide,
+a[class*="bg-primary"] svg.lucide {
+  color: currentColor;
+}
 
+svg.lucide.text-white,
+svg.lucide[class*="text-white"] {
+  color: #ffffff !important;
+}
 
+svg.lucide.animate-spin:not([class*="text-white"]) {
+  color: var(--color-primary, #8B1A2F);
+}
 
-/* ── Reduced motion — aksesibilitas wajib ── */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;

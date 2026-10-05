@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Menghapus akun yang dibuat...");
 
-  const emails = ["admin@gmail.com", "user123@gmail.com"];
+  const emails = ["admin@gmail.com", "user@gmail.com", "user123@gmail.com"];
 
   for (const email of emails) {
     const user = await prisma.users.findUnique({
@@ -30,7 +30,7 @@ async function main() {
     }
   }
 
-  console.log("\nSelesai! Akun admin@gmail.com dan user123@gmail.com telah dihapus.");
+  console.log("\nSelesai! Akun admin@gmail.com, user@gmail.com, dan user123@gmail.com telah dihapus.");
 }
 
 main()

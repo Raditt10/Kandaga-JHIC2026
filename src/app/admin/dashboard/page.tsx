@@ -177,12 +177,12 @@ export default function AdminDashboardPage() {
             className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between"
           >
             <div className="flex items-center justify-between">
-              <FileCheck2 className="w-5 h-5 text-emerald-600" />
-              <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-ink-600 transition" />
+              <FileCheck2 className="w-5 h-5 text-primary" />
+              <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-primary transition" />
             </div>
             <div className="mt-4">
               <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight block">
-                {state === "loading" ? <Loader2 className="w-6 h-6 animate-spin text-ink-300" /> : projectApproved}
+                {state === "loading" ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : projectApproved}
               </span>
               <span className="text-xs font-bold text-ink-700 block mt-1">Karya Terverifikasi</span>
               <span className="text-[11px] text-ink-300 block mt-0.5">
@@ -197,12 +197,12 @@ export default function AdminDashboardPage() {
             className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between"
           >
             <div className="flex items-center justify-between">
-              <Clock className="w-5 h-5 text-amber-500" />
-              <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-ink-600 transition" />
+              <Clock className="w-5 h-5 text-primary" />
+              <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-primary transition" />
             </div>
             <div className="mt-4">
               <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight block">
-                {state === "loading" ? <Loader2 className="w-6 h-6 animate-spin text-ink-300" /> : projectPending}
+                {state === "loading" ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : projectPending}
               </span>
               <span className="text-xs font-bold text-ink-700 block mt-1">Belum Terverifikasi</span>
               <span className="text-[11px] text-amber-600 font-medium block mt-0.5">
@@ -218,11 +218,11 @@ export default function AdminDashboardPage() {
           >
             <div className="flex items-center justify-between">
               <Eye className="w-5 h-5 text-primary" />
-              <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-ink-600 transition" />
+              <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-primary transition" />
             </div>
             <div className="mt-4">
               <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight block">
-                {state === "loading" ? <Loader2 className="w-6 h-6 animate-spin text-ink-300" /> : (stats?.totalViews ?? 0).toLocaleString("id-ID")}
+                {state === "loading" ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : (stats?.totalViews ?? 0).toLocaleString("id-ID")}
               </span>
               <span className="text-xs font-bold text-ink-700 block mt-1">Total Tayangan Karya</span>
               <span className="text-[11px] text-ink-300 block mt-0.5">
@@ -239,8 +239,8 @@ export default function AdminDashboardPage() {
             className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between"
           >
             <div className="flex items-center justify-between">
-              <Building2 className="w-5 h-5 text-indigo-600" />
-              <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-ink-600 transition" />
+              <Building2 className="w-5 h-5 text-primary" />
+              <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-primary transition" />
             </div>
             <div className="mt-4">
               <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight block">

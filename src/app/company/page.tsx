@@ -24,7 +24,7 @@ const QUICK_ACTIONS = [
     icon:    Search,
     label:   "Jelajahi Katalog Karya",
     desc:    "Temukan portofolio siswa terverifikasi dari 3 jurusan.",
-    color:   "bg-blue-50 text-blue-700",
+    color:   "bg-rose-50 text-primary",
     primary: true,
   },
   {
@@ -32,7 +32,7 @@ const QUICK_ACTIONS = [
     icon:    Bookmark,
     label:   "Talenta Tersimpan",
     desc:    "Lihat karya yang sudah Anda bookmark.",
-    color:   "bg-violet-50 text-violet-700",
+    color:   "bg-rose-50 text-primary",
     primary: false,
   },
   {
@@ -40,7 +40,7 @@ const QUICK_ACTIONS = [
     icon:    ClipboardList,
     label:   "Riwayat Permintaan",
     desc:    "Pantau status ajuan minat rekrutmen & magang.",
-    color:   "bg-amber-50 text-amber-700",
+    color:   "bg-rose-50 text-primary",
     primary: false,
   },
   {
@@ -48,7 +48,7 @@ const QUICK_ACTIONS = [
     icon:    User,
     label:   "Lengkapi Profil",
     desc:    "Perbarui data perusahaan dan dokumen legalitas.",
-    color:   "bg-emerald-50 text-emerald-700",
+    color:   "bg-rose-50 text-primary",
     primary: false,
   },
 ] as const;
@@ -123,21 +123,21 @@ export default function CompanyDashboardPage() {
       value: ringkasan.tersimpan,
       hint: "Tersimpan untuk ditinjau lebih lanjut",
       icon: Bookmark,
-      warna: "text-amber-600",
+      warna: "text-primary",
     },
     {
       label: "Permintaan Diajukan",
       value: ringkasan.permintaan,
       hint: "Seluruh permintaan yang pernah Anda kirim",
       icon: Send,
-      warna: "text-blue-600",
+      warna: "text-primary",
     },
     {
       label: "Sudah Diteruskan BKK",
       value: ringkasan.diteruskan,
       hint: "Sudah dihubungkan ke siswa dan guru",
       icon: CheckCircle2,
-      warna: "text-emerald-600",
+      warna: "text-primary",
     },
   ];
 

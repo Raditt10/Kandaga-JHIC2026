@@ -77,31 +77,31 @@ export default function BKKDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
 
         {/* Widget utama: akun menunggu verifikasi */}
-        <div className="sm:col-span-1 rounded-2xl border border-amber-200 bg-amber-50 p-6 flex flex-col gap-3">
+        <div className="sm:col-span-1 rounded-2xl border border-rose-200 bg-rose-50/70 p-6 flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <h2 className="font-heading text-sm font-semibold text-amber-800">
+            <h2 className="font-heading text-sm font-semibold text-ink-700">
               Menunggu Verifikasi
             </h2>
-            <ShieldCheck className="w-5 h-5 text-amber-600" aria-hidden="true" />
+            <ShieldCheck className="w-5 h-5 text-primary" aria-hidden="true" />
           </div>
           {loading ? (
-            <Loader2 className="w-8 h-8 text-amber-400 animate-spin" aria-hidden="true" />
+            <Loader2 className="w-8 h-8 text-primary animate-spin" aria-hidden="true" />
           ) : (
-            <p className="font-heading text-4xl font-extrabold text-amber-700">
+            <p className="font-heading text-4xl font-extrabold text-ink">
               {menunggu}
             </p>
           )}
-          <p className="text-xs text-amber-700">
+          <p className="text-xs text-ink-600">
             {menunggu === 0
               ? "Tidak ada pengajuan baru."
               : `${menunggu} perusahaan perlu ditinjau.`}
           </p>
           <Link
             href="/bkk/verifikasi"
-            className="mt-auto inline-flex items-center gap-1 text-xs font-bold text-amber-700 hover:text-amber-900 transition-colors"
+            className="mt-auto inline-flex items-center gap-1 text-xs font-bold text-primary hover:text-primary-dark transition-colors"
           >
             Buka Antrian
-            <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+            <ArrowRight className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
           </Link>
         </div>
 
@@ -111,10 +111,10 @@ export default function BKKDashboardPage() {
             <h2 className="font-heading text-sm font-semibold text-ink">
               Antrian Kontak
             </h2>
-            <MessageSquare className="w-5 h-5 text-ink-300" aria-hidden="true" />
+            <MessageSquare className="w-5 h-5 text-primary" aria-hidden="true" />
           </div>
           {loading ? (
-            <Loader2 className="w-8 h-8 text-ink-300 animate-spin" aria-hidden="true" />
+            <Loader2 className="w-8 h-8 text-primary animate-spin" aria-hidden="true" />
           ) : (
             <p className="font-heading text-4xl font-extrabold text-ink">{antrianKontak ?? 0}</p>
           )}
@@ -123,10 +123,10 @@ export default function BKKDashboardPage() {
           </p>
           <Link
             href="/bkk/kontak"
-            className="mt-auto inline-flex items-center gap-1 text-xs font-bold text-ink-600 hover:text-primary transition-colors"
+            className="mt-auto inline-flex items-center gap-1 text-xs font-bold text-primary hover:text-primary-dark transition-colors"
           >
             Lihat Antrian
-            <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+            <ArrowRight className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
           </Link>
         </div>
 
@@ -136,7 +136,7 @@ export default function BKKDashboardPage() {
             <h2 className="font-heading text-sm font-semibold text-ink">
               Mitra Terdaftar
             </h2>
-            <Building2 className="w-5 h-5 text-ink-300" aria-hidden="true" />
+            <Building2 className="w-5 h-5 text-primary" aria-hidden="true" />
           </div>
           {loading ? (
             <Loader2 className="w-8 h-8 text-ink-300 animate-spin" aria-hidden="true" />

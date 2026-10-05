@@ -27,25 +27,7 @@ async function main() {
   });
   console.log(`[OK] Admin berhasil dibuat: ${admin.email} (Role: ${admin.role})`);
 
-  // 2. Buat / Update Akun Student
-  const student = await prisma.users.upsert({
-    where: { email: "user123@gmail.com" },
-    update: {
-      passwordHash: hash,
-      role: "Student",
-      status: "aktif",
-    },
-    create: {
-      name: "user123",
-      email: "user123@gmail.com",
-      passwordHash: hash,
-      role: "Student",
-      status: "aktif",
-    },
-  });
-  console.log(`[OK] Student berhasil dibuat: ${student.email} (Role: ${student.role})`);
-
-  // 3. Pastikan profil Student terhubung dengan Major (misal RPL)
+  // Cari major (misal RPL) untuk profil siswa
   let major = await prisma.major.findFirst({
     where: { name: "RPL" },
   });
@@ -54,26 +36,68 @@ async function main() {
     major = await prisma.major.findFirst();
   }
 
-  if (major) {
-    await prisma.student.upsert({
-      where: { userId: student.id },
-      update: {},
-      create: {
-        userId: student.id,
-        majorId: major.id,
-        nis: "2026139999",
-        class: "XII RPL 1",
-        generation: 2026,
+  // 2. Buat / Update Akun Siswa (Student): user@gmail.com & user123@gmail.com
+  const studentAccounts = [
+    {
+      name: "user",
+      email: "user@gmail.com",
+      nis: "2026139998",
+      class: "XII RPL 1",
+      bio: "Akun siswa demo 1",
+    },
+    {
+      name: "user123",
+      email: "user123@gmail.com",
+      nis: "2026139999",
+      class: "XII RPL 1",
+      bio: "Akun siswa demo 2",
+    },
+  ];
+
+  for (const s of studentAccounts) {
+    const student = await prisma.users.upsert({
+      where: { email: s.email },
+      update: {
+        passwordHash: hash,
+        role: "Student",
         status: "aktif",
-        bio: "Akun siswa demo",
+      },
+      create: {
+        name: s.name,
+        email: s.email,
+        passwordHash: hash,
+        role: "Student",
+        status: "aktif",
       },
     });
-    console.log(`[OK] Profil Siswa berhasil dihubungkan ke jurusan: ${major.name}`);
+    console.log(`[OK] Student berhasil dibuat: ${student.email} (Role: ${student.role})`);
+
+    if (major) {
+      await prisma.student.upsert({
+        where: { userId: student.id },
+        update: {
+          majorId: major.id,
+          class: s.class,
+          status: "aktif",
+        },
+        create: {
+          userId: student.id,
+          majorId: major.id,
+          nis: s.nis,
+          class: s.class,
+          generation: 2026,
+          status: "aktif",
+          bio: s.bio,
+        },
+      });
+      console.log(`[OK] Profil Siswa (${student.email}) berhasil dihubungkan ke jurusan: ${major.name}`);
+    }
   }
 
-  console.log("\nSelesai! Kedua akun siap digunakan untuk login:");
-  console.log("1. Admin  -> Email: admin@gmail.com | Password: password123");
-  console.log("2. Student -> Email: user123@gmail.com | Password: password123\n");
+  console.log("\nSelesai! Ketiga akun siap digunakan untuk login:");
+  console.log("1. Admin   -> Email: admin@gmail.com   | Password: password123");
+  console.log("2. Student -> Email: user@gmail.com     | Password: password123");
+  console.log("3. Student -> Email: user123@gmail.com  | Password: password123\n");
 }
 
 main()
