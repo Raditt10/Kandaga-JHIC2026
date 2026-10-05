@@ -220,18 +220,11 @@ export default function ChatWidget() {
                 <KalaMark size={38} className="shadow-xs ring-2 ring-white/30" />
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 border-2 border-[#8B1A2F] rounded-full" />
               </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <h3 className="font-heading font-bold text-sm tracking-tight text-white leading-none">
-                    KALA
-                  </h3>
-                  <span className="px-1.5 py-0.5 rounded-full bg-white/15 text-[9px] font-mono text-white/90 font-semibold">
-                    AI Assistant
-                  </span>
-                </div>
-                <p className="text-[11px] text-white/80 font-sans mt-0.5">
-                  Virtual Assistant SMKN 13
-                </p>
+              <div className="flex items-center">
+                <h3 className="font-heading font-extrabold text-lg tracking-wide text-white flex items-center gap-1.5 leading-none">
+                  Kala
+                  <span className="text-amber-300 text-xs inline-block animate-pulse">✨</span>
+                </h3>
               </div>
             </div>
 
