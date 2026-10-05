@@ -41,7 +41,7 @@ function KalaMark({ size = 32, className = "" }: { size?: number; className?: st
     >
       <Image
         src="/images/kala.webp"
-        alt="Logo Kandaga AI"
+        alt="Logo KALA AI"
         width={size}
         height={size}
         sizes={`${size}px`}
@@ -58,7 +58,7 @@ export default function ChatWidget() {
       id: "welcome-1",
       role: "assistant",
       content:
-        "Halo! 👋 Saya **Kandaga AI**, asisten virtual resmi SMKN 13 Bandung.\n\nAda yang bisa saya bantu terkait karya siswa, jurusan (**RPL, TKJ, Analis Kimia**), alur verifikasi guru, atau kemitraan industri & magang?",
+        "Halo! 👋 Saya **KALA**, asisten AI resmi platform Kandaga SMKN 13 Bandung.\n\nAda yang bisa saya bantu terkait karya siswa, jurusan (**RPL, TKJ, Analis Kimia**), alur verifikasi guru, atau kemitraan industri & magang?",
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     },
   ])
@@ -197,26 +197,13 @@ export default function ChatWidget() {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="group relative flex items-center gap-3 bg-gradient-to-r from-[#8B1A2F] via-[#751125] to-[#5a091a] text-white pl-4 pr-5 py-3.5 rounded-full shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 border border-white/20 cursor-pointer"
-          aria-label="Buka Chatbot Kandaga AI"
+          className="group relative flex h-16 w-16 items-center justify-center rounded-full bg-[#8B1A2F] hover:bg-[#9E2037] shadow-lg shadow-black/20 border-2 border-white/90 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
+          aria-label="Buka asisten KALA"
         >
-          {/* Glowing pulse aura */}
-          <span className="absolute -inset-0.5 rounded-full bg-rose-500/40 blur-xs group-hover:opacity-100 opacity-60 transition duration-300 animate-pulse" />
-
-          <KalaMark size={36} className="shadow-sm ring-1 ring-white/30" />
-
-          <div className="relative flex flex-col text-left">
-            <span className="font-heading font-extrabold text-xs tracking-tight leading-none text-white flex items-center gap-1.5">
-              Tanya Kandaga AI
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
-            </span>
-            <span className="text-[10px] text-rose-200/80 font-mono tracking-wider block mt-0.5">
-              Gemini 2.5 Assistant
-            </span>
-          </div>
+          <KalaMark size={44} className="shadow-xs" />
 
           {hasUnread && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 text-black font-bold text-[10px] rounded-full flex items-center justify-center animate-bounce shadow-xs">
+            <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-emerald-500 text-white font-bold text-[11px] rounded-full flex items-center justify-center shadow-sm">
               1
             </span>
           )}
@@ -226,23 +213,23 @@ export default function ChatWidget() {
       {/* ────────────────── 2. CHAT POPUP WINDOW ────────────────── */}
       {isOpen && (
         <div className="w-[380px] sm:w-[420px] max-w-[calc(100vw-2rem)] h-[600px] max-h-[calc(100vh-6rem)] bg-white rounded-3xl shadow-2xl border border-zinc-200/90 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200">
-          {/* Header Bar (Maroon Palette) */}
-          <div className="bg-gradient-to-r from-[#180308] via-[#2a050e] to-[#8B1A2F] text-white p-4 flex items-center justify-between border-b border-[#3d0b17] shrink-0">
+          {/* Header Bar — Marun Simple Solid */}
+          <div className="bg-[#8B1A2F] text-white px-4 py-3.5 flex items-center justify-between border-b border-[#731224] shrink-0">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <KalaMark size={40} className="shadow-inner ring-1 ring-white/30" />
-                <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 border-2 border-[#180308] rounded-full" />
+                <KalaMark size={38} className="shadow-xs ring-2 ring-white/30" />
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 border-2 border-[#8B1A2F] rounded-full" />
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h3 className="font-heading font-black text-sm tracking-tight text-white leading-none">
-                    Kandaga AI
+                  <h3 className="font-heading font-bold text-sm tracking-tight text-white leading-none">
+                    KALA
                   </h3>
-                  <span className="px-1.5 py-0.5 rounded-full bg-white/10 text-[9px] font-mono text-rose-200 font-bold border border-white/10">
-                    Gemini AI
+                  <span className="px-1.5 py-0.5 rounded-full bg-white/15 text-[9px] font-mono text-white/90 font-semibold">
+                    AI Assistant
                   </span>
                 </div>
-                <p className="text-[11px] text-rose-200/70 font-mono tracking-wider mt-1">
+                <p className="text-[11px] text-white/80 font-sans mt-0.5">
                   Virtual Assistant SMKN 13
                 </p>
               </div>
@@ -303,7 +290,7 @@ export default function ChatWidget() {
                       className={`p-3.5 rounded-2xl text-xs ${
                         isAssistant
                           ? "bg-white text-zinc-800 border border-zinc-200/80 shadow-xs rounded-tl-xs"
-                          : "bg-gradient-to-r from-[#8B1A2F] to-[#a61743] text-white shadow-md rounded-tr-xs"
+                          : "bg-[#8B1A2F] text-white shadow-xs rounded-tr-xs"
                       }`}
                     >
                       <div className="text-xs leading-relaxed space-y-1">
@@ -342,7 +329,7 @@ export default function ChatWidget() {
                     <span className="w-2 h-2 rounded-full bg-rose-500 animate-bounce" />
                   </div>
                   <span className="text-[11px] font-mono text-zinc-400 ml-1">
-                    Kandaga AI sedang berpikir...
+                    KALA sedang berpikir...
                   </span>
                 </div>
               </div>
@@ -370,7 +357,7 @@ export default function ChatWidget() {
                 disabled={!inputValue.trim() || isLoading}
                 className={`p-2 rounded-xl transition cursor-pointer shrink-0 ${
                   inputValue.trim() && !isLoading
-                    ? "bg-[#8B1A2F] text-white shadow-xs hover:bg-[#a61743]"
+                    ? "bg-[#8B1A2F] text-white shadow-xs hover:bg-[#9E2037]"
                     : "bg-zinc-200 text-zinc-400 cursor-not-allowed"
                 }`}
                 aria-label="Kirim Pesan"
@@ -381,14 +368,6 @@ export default function ChatWidget() {
                   <Send className="w-4 h-4" />
                 )}
               </button>
-            </div>
-            <div className="flex items-center justify-between mt-2 px-1">
-              <span className="text-[10px] text-zinc-400 font-mono">
-                Powered by Google Gemini
-              </span>
-              <span className="text-[10px] text-zinc-400">
-                Tekan <kbd className="bg-zinc-100 border border-zinc-200 px-1 py-0.5 rounded text-[9px] font-mono">Enter</kbd> untuk kirim
-              </span>
             </div>
           </div>
         </div>

@@ -49,7 +49,7 @@ function getLocalFallbackResponse(userPrompt: string): string {
 Untuk kerjasama resmi, industri dapat menghubungi sekretariat BKK SMKN 13 Bandung.`
   }
 
-  return `Halo! Saya **Kandaga AI Assistant** dari SMKN 13 Bandung. 
+  return `Halo! Saya **KALA**, asisten kecerdasan buatan resmi untuk platform Kandaga di SMKN 13 Bandung. 
 
 Saya siap membantu Anda seputar:
 - Informasi 3 Jurusan (**RPL, TKJ, Analis Kimia**)
@@ -57,7 +57,7 @@ Saya siap membantu Anda seputar:
 - Panduan kemitraan industri, PKL, dan BKK
 - Tips portofolio kejuruan
 
-*(Tips: Masukkan \`GEMINI_API_KEY\` Anda di file \`.env\` untuk mengaktifkan kecerdasan penuh model Google Gemini 2.5 Flash)*. Apa yang ingin Anda ketahui?`
+Apa yang ingin Anda ketahui seputar Kandaga?`
 }
 
 /**
