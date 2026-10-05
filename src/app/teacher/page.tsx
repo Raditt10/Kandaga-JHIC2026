@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
+import Image from "next/image"
 import DashboardLayout, { DashboardTab } from "@/components/DashboardLayout"
 import AccountSettings from "@/components/settings/AccountSettings"
 import { useSession } from "next-auth/react"
@@ -367,33 +368,31 @@ export default function TeacherDashboardPage() {
           <div className="rounded-3xl bg-gradient-to-r from-primary-dark to-primary text-white p-7 sm:p-9 relative overflow-hidden shadow-xl shadow-primary/15">
             <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none" />
 
-            <div className="relative z-10">
+            <div className="relative z-10 max-w-xl pr-28 sm:pr-40 md:pr-0">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-amber-200 text-xs font-semibold mb-3">
                 <BookOpen className="w-3.5 h-3.5" />
                 <span>Portal Penilaian & Pembimbingan Karya Siswa</span>
               </div>
 
-              <h1 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight">
-                Selamat Bertugas, {session?.user?.username || "Bapak/Ibu Guru"}! 👨‍🏫
+              <h1 className="font-heading text-2xl sm:text-3xl font-extrabold tracking-tight leading-snug">
+                Selamat Bertugas, <span className="capitalize">{session?.user?.username || session?.user?.name || "Bapak/Ibu Guru"}</span>!
               </h1>
-              <p className="font-sans text-amber-100 text-sm max-w-[65ch] mt-2 leading-relaxed">
+              <p className="text-amber-100 text-xs sm:text-sm mt-2 leading-relaxed opacity-90">
                 Sebagai Guru Pembimbing, Anda memverifikasi kelayakan karya siswa, memberikan penilaian standar ISO/BNSP, dan menyetujui penayangan portofolio di galeri utama Kandaga.
               </p>
+            </div>
 
-              {/* User Session Detail */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6 pt-6 border-t border-white/15 text-xs">
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-                  <span className="text-amber-200 block text-xs font-medium">NIP / Username Guru</span>
-                  <span className="font-mono font-bold text-white text-sm mt-0.5 block">{session?.user?.username || "guru.pembimbing"}</span>
-                </div>
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-                  <span className="text-amber-200 block text-xs font-medium">Email Akademik</span>
-                  <span className="font-mono font-bold text-white text-sm mt-0.5 block truncate">{session?.user?.email || "guru@smkn13bandung.sch.id"}</span>
-                </div>
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-                  <span className="text-amber-200 block text-xs font-medium">Otoritas Kurasi</span>
-                  <span className="font-bold text-amber-300 text-sm mt-0.5 block">VERIFIKATOR SEKOLAH</span>
-                </div>
+            {/* Model Chibi Guru */}
+            <div className="absolute right-1 sm:right-6 md:right-10 bottom-0 pointer-events-none select-none z-10">
+              <div className="relative w-32 sm:w-44 md:w-52 lg:w-60 h-36 sm:h-48 md:h-56 lg:h-64">
+                <Image
+                  src="/images/guru.webp"
+                  alt="Ilustrasi Guru"
+                  fill
+                  sizes="(max-width: 640px) 128px, (max-width: 768px) 176px, 240px"
+                  priority
+                  className="object-contain object-bottom drop-shadow-[0_12px_24px_rgba(0,0,0,0.35)]"
+                />
               </div>
             </div>
           </div>

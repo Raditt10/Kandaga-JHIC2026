@@ -12,6 +12,7 @@
  */
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import BKKLayout from "@/components/bkk/BKKLayout";
 import { useSession } from "next-auth/react";
@@ -47,7 +48,7 @@ export default function BKKDashboardPage() {
       {/* Welcome */}
       <div className="mb-8 rounded-3xl bg-gradient-to-r from-primary-dark to-primary text-white p-7 sm:p-9 relative overflow-hidden shadow-xl shadow-primary/15">
         <div className="pointer-events-none absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/5 blur-3xl" aria-hidden="true" />
-        <div className="relative z-10">
+        <div className="relative z-10 max-w-xl pr-28 sm:pr-40 md:pr-0">
           <p className="text-xs font-mono text-white/50 mb-1 uppercase tracking-widest">Koordinator BKK</p>
           <h1 className="font-heading text-2xl sm:text-3xl font-extrabold tracking-tight">
             Dashboard BKK, {session?.user?.name ?? "Koordinator"}
@@ -56,6 +57,20 @@ export default function BKKDashboardPage() {
             Pantau dan proses pengajuan akun mitra perusahaan, serta tinjau permintaan
             kontak yang masuk dari perusahaan ke siswa.
           </p>
+        </div>
+
+        {/* Model Chibi Koordinator BKK */}
+        <div className="absolute right-1 sm:right-6 md:right-10 bottom-0 pointer-events-none select-none z-10">
+          <div className="relative w-36 sm:w-48 md:w-56 lg:w-64 h-36 sm:h-48 md:h-56 lg:h-64">
+            <Image
+              src="/images/bkk.webp"
+              alt="Ilustrasi Koordinator BKK"
+              fill
+              sizes="(max-width: 640px) 144px, (max-width: 768px) 192px, 256px"
+              priority
+              className="object-contain object-bottom drop-shadow-[0_12px_24px_rgba(0,0,0,0.35)]"
+            />
+          </div>
         </div>
       </div>
 

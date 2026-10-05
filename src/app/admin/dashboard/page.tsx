@@ -127,7 +127,9 @@ export default function AdminDashboardPage() {
       <div className="space-y-7 animate-in fade-in duration-200">
         {/* Hero Banner */}
         <div className="rounded-3xl bg-gradient-to-r from-primary-dark to-primary text-white p-7 sm:p-9 relative overflow-hidden shadow-xl shadow-primary/15">
-          <div className="relative z-10 max-w-xl">
+          <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 max-w-xl pr-28 sm:pr-40 md:pr-0">
             <h1 className="font-heading text-2xl sm:text-3xl font-extrabold tracking-tight leading-snug">
               Selamat Datang, <span className="capitalize">{adminName}</span>
             </h1>
@@ -135,6 +137,20 @@ export default function AdminDashboardPage() {
               Sebagai Administrator, Anda memiliki otoritas penuh untuk mengawasi kurasi karya,
               memvalidasi mitra, dan memantau status integritas sistem.
             </p>
+          </div>
+
+          {/* Model Chibi Admin */}
+          <div className="absolute right-1 sm:right-6 md:right-10 bottom-0 pointer-events-none select-none z-10">
+            <div className="relative w-32 sm:w-44 md:w-52 lg:w-60 h-36 sm:h-48 md:h-56 lg:h-64">
+              <Image
+                src="/images/admin.webp"
+                alt="Ilustrasi Administrator"
+                fill
+                sizes="(max-width: 640px) 128px, (max-width: 768px) 176px, 240px"
+                priority
+                className="object-contain object-bottom drop-shadow-[0_12px_24px_rgba(0,0,0,0.35)]"
+              />
+            </div>
           </div>
         </div>
 

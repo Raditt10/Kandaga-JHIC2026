@@ -9,6 +9,7 @@
  */
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import CompanyLayout from "@/components/company/CompanyLayout";
@@ -146,7 +147,7 @@ export default function CompanyDashboardPage() {
       {/* ── Welcome banner ── */}
       <div className="mb-8 rounded-3xl bg-gradient-to-r from-primary-dark to-primary text-white p-7 sm:p-9 relative overflow-hidden shadow-xl shadow-primary/15">
         <div className="pointer-events-none absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/5 blur-3xl" aria-hidden="true" />
-        <div className="relative z-10">
+        <div className="relative z-10 max-w-xl pr-28 sm:pr-40 md:pr-0">
           <p className="text-xs font-mono text-white/50 mb-1 uppercase tracking-widest">
             Portal Mitra Industri
           </p>
@@ -169,6 +170,20 @@ export default function CompanyDashboardPage() {
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" aria-hidden="true" />
               <span>Akun terverifikasi</span>
             </div>
+          </div>
+        </div>
+
+        {/* Model Chibi Mitra Perusahaan */}
+        <div className="absolute right-1 sm:right-6 md:right-10 bottom-0 pointer-events-none select-none z-10">
+          <div className="relative w-36 sm:w-48 md:w-56 lg:w-64 h-32 sm:h-44 md:h-52 lg:h-56">
+            <Image
+              src="/images/perusahaan.webp"
+              alt="Ilustrasi Mitra Perusahaan"
+              fill
+              sizes="(max-width: 640px) 144px, (max-width: 768px) 192px, 256px"
+              priority
+              className="object-contain object-bottom drop-shadow-[0_12px_24px_rgba(0,0,0,0.35)]"
+            />
           </div>
         </div>
       </div>
