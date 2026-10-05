@@ -5,9 +5,8 @@ import {
   MessageSquare,
   X,
   Send,
-  RotateCcw,
   Minimize2,
-  User,
+  Trash2,
   ChevronDown,
   ExternalLink,
   Loader2,
@@ -191,28 +190,10 @@ export default function ChatWidget() {
   }
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 print:hidden font-sans">
-      {/* ────────────────── 1. FLOATING CHAT TRIGGER BUTTON ────────────────── */}
-      {!isOpen && (
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          className="group relative flex h-[84px] w-[84px] items-center justify-center rounded-full bg-[#8B1A2F] hover:bg-[#9E2037] shadow-xl shadow-black/25 border-[3px] border-white hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
-          aria-label="Buka asisten KALA"
-        >
-          <KalaMark size={64} className="shadow-xs" />
-
-          {hasUnread && (
-            <span className="absolute top-0.5 right-0.5 w-5 h-5 bg-emerald-500 text-white font-bold text-[11px] rounded-full flex items-center justify-center shadow-md">
-              1
-            </span>
-          )}
-        </button>
-      )}
-
-      {/* ────────────────── 2. CHAT POPUP WINDOW ────────────────── */}
+    <div className="fixed bottom-5 right-5 z-50 print:hidden font-sans flex flex-col items-end gap-3">
+      {/* ────────────────── 1. CHAT POPUP WINDOW ────────────────── */}
       {isOpen && (
-        <div className="w-[380px] sm:w-[420px] max-w-[calc(100vw-2rem)] h-[600px] max-h-[calc(100vh-6rem)] bg-white rounded-3xl shadow-2xl border border-zinc-200/90 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200">
+        <div className="w-[380px] sm:w-[420px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100vh-7.5rem)] bg-white rounded-3xl shadow-2xl border border-zinc-200/90 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-3 duration-200">
           {/* Header Bar — Marun Simple Solid */}
           <div className="bg-[#8B1A2F] text-white px-4 py-3.5 flex items-center justify-between border-b border-[#731224] shrink-0">
             <div className="flex items-center gap-3">
@@ -231,18 +212,10 @@ export default function ChatWidget() {
               <button
                 type="button"
                 onClick={handleResetChat}
-                title="Mulai Ulang Chat"
+                title="Hapus Percakapan"
                 className="p-2 rounded-xl text-zinc-300 hover:text-white hover:bg-white/10 transition cursor-pointer"
               >
-                <RotateCcw className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                title="Tutup Chat"
-                className="p-2 rounded-xl text-zinc-300 hover:text-white hover:bg-white/10 transition cursor-pointer"
-              >
-                <X className="w-4 h-4" />
+                <Trash2 className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -357,6 +330,27 @@ export default function ChatWidget() {
           </div>
         </div>
       )}
+
+      {/* ────────────────── 2. FLOATING CHAT TRIGGER / CLOSE BUTTON ────────────────── */}
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="group relative flex h-[76px] w-[76px] items-center justify-center rounded-full bg-[#8B1A2F] hover:bg-[#9E2037] shadow-xl shadow-black/25 border-[3px] border-white hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shrink-0"
+        aria-label={isOpen ? "Tutup chat" : "Buka asisten KALA"}
+      >
+        {isOpen ? (
+          <X className="w-9 h-9 text-white stroke-[2.5]" />
+        ) : (
+          <>
+            <KalaMark size={58} className="shadow-xs" />
+            {hasUnread && (
+              <span className="absolute top-0.5 right-0.5 w-5 h-5 bg-emerald-500 text-white font-bold text-[11px] rounded-full flex items-center justify-center shadow-md">
+                1
+              </span>
+            )}
+          </>
+        )}
+      </button>
     </div>
   )
 }
