@@ -58,6 +58,7 @@ export default function DaftarMitraPage() {
   const [error, setError] = useState("");
   const [step, setStep] = useState<1 | 2>(1);
   const [checkingExisting, setCheckingExisting] = useState(true);
+  const [hasPendingSubmission, setHasPendingSubmission] = useState(false);
 
   // Periksa apakah perusahaan sudah pernah submit dan masih menunggu verifikasi BKK
   useEffect(() => {
@@ -65,6 +66,20 @@ export default function DaftarMitraPage() {
 
     const checkExistingSubmission = async () => {
       if (typeof window === "undefined") return;
+
+      // Jika pengguna secara eksplisit mengklik tombol kembali dari halaman menunggu (?kembali=1),
+      // izinkan mereka melihat halaman pendaftaran tanpa terpental balik.
+      const isExplicitBack =
+        new URLSearchParams(window.location.search).get("kembali") === "1" ||
+        new URLSearchParams(window.location.search).get("from") === "menunggu";
+
+      if (isExplicitBack) {
+        if (isMounted) {
+          setHasPendingSubmission(true);
+          setCheckingExisting(false);
+        }
+        return;
+      }
 
       const savedUserId =
         sessionStorage.getItem("mitra_user_id") ||
@@ -314,6 +329,21 @@ export default function DaftarMitraPage() {
                 ? "Lengkapi informasi akun narahubung perwakilan perusahaan Anda."
                 : "Lengkapi profil industri untuk verifikasi rekrutmen BKK."}
             </p>
+
+            {/* Pending Submission Alert if returning from waiting page */}
+            {hasPendingSubmission && (
+              <div className="mb-5 p-3.5 rounded-xl bg-amber-50 border border-amber-200/80 text-xs text-amber-900 flex items-center justify-between gap-3 animate-in fade-in">
+                <span className="font-medium">
+                  Anda memiliki pengajuan kemitraan yang sedang diverifikasi BKK.
+                </span>
+                <Link
+                  href="/mitra/menunggu"
+                  className="font-bold underline text-[#a61743] hover:text-[#8B1A2F] shrink-0"
+                >
+                  Status Menunggu →
+                </Link>
+              </div>
+            )}
 
             {/* Error Alert */}
             {error && (

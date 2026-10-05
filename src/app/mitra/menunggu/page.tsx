@@ -190,8 +190,8 @@ export default function MitraMenungguPage() {
           {/* Top Header: Back Link & Real-time Indicator */}
           <div className="flex items-center justify-between mb-4">
             <Link
-              href="/"
-              aria-label="Kembali ke Beranda"
+              href="/mitra/daftar?kembali=1"
+              aria-label="Kembali ke Halaman Pendaftaran"
               className="w-8 h-8 rounded-md bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center text-zinc-600 hover:text-zinc-900 transition shadow-2xs"
             >
               <ArrowLeft className="w-4 h-4" />

@@ -91,12 +91,12 @@ export function EmptyState({
         </div>
       )}
 
-      <h3 className="font-heading text-base sm:text-lg font-bold tracking-tight text-ink">
+      <h3 className="font-heading text-base sm:text-lg font-bold tracking-tight text-ink/75">
         {title}
       </h3>
 
       {description && (
-        <p className="mt-1.5 text-xs sm:text-[13px] leading-relaxed text-ink-600/90 max-w-md mx-auto">
+        <p className="mt-1.5 text-xs sm:text-[13px] leading-relaxed text-ink-600/70 max-w-md mx-auto">
           {description}
         </p>
       )}
