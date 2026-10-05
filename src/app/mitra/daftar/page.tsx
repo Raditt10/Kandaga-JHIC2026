@@ -14,7 +14,6 @@ import {
   EyeOff,
   AlertCircle,
   ArrowLeft,
-  ArrowRight,
   CheckCircle2,
 } from "lucide-react";
 
@@ -316,7 +315,6 @@ export default function DaftarMitraPage() {
                   className="w-full bg-[#242c4b] hover:bg-[#1a2038] text-white py-3 rounded-md text-sm font-semibold transition-colors duration-150 flex items-center justify-center gap-2 cursor-pointer mt-2 shadow-xs"
                 >
                   <span>Lanjutkan ke Data Perusahaan</span>
-                  <ArrowRight className="w-4 h-4" />
                 </button>
               </form>
             )}
