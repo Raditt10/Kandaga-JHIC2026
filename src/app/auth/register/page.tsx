@@ -96,7 +96,7 @@ export default function RegisterPage() {
   return (
     <div
       suppressHydrationWarning
-      className="relative min-h-screen w-full bg-[#a61743] flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans selection:bg-[#a61743] selection:text-white overflow-hidden"
+      className="relative min-h-screen w-full bg-[#a61743] flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans overflow-hidden"
     >
       {/* Ornamen latar: pill diagonal putih — sama seperti halaman login */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
