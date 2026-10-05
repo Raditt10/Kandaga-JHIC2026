@@ -230,9 +230,7 @@ export default function ChatWidget() {
           <div className="bg-gradient-to-r from-[#180308] via-[#2a050e] to-[#8B1A2F] text-white p-4 flex items-center justify-between border-b border-[#3d0b17] shrink-0">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shadow-inner">
-                  <Bot className="w-5 h-5 text-rose-300" />
-                </div>
+                <KalaMark size={40} className="shadow-inner ring-1 ring-white/30" />
                 <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 border-2 border-[#180308] rounded-full" />
               </div>
               <div>
@@ -297,9 +295,7 @@ export default function ChatWidget() {
                   className={`flex items-start gap-2.5 ${isAssistant ? "justify-start" : "justify-end"}`}
                 >
                   {isAssistant && (
-                    <div className="w-7 h-7 rounded-xl bg-[#8B1A2F] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                    </div>
+                    <KalaMark size={28} className="mt-0.5 shadow-xs ring-1 ring-[#8B1A2F]/15" />
                   )}
 
                   <div className={`max-w-[85%] flex flex-col ${isAssistant ? "items-start" : "items-end"}`}>
@@ -327,7 +323,7 @@ export default function ChatWidget() {
                   </div>
 
                   {!isAssistant && (
-                    <div className="w-7 h-7 rounded-xl bg-zinc-700 text-white flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="w-7 h-7 rounded-full bg-zinc-700 text-white flex items-center justify-center shrink-0 mt-0.5">
                       <User className="w-3.5 h-3.5" />
                     </div>
                   )}
@@ -338,9 +334,7 @@ export default function ChatWidget() {
             {/* Loading / Typing Indicator */}
             {isLoading && (
               <div className="flex items-start gap-2.5">
-                <div className="w-7 h-7 rounded-xl bg-[#8B1A2F] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                </div>
+                <KalaMark size={28} className="mt-0.5 shadow-xs ring-1 ring-[#8B1A2F]/15" />
                 <div className="bg-white border border-zinc-200/80 rounded-2xl rounded-tl-xs px-4 py-3 shadow-xs flex items-center gap-2">
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-rose-500 animate-bounce [animation-delay:-0.3s]" />
