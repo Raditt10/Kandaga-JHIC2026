@@ -42,7 +42,7 @@ function AdminPengaturanContent() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl animate-in fade-in duration-200">
+    <div className="space-y-6 w-full animate-in fade-in duration-200">
       {/* Tab Switcher */}
       <div className="inline-flex p-1 bg-ink-100 rounded-2xl border border-ink-150 gap-1">
         <button

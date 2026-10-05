@@ -205,14 +205,14 @@ export default function AccountSettings() {
     }
   }
 
-  const kartu = "p-6 rounded-2xl bg-white border border-ink-150 shadow-xs space-y-4"
+  const sectionClass = "p-6 sm:p-8 space-y-4"
   const label = "block text-xs font-semibold text-ink-700 mb-1.5"
   const input =
     "w-full rounded-xl border border-ink-150 px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-600 focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary transition"
 
   if (loading) {
     return (
-      <div className="p-6 rounded-2xl bg-white border border-ink-150 text-xs font-semibold text-ink-600 flex items-center gap-2 max-w-4xl">
+      <div className="p-8 rounded-3xl bg-white border border-ink-150 text-xs font-semibold text-ink-600 flex items-center gap-2 w-full">
         <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
         Memuat data akun…
       </div>
@@ -221,33 +221,35 @@ export default function AccountSettings() {
 
   if (loadError) {
     return (
-      <div className="p-6 rounded-2xl bg-amber-50 border border-amber-200 text-xs font-semibold text-amber-800 max-w-4xl">
+      <div className="p-8 rounded-3xl bg-amber-50 border border-amber-200 text-xs font-semibold text-amber-800 w-full">
         {loadError}
       </div>
     )
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      {/* Header */}
-      <div className="p-5 rounded-2xl bg-white border border-ink-150 shadow-xs">
-        <h1 className="font-heading text-lg font-bold text-ink flex items-center gap-2">
+    <div className="space-y-6 w-full">
+      {/* Header — Bersih tanpa kotak card terpisah */}
+      <div className="pb-1">
+        <h1 className="font-heading text-xl font-bold text-ink flex items-center gap-2.5">
           <Settings className="w-5 h-5 text-primary" aria-hidden="true" />
           Pengaturan Akun
         </h1>
-        <p className="text-xs text-ink-600 mt-0.5">
-          Data akun, nama tampilan, dan kata sandi Anda.
+        <p className="text-xs text-ink-600 mt-1">
+          Data akun, nama tampilan, tautan autentikasi Google, dan kata sandi Anda.
         </p>
       </div>
 
-      {/* Ringkasan akun */}
-      <div className={kartu}>
-        <h2 className="text-sm font-bold text-ink flex items-center gap-2 border-b border-ink-150 pb-3">
-          <UserCog className="w-4 h-4 text-ink-600" aria-hidden="true" />
-          Informasi Akun
-        </h2>
+      {/* Satu Kontainer Penuh Terpadu (Unified Full Panel Layout) */}
+      <div className="bg-white rounded-3xl border border-ink-150 shadow-xs divide-y divide-ink-150 overflow-hidden w-full">
+        {/* Ringkasan akun */}
+        <div className={sectionClass}>
+          <h2 className="text-sm font-bold text-ink flex items-center gap-2">
+            <UserCog className="w-4 h-4 text-ink-600" aria-hidden="true" />
+            Informasi Akun
+          </h2>
 
-        <dl className="grid gap-4 sm:grid-cols-2">
+          <dl className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 pt-2">
           <div>
             <dt className="text-[11px] font-bold text-ink-600 uppercase tracking-wider">
               Nama Akun
@@ -306,8 +308,8 @@ export default function AccountSettings() {
       </div>
 
       {/* Tautan Akun Google */}
-      <div className={kartu}>
-        <div className="flex items-center justify-between border-b border-ink-150 pb-3">
+      <div className={sectionClass}>
+        <div className="flex items-center justify-between pb-1">
           <div className="flex items-center gap-2">
             <GoogleIcon className="w-4 h-4" />
             <h2 className="text-sm font-bold text-ink">Tautan Akun Google</h2>
@@ -453,8 +455,8 @@ export default function AccountSettings() {
       </div>
 
       {/* Ubah nama */}
-      <form onSubmit={ubahNama} className={kartu}>
-        <h2 className="text-sm font-bold text-ink border-b border-ink-150 pb-3">
+      <form onSubmit={ubahNama} className={sectionClass}>
+        <h2 className="text-sm font-bold text-ink pb-1">
           Ubah Nama Akun
         </h2>
 
@@ -504,8 +506,8 @@ export default function AccountSettings() {
       </form>
 
       {/* Ubah kata sandi */}
-      <form onSubmit={ubahPassword} className={kartu}>
-        <h2 className="text-sm font-bold text-ink flex items-center gap-2 border-b border-ink-150 pb-3">
+      <form onSubmit={ubahPassword} className={sectionClass}>
+        <h2 className="text-sm font-bold text-ink flex items-center gap-2 pb-1">
           <KeyRound className="w-4 h-4 text-ink-600" aria-hidden="true" />
           Ubah Kata Sandi
         </h2>
@@ -584,5 +586,6 @@ export default function AccountSettings() {
         </div>
       </form>
     </div>
-  )
+  </div>
+)
 }
