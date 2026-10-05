@@ -17,6 +17,7 @@ import {
   Loader2,
   ShieldCheck,
   Check,
+  RefreshCw,
 } from "lucide-react"
 import AdminLayout from "@/components/admin/AdminLayout"
 import { EmptyState } from "@/components/ui/EmptyState"
@@ -176,14 +177,24 @@ export default function AdminBkkPage() {
             </p>
           </div>
 
-          <Link
-            href="/bkk"
-            target="_blank"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-ink-100 hover:bg-ink-150 text-ink-700 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0"
-          >
-            <span>Buka Portal Publik BKK</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </Link>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Link
+              href="/mitra/daftar"
+              target="_blank"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 shadow-2xs"
+            >
+              <span>Formulir Publik Mitra</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </Link>
+            <Link
+              href="/bkk"
+              target="_blank"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-ink-100 hover:bg-ink-150 text-ink-700 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0"
+            >
+              <span>Buka Portal Publik BKK</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </div>
 
         {/* Notification Alert */}
@@ -212,6 +223,54 @@ export default function AdminBkkPage() {
             </button>
           </div>
         )}
+
+        {/* Step Guide Banner Alur Pendaftaran */}
+        <div className="p-5 rounded-2xl bg-gradient-to-r from-ink to-ink text-white shadow-xs">
+          <h2 className="text-xs font-mono uppercase tracking-wider text-rose-300 font-bold mb-3">
+            Alur Pendaftaran & Verifikasi Kemitraan (DUDI)
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+            <div className="p-3 rounded-xl bg-white/10 backdrop-blur-xs border border-white/10">
+              <span className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center font-bold text-[10px] mb-1.5">
+                1
+              </span>
+              <h3 className="font-bold">Pengisian Form</h3>
+              <p className="text-[11px] text-white/70 mt-0.5">
+                Perusahaan mengisi profil dan melampirkan berkas legalitas (SIUP/NIB/Company Profile).
+              </p>
+            </div>
+
+            <div className="p-3 rounded-xl bg-white/10 backdrop-blur-xs border border-white/10">
+              <span className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center font-bold text-[10px] mb-1.5">
+                2
+              </span>
+              <h3 className="font-bold">Kurasi Legalitas</h3>
+              <p className="text-[11px] text-white/70 mt-0.5">
+                Admin atau Tim BKK memverifikasi keabsahan dokumen dan bidang industri.
+              </p>
+            </div>
+
+            <div className="p-3 rounded-xl bg-white/10 backdrop-blur-xs border border-white/10">
+              <span className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center font-bold text-[10px] mb-1.5">
+                3
+              </span>
+              <h3 className="font-bold">Persetujuan Akun</h3>
+              <p className="text-[11px] text-white/70 mt-0.5">
+                Akun diaktifkan, kredensial login dikirim otomatis via email ke kontak PIC perusahaan.
+              </p>
+            </div>
+
+            <div className="p-3 rounded-xl bg-white/10 backdrop-blur-xs border border-white/10">
+              <span className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center font-bold text-[10px] mb-1.5">
+                4
+              </span>
+              <h3 className="font-bold">Rekrutmen PKL</h3>
+              <p className="text-[11px] text-white/70 mt-0.5">
+                Mitra membuka kuota magang dan dapat mem-bookmark karya siswa di galeri.
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -276,7 +335,7 @@ export default function AdminBkkPage() {
             }`}
           >
             <ShieldCheck className="w-4 h-4" />
-            <span>Antrian Verifikasi Mitra</span>
+            <span>Antrian Pendaftaran & Verifikasi</span>
             {countPending > 0 && (
               <span
                 className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
@@ -314,6 +373,16 @@ export default function AdminBkkPage() {
                   Tinjau legalitas dan putuskan persetujuan akun perusahaan (FIFO: pengajuan terlama di atas).
                 </p>
               </div>
+
+              <button
+                type="button"
+                onClick={loadData}
+                title="Segarkan antrian"
+                aria-label="Segarkan antrian"
+                className="p-2.5 rounded-xl border border-ink-150 bg-white text-ink-400 hover:text-primary hover:border-primary transition cursor-pointer shrink-0 shadow-2xs"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+              </button>
             </div>
 
             {loading ? (

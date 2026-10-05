@@ -74,12 +74,6 @@ export default function AdminLayout({
       icon: Briefcase,
     },
     {
-      key: "pendaftaran-mitra",
-      label: "Pendaftaran Mitra",
-      href: "/admin/pendaftaran-mitra",
-      icon: UserPlus,
-    },
-    {
       key: "pengguna",
       label: "Kelola Pengguna",
       href: "/admin/pengguna",
