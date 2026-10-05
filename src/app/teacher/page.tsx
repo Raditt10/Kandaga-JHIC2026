@@ -361,7 +361,7 @@ export default function TeacherDashboardPage() {
               <h1 className="font-heading text-2xl sm:text-3xl font-extrabold tracking-tight leading-snug">
                 Selamat Bertugas, <span className="capitalize">{session?.user?.username || session?.user?.name || "Bapak/Ibu Guru"}</span>!
               </h1>
-              <p className="text-amber-100 text-xs sm:text-sm mt-2 leading-relaxed opacity-90">
+              <p className="text-rose-100 text-xs sm:text-sm mt-2 leading-relaxed opacity-90">
                 Sebagai Guru Pembimbing, Anda memverifikasi kelayakan karya siswa, memberikan penilaian standar ISO/BNSP, dan menyetujui penayangan portofolio di galeri utama Kandaga.
               </p>
             </div>
