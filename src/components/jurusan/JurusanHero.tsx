@@ -8,7 +8,7 @@ import { JurusanDetail } from "@/data/jurusanData";
 
 /** Foto model per jurusan (rasio 2:3). TKJ menyusul. */
 const MODEL_BY_MAJOR: Record<string, string> = {
-  "analis-kimia": "/majors/MODELKA2.webp",
+  "analis-kimia": "/images/model-ka.webp",
   rpl: "/images/model-rpl.webp",
 };
 
@@ -146,7 +146,7 @@ export default function JurusanHero({
               transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
               className="hidden lg:flex lg:col-span-6 w-full justify-center items-end"
             >
-              <div className={`relative w-full max-w-[480px] aspect-[2/3] ${currentMajor.id === "rpl" ? "" : "overflow-hidden rounded-2xl"}`}>
+              <div className="relative w-full max-w-[480px] aspect-[2/3]">
                 <Image
                   src={modelSrc}
                   alt={`Siswa program ${currentMajor.name}`}
@@ -154,7 +154,7 @@ export default function JurusanHero({
                   priority
                   unoptimized
                   sizes="(min-width: 1024px) 480px, 100vw"
-                  className={currentMajor.id === "rpl" ? "object-contain" : "object-cover"}
+                  className="object-contain"
                 />
               </div>
             </motion.div>
