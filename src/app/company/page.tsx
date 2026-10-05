@@ -15,7 +15,7 @@ import { useSession } from "next-auth/react";
 import CompanyLayout from "@/components/company/CompanyLayout";
 import {
   Search, Bookmark, ClipboardList, User,
-  ArrowRight, Clock, Send, CheckCircle2, FileSearch,
+  ArrowRight, ArrowUpRight, Clock, Send, CheckCircle2, FileSearch,
 } from "lucide-react";
 
 const QUICK_ACTIONS = [
@@ -116,28 +116,28 @@ export default function CompanyDashboardPage() {
       value: ringkasan.katalog,
       hint: "Karya siswa yang sudah diverifikasi guru",
       icon: FileSearch,
-      warna: "text-primary",
+      href: "/company/katalog",
     },
     {
       label: "Karya Anda Simpan",
       value: ringkasan.tersimpan,
       hint: "Tersimpan untuk ditinjau lebih lanjut",
       icon: Bookmark,
-      warna: "text-primary",
+      href: "/company/tersimpan",
     },
     {
       label: "Permintaan Diajukan",
       value: ringkasan.permintaan,
       hint: "Seluruh permintaan yang pernah Anda kirim",
       icon: Send,
-      warna: "text-primary",
+      href: "/company/riwayat",
     },
     {
       label: "Sudah Diteruskan BKK",
       value: ringkasan.diteruskan,
       hint: "Sudah dihubungkan ke siswa dan guru",
       icon: CheckCircle2,
-      warna: "text-primary",
+      href: "/company/riwayat",
     },
   ];
 
@@ -194,22 +194,24 @@ export default function CompanyDashboardPage() {
           Ringkasan
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {kartuRingkasan.map(({ label, value, hint, icon: Icon, warna }) => (
-            <div
+          {kartuRingkasan.map(({ label, value, hint, icon: Icon, href }) => (
+            <Link
               key={label}
-              className="rounded-2xl border border-ink-150 bg-white p-5"
+              href={href}
+              className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between"
             >
-              <div className="flex items-start justify-between gap-3">
-                <span className="text-xs font-semibold text-ink-600 uppercase tracking-wider">
-                  {label}
-                </span>
-                <Icon className={`w-4 h-4 shrink-0 ${warna}`} aria-hidden="true" />
+              <div className="flex items-center justify-between">
+                <Icon className="w-5 h-5 text-primary" />
+                <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-primary transition" />
               </div>
-              <p className="font-heading text-3xl font-extrabold text-ink mt-3">
-                {memuat || value === null ? "—" : value.toLocaleString("id-ID")}
-              </p>
-              <span className="text-xs text-ink-600 mt-1 block">{hint}</span>
-            </div>
+              <div className="mt-4">
+                <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight block">
+                  {memuat || value === null ? "—" : value.toLocaleString("id-ID")}
+                </span>
+                <span className="text-xs font-bold text-ink-700 block mt-1">{label}</span>
+                <span className="text-[11px] text-ink-400 block mt-0.5">{hint}</span>
+              </div>
+            </Link>
           ))}
         </div>
       </div>

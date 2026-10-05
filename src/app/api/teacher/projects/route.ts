@@ -63,21 +63,22 @@ export async function GET() {
       deletedAt: null,
     };
 
-    const [antreanRaw, riwayatRaw, menunggu, disetujui, revisi, siswaRaw] =
+    const [antreanRaw, riwayatRaw, menunggu, disetujui, revisi, ditolak, siswaRaw] =
       await Promise.all([
         prisma.projects.findMany({
           where: { ...baseWhere, status: "pending" },
           include: TEACHER_PROJECT_INCLUDE,
-          orderBy: { createdAt: "asc" },
+          orderBy: { createdAt: "desc" },
         }),
         prisma.projects.findMany({
-          where: { ...baseWhere, status: { in: ["approved", "revisi"] } },
+          where: { ...baseWhere, status: { in: ["approved", "revisi", "rejected"] } },
           include: TEACHER_PROJECT_INCLUDE,
-          orderBy: { publishedAt: "desc" },
+          orderBy: { updatedAt: "desc" },
         }),
         prisma.projects.count({ where: { ...baseWhere, status: "pending" } }),
         prisma.projects.count({ where: { ...baseWhere, status: "approved" } }),
         prisma.projects.count({ where: { ...baseWhere, status: "revisi" } }),
+        prisma.projects.count({ where: { ...baseWhere, status: "rejected" } }),
         prisma.student.findMany({
           where: { majorId: scope.teacher.majorId },
           include: {
@@ -125,7 +126,7 @@ export async function GET() {
         antrean,
         riwayat,
         siswa,
-        stats: { menunggu, disetujui, revisi, siswaBimbingan: siswa.length },
+        stats: { menunggu, disetujui, revisi, ditolak, siswaBimbingan: siswa.length },
       },
       { status: 200 }
     );

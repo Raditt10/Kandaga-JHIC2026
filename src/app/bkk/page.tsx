@@ -16,7 +16,7 @@ import Image from "next/image";
 import Link from "next/link";
 import BKKLayout from "@/components/bkk/BKKLayout";
 import { useSession } from "next-auth/react";
-import { ShieldCheck, MessageSquare, Building2, ArrowRight, Loader2 } from "lucide-react";
+import { ShieldCheck, MessageSquare, Building2, ArrowRight, ArrowUpRight, Loader2 } from "lucide-react";
 
 export default function BKKDashboardPage() {
   const { data: session } = useSession();
@@ -74,86 +74,66 @@ export default function BKKDashboardPage() {
       </div>
 
       {/* Widget grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
-
-        {/* Widget utama: akun menunggu verifikasi */}
-        <div className="sm:col-span-1 rounded-2xl border border-rose-200 bg-rose-50/70 p-6 flex flex-col gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        {/* Widget 1: akun menunggu verifikasi */}
+        <Link
+          href="/bkk/verifikasi"
+          className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between"
+        >
           <div className="flex items-center justify-between">
-            <h2 className="font-heading text-sm font-semibold text-ink-700">
-              Menunggu Verifikasi
-            </h2>
-            <ShieldCheck className="w-5 h-5 text-primary" aria-hidden="true" />
+            <ShieldCheck className="w-5 h-5 text-primary" />
+            <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-primary transition" />
           </div>
-          {loading ? (
-            <Loader2 className="w-8 h-8 text-primary animate-spin" aria-hidden="true" />
-          ) : (
-            <p className="font-heading text-4xl font-extrabold text-ink">
-              {menunggu}
-            </p>
-          )}
-          <p className="text-xs text-ink-600">
-            {menunggu === 0
-              ? "Tidak ada pengajuan baru."
-              : `${menunggu} perusahaan perlu ditinjau.`}
-          </p>
-          <Link
-            href="/bkk/verifikasi"
-            className="mt-auto inline-flex items-center gap-1 text-xs font-bold text-primary hover:text-primary-dark transition-colors"
-          >
-            Buka Antrian
-            <ArrowRight className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
-          </Link>
-        </div>
+          <div className="mt-4">
+            <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight block">
+              {loading ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : (menunggu ?? 0)}
+            </span>
+            <span className="text-xs font-bold text-ink-700 block mt-1">Menunggu Verifikasi</span>
+            <span className="text-[11px] text-ink-400 block mt-0.5">
+              {menunggu === 0 ? "Tidak ada pengajuan baru" : `${menunggu ?? 0} perusahaan perlu ditinjau`}
+            </span>
+          </div>
+        </Link>
 
-        {/* Antrian Kontak — permintaan yang menunggu tindakan BKK */}
-        <div className="rounded-2xl border border-ink-150 bg-white p-6 flex flex-col gap-3">
+        {/* Widget 2: Antrian Kontak */}
+        <Link
+          href="/bkk/kontak"
+          className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between"
+        >
           <div className="flex items-center justify-between">
-            <h2 className="font-heading text-sm font-semibold text-ink">
-              Antrian Kontak
-            </h2>
-            <MessageSquare className="w-5 h-5 text-primary" aria-hidden="true" />
+            <MessageSquare className="w-5 h-5 text-primary" />
+            <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-primary transition" />
           </div>
-          {loading ? (
-            <Loader2 className="w-8 h-8 text-primary animate-spin" aria-hidden="true" />
-          ) : (
-            <p className="font-heading text-4xl font-extrabold text-ink">{antrianKontak ?? 0}</p>
-          )}
-          <p className="text-xs text-ink-600">
-            Permintaan minat rekrutmen dari perusahaan ke siswa.
-          </p>
-          <Link
-            href="/bkk/kontak"
-            className="mt-auto inline-flex items-center gap-1 text-xs font-bold text-primary hover:text-primary-dark transition-colors"
-          >
-            Lihat Antrian
-            <ArrowRight className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
-          </Link>
-        </div>
+          <div className="mt-4">
+            <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight block">
+              {loading ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : (antrianKontak ?? 0)}
+            </span>
+            <span className="text-xs font-bold text-ink-700 block mt-1">Antrean Kontak</span>
+            <span className="text-[11px] text-ink-400 block mt-0.5">
+              Permintaan minat rekrutmen dari perusahaan ke siswa
+            </span>
+          </div>
+        </Link>
 
-        {/* Manajemen Mitra — seluruh perusahaan yang pernah mendaftar */}
-        <div className="rounded-2xl border border-ink-150 bg-white p-6 flex flex-col gap-3">
+        {/* Widget 3: Mitra Terdaftar */}
+        <Link
+          href="/bkk/mitra"
+          className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between"
+        >
           <div className="flex items-center justify-between">
-            <h2 className="font-heading text-sm font-semibold text-ink">
-              Mitra Terdaftar
-            </h2>
-            <Building2 className="w-5 h-5 text-primary" aria-hidden="true" />
+            <Building2 className="w-5 h-5 text-primary" />
+            <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-primary transition" />
           </div>
-          {loading ? (
-            <Loader2 className="w-8 h-8 text-ink-300 animate-spin" aria-hidden="true" />
-          ) : (
-            <p className="font-heading text-4xl font-extrabold text-ink">{mitra ?? 0}</p>
-          )}
-          <p className="text-xs text-ink-600">
-            Seluruh perusahaan yang sudah pernah mendaftar.
-          </p>
-          <Link
-            href="/bkk/mitra"
-            className="mt-auto inline-flex items-center gap-1 text-xs font-bold text-ink-600 hover:text-primary transition-colors"
-          >
-            Lihat Semua
-            <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
-          </Link>
-        </div>
+          <div className="mt-4">
+            <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight block">
+              {loading ? <Loader2 className="w-6 h-6 animate-spin text-ink-300" /> : (mitra ?? 0)}
+            </span>
+            <span className="text-xs font-bold text-ink-700 block mt-1">Mitra Terdaftar</span>
+            <span className="text-[11px] text-ink-400 block mt-0.5">
+              Seluruh perusahaan yang sudah pernah mendaftar
+            </span>
+          </div>
+        </Link>
       </div>
 
       {/* Info alur */}

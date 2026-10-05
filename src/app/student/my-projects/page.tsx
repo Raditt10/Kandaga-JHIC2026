@@ -21,6 +21,7 @@ import {
   CheckCircle2,
   AlertCircle,
   ArrowRight,
+  ArrowUpRight,
   ChevronRight,
   FolderOpen,
 } from "lucide-react";
@@ -282,45 +283,72 @@ export default function StudentMyProjectsPage() {
 
             {/* ── Metric Highlights Bar ── */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 pt-8 border-t border-ink-150">
-              <div className="p-4 rounded-2xl bg-white border border-ink-150 shadow-xs">
-                <span className="block text-xs font-medium text-ink-600">Total Karya</span>
-                <span className="font-heading text-2xl font-bold text-ink mt-1 block">
-                  {totalCount}
-                </span>
-                <span className="text-[11px] text-ink-600 mt-0.5 block">Diurutkan berdasarkan tanggal buat</span>
-              </div>
+              <button
+                type="button"
+                onClick={() => setVisibilityFilter("all")}
+                className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between text-left cursor-pointer"
+              >
+                <div className="flex items-center justify-between">
+                  <FolderOpen className="w-5 h-5 text-primary" />
+                  <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-primary transition" />
+                </div>
+                <div className="mt-4">
+                  <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight block">
+                    {totalCount}
+                  </span>
+                  <span className="text-xs font-bold text-ink-700 block mt-1">Total Karya</span>
+                  <span className="text-[11px] text-ink-400 block mt-0.5">Seluruh karya diunggah</span>
+                </div>
+              </button>
 
-              <div className="p-4 rounded-2xl bg-white border border-ink-150 shadow-xs">
-                <span className="block text-xs font-medium text-emerald-700 flex items-center gap-1.5">
-                  <Globe className="w-3.5 h-3.5" />
-                  <span>Karya Publik</span>
-                </span>
-                <span className="font-heading text-2xl font-bold text-emerald-800 mt-1 block">
-                  {publicCount}
-                </span>
-                <span className="text-[11px] text-ink-600 mt-0.5 block">Tampil di Galeri Resmi</span>
-              </div>
+              <button
+                type="button"
+                onClick={() => setVisibilityFilter("public")}
+                className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between text-left cursor-pointer"
+              >
+                <div className="flex items-center justify-between">
+                  <Globe className="w-5 h-5 text-primary" />
+                  <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-primary transition" />
+                </div>
+                <div className="mt-4">
+                  <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight block">
+                    {publicCount}
+                  </span>
+                  <span className="text-xs font-bold text-ink-700 block mt-1">Karya Publik</span>
+                  <span className="text-[11px] text-ink-400 block mt-0.5">Tampil di galeri resmi</span>
+                </div>
+              </button>
 
-              <div className="p-4 rounded-2xl bg-white border border-ink-150 shadow-xs">
-                <span className="block text-xs font-medium text-amber-700 flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5" />
-                  <span>Karya Privat</span>
-                </span>
-                <span className="font-heading text-2xl font-bold text-amber-900 mt-1 block">
-                  {privateCount}
-                </span>
-                <span className="text-[11px] text-ink-600 mt-0.5 block">Hanya Anda & guru pembimbing</span>
-              </div>
+              <button
+                type="button"
+                onClick={() => setVisibilityFilter("private")}
+                className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between text-left cursor-pointer"
+              >
+                <div className="flex items-center justify-between">
+                  <Lock className="w-5 h-5 text-primary" />
+                  <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-primary transition" />
+                </div>
+                <div className="mt-4">
+                  <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight block">
+                    {privateCount}
+                  </span>
+                  <span className="text-xs font-bold text-ink-700 block mt-1">Karya Privat</span>
+                  <span className="text-[11px] text-ink-400 block mt-0.5">Hanya Anda &amp; pembimbing</span>
+                </div>
+              </button>
 
-              <div className="p-4 rounded-2xl bg-white border border-ink-150 shadow-xs">
-                <span className="block text-xs font-medium text-ink-600 flex items-center gap-1.5">
-                  <Eye className="w-3.5 h-3.5" />
-                  <span>Total Dilihat</span>
-                </span>
-                <span className="font-heading text-2xl font-bold text-ink mt-1 block">
-                  {totalViews.toLocaleString("id-ID")}
-                </span>
-                <span className="text-[11px] text-ink-600 mt-0.5 block">Dari seluruh karya Anda</span>
+              <div className="p-5 rounded-2xl bg-white border border-ink-150 shadow-xs flex flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <Eye className="w-5 h-5 text-primary" />
+                  <ArrowUpRight className="w-4 h-4 text-ink-300" />
+                </div>
+                <div className="mt-4">
+                  <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight block">
+                    {totalViews.toLocaleString("id-ID")}
+                  </span>
+                  <span className="text-xs font-bold text-ink-700 block mt-1">Total Dilihat</span>
+                  <span className="text-[11px] text-ink-400 block mt-0.5">Dari seluruh karya Anda</span>
+                </div>
               </div>
             </div>
           </div>

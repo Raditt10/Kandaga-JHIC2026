@@ -205,7 +205,7 @@ export default function AdminDashboardPage() {
                 {state === "loading" ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : projectPending}
               </span>
               <span className="text-xs font-bold text-ink-700 block mt-1">Belum Terverifikasi</span>
-              <span className="text-[11px] text-amber-600 font-medium block mt-0.5">
+              <span className="text-[11px] text-ink-400 font-medium block mt-0.5">
                 {projectPending > 0 ? "Memerlukan kurasi admin" : "Tidak ada antrean menunggu"}
               </span>
             </div>

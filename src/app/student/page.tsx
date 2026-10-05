@@ -23,6 +23,7 @@ import {
   User,
   Plus,
   ExternalLink,
+  ArrowUpRight,
   Eye,
   Clock,
   Filter,
@@ -513,34 +514,90 @@ export default function StudentDashboardPage() {
 
           {/* Quick Metrics */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white rounded-2xl p-5 border border-ink-150 shadow-xs">
-              <span className="text-xs font-semibold text-ink-600 uppercase tracking-wider block">Total Karya Diunggah</span>
-              <p className="font-heading text-3xl font-extrabold text-ink mt-2">{projects.length}</p>
-              <span className="text-xs text-ink-600 mt-1 block">Tugas akhir & portofolio</span>
-            </div>
+            {/* Card 1: Total Karya Diunggah */}
+            <button
+              type="button"
+              onClick={() => setActiveTab("karya-saya")}
+              className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between text-left cursor-pointer"
+            >
+              <div className="flex items-center justify-between">
+                <FileText className="w-5 h-5 text-primary" />
+                <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-primary transition" />
+              </div>
+              <div className="mt-4">
+                <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight block">
+                  {projects.length}
+                </span>
+                <span className="text-xs font-bold text-ink-700 block mt-1">Total Karya Diunggah</span>
+                <span className="text-[11px] text-ink-400 block mt-0.5">
+                  Tugas akhir &amp; portofolio
+                </span>
+              </div>
+            </button>
 
-            <div className="bg-white rounded-2xl p-5 border border-ink-150 shadow-xs">
-              <span className="text-xs font-semibold text-ink-600 uppercase tracking-wider block">Terverifikasi Guru</span>
-              <p className="font-heading text-3xl font-extrabold text-emerald-600 mt-2">
-                {projects.filter((p) => p.status === "verified").length}
-              </p>
-              <span className="text-xs text-emerald-700 font-medium mt-1 block">Tayang di Galeri Utama</span>
-            </div>
+            {/* Card 2: Terverifikasi Guru */}
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab("karya-saya")
+                setFilterStatus("verified")
+              }}
+              className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between text-left cursor-pointer"
+            >
+              <div className="flex items-center justify-between">
+                <CheckCircle2 className="w-5 h-5 text-primary" />
+                <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-primary transition" />
+              </div>
+              <div className="mt-4">
+                <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight block">
+                  {projects.filter((p) => p.status === "verified").length}
+                </span>
+                <span className="text-xs font-bold text-ink-700 block mt-1">Terverifikasi Guru</span>
+                <span className="text-[11px] text-ink-400 block mt-0.5">
+                  Tayang di Galeri Utama
+                </span>
+              </div>
+            </button>
 
-            <div className="bg-white rounded-2xl p-5 border border-ink-150 shadow-xs">
-              <span className="text-xs font-semibold text-ink-600 uppercase tracking-wider block">Dalam Review Guru</span>
-              <p className="font-heading text-3xl font-extrabold text-amber-600 mt-2">
-                {projects.filter((p) => p.status === "review").length}
-              </p>
-              <span className="text-xs text-amber-700 font-medium mt-1 block">Sedang dinilai pembimbing</span>
-            </div>
+            {/* Card 3: Dalam Review Guru */}
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab("karya-saya")
+                setFilterStatus("review")
+              }}
+              className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between text-left cursor-pointer"
+            >
+              <div className="flex items-center justify-between">
+                <Clock className="w-5 h-5 text-primary" />
+                <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-primary transition" />
+              </div>
+              <div className="mt-4">
+                <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight block">
+                  {projects.filter((p) => p.status === "review").length}
+                </span>
+                <span className="text-xs font-bold text-ink-700 block mt-1">Dalam Review Guru</span>
+                <span className="text-[11px] text-ink-400 block mt-0.5">
+                  Sedang dinilai pembimbing
+                </span>
+              </div>
+            </button>
 
-            <div className="bg-white rounded-2xl p-5 border border-ink-150 shadow-xs">
-              <span className="text-xs font-semibold text-ink-600 uppercase tracking-wider block">Dilihat Mitra Industri</span>
-              <p className="font-heading text-3xl font-extrabold text-blue-600 mt-2">
-                {projects.reduce((acc, curr) => acc + curr.views, 0).toLocaleString()}
-              </p>
-              <span className="text-xs text-blue-700 font-medium mt-1 block">Total impresi industri</span>
+            {/* Card 4: Dilihat Mitra Industri */}
+            <div className="p-5 rounded-2xl bg-white border border-ink-150 shadow-xs flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <Eye className="w-5 h-5 text-primary" />
+                <ArrowUpRight className="w-4 h-4 text-ink-300" />
+              </div>
+              <div className="mt-4">
+                <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight block">
+                  {projects.reduce((acc, curr) => acc + curr.views, 0).toLocaleString("id-ID")}
+                </span>
+                <span className="text-xs font-bold text-ink-700 block mt-1">Dilihat Mitra Industri</span>
+                <span className="text-[11px] text-ink-400 block mt-0.5">
+                  Total impresi industri
+                </span>
+              </div>
             </div>
           </div>
 
