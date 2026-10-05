@@ -82,12 +82,18 @@ export async function GET() {
       );
     }
 
+    const userRows = await prisma.$queryRaw<Array<{ google_email: string | null }>>`
+      SELECT google_email FROM users WHERE id = ${auth.userId}::uuid LIMIT 1
+    `;
+    const googleEmail = userRows[0]?.google_email ?? null;
+
     return NextResponse.json(
       {
         akun: {
           id: user.id,
           nama: user.name,
           email: user.email,
+          googleEmail,
           role: auth.role,
           status: user.status,
           bergabung: user.createdAt ? user.createdAt.toISOString() : null,
@@ -114,11 +120,87 @@ export async function PATCH(req: NextRequest) {
       typeof body.passwordLama === "string" ? body.passwordLama : undefined;
     const passwordBaru =
       typeof body.passwordBaru === "string" ? body.passwordBaru : undefined;
+    const googleEmailInput =
+      typeof body.googleEmail === "string" ? body.googleEmail.trim() : undefined;
+    const unlinkGoogle = body.unlinkGoogle === true;
 
-    if (nama === undefined && passwordBaru === undefined) {
+    if (
+      nama === undefined &&
+      passwordBaru === undefined &&
+      googleEmailInput === undefined &&
+      !unlinkGoogle
+    ) {
       return NextResponse.json(
         { error: "Tidak ada perubahan yang dikirim." },
         { status: 400 }
+      );
+    }
+
+    // ── Handle Tautan Akun Google ───────────────────────────────────────────
+    if (unlinkGoogle) {
+      await prisma.$executeRaw`
+        UPDATE users SET google_email = NULL WHERE id = ${auth.userId}::uuid
+      `;
+      await audit({
+        userId: auth.userId,
+        action: "akun.putus_google",
+        entity: "users",
+        entityId: auth.userId,
+        data: {},
+      });
+      return NextResponse.json(
+        {
+          success: true,
+          pesan: "Tautan akun Google berhasil diputuskan.",
+          googleEmail: null,
+        },
+        { status: 200 }
+      );
+    }
+
+    if (googleEmailInput !== undefined) {
+      const targetGoogleEmail = googleEmailInput.toLowerCase();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(targetGoogleEmail)) {
+        return NextResponse.json(
+          { error: "Format alamat akun Google / Gmail tidak valid." },
+          { status: 400 }
+        );
+      }
+
+      // Pastikan email ini belum dipakai oleh akun lain di sistem
+      const conflicting = await prisma.$queryRaw<Array<{ id: string }>>`
+        SELECT id FROM users
+        WHERE (email = ${targetGoogleEmail}::citext OR google_email = ${targetGoogleEmail})
+          AND id != ${auth.userId}::uuid
+        LIMIT 1
+      `;
+      if (conflicting.length > 0) {
+        return NextResponse.json(
+          { error: "Alamat akun Google ini sudah tertaut dengan pengguna lain." },
+          { status: 409 }
+        );
+      }
+
+      await prisma.$executeRaw`
+        UPDATE users SET google_email = ${targetGoogleEmail} WHERE id = ${auth.userId}::uuid
+      `;
+
+      await audit({
+        userId: auth.userId,
+        action: "akun.tautkan_google",
+        entity: "users",
+        entityId: auth.userId,
+        data: { googleEmail: targetGoogleEmail },
+      });
+
+      return NextResponse.json(
+        {
+          success: true,
+          pesan: "Akun Google berhasil ditautkan! Anda kini dapat masuk menggunakan akun Google ini.",
+          googleEmail: targetGoogleEmail,
+        },
+        { status: 200 }
       );
     }
 

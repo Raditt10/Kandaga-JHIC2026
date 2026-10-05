@@ -105,28 +105,64 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         if (account?.provider === "google" && user.email) {
           try {
-            let dbUser = await prisma.users.findUnique({
-              where: { email: user.email },
-              include: { companyProfile: true },
-            })
+            const googleEmail = user.email.toLowerCase().trim()
+            const existingUsers = await prisma.$queryRaw<Array<{
+              id: string
+              role: string
+              email: string
+              name: string
+              status: string
+              google_email: string | null
+            }>>`
+              SELECT id, role, email, username as name, status, google_email
+              FROM users
+              WHERE email = ${googleEmail}::citext OR google_email = ${googleEmail}
+              LIMIT 1
+            `
+            let dbUser = existingUsers[0] || null
+
             if (!dbUser) {
-              dbUser = await prisma.users.create({
+              const created = await prisma.users.create({
                 data: {
-                  name: user.name || user.email.split("@")[0],
-                  email: user.email,
+                  name: user.name || googleEmail.split("@")[0],
+                  email: googleEmail,
                   passwordHash: "",
                   role: "Student",
                   status: "aktif",
                 },
-                include: { companyProfile: true },
               })
+              await prisma.$executeRaw`
+                UPDATE users SET google_email = ${googleEmail} WHERE id = ${created.id}::uuid
+              `
+              dbUser = {
+                id: created.id,
+                role: created.role,
+                email: created.email,
+                name: created.name,
+                status: created.status,
+                google_email: googleEmail,
+              }
+            } else if (!dbUser.google_email) {
+              await prisma.$executeRaw`
+                UPDATE users SET google_email = ${googleEmail} WHERE id = ${dbUser.id}::uuid
+              `
             }
+
             token.id = dbUser.id
             token.role = normalizeRole(dbUser.role)
             token.email = dbUser.email
             token.name = dbUser.name
             token.username = dbUser.name
-            token.verificationStatus = dbUser.companyProfile?.verificationStatus ?? null
+
+            if (token.role === "company") {
+              const comp = await prisma.company.findUnique({
+                where: { userId: dbUser.id },
+                select: { verificationStatus: true },
+              })
+              token.verificationStatus = comp?.verificationStatus ?? null
+            } else {
+              token.verificationStatus = null
+            }
             return token
           } catch (err) {
             console.error("Google OAuth DB sync error:", err)
