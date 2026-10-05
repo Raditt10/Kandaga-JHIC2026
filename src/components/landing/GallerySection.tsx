@@ -308,27 +308,16 @@ export default function GallerySection() {
                 icon={<AlertCircle className="w-7 h-7 text-rose-600" />}
                 title="Gagal Memuat Karya"
                 description="Terjadi kendala saat mengambil data karya siswa. Silakan coba muat ulang halaman."
-                actions={[
-                  {
-                    label: "Muat Ulang Halaman",
-                    onClick: () => window.location.reload(),
-                  },
-                  { label: "Jelajahi Katalog Lengkap", href: "/gallery" },
-                ]}
+                action={{
+                  label: "Muat Ulang Halaman",
+                  onClick: () => window.location.reload(),
+                }}
               />
             ) : (
               <EmptyState
                 icon={<SearchX className="w-7 h-7 text-[#8B1A2F]" />}
                 title="Belum Ada Karya yang Dipublikasikan"
                 description="Karya inovasi siswa masih dalam proses bimbingan dan kurasi resmi guru SMKN 13 Bandung."
-                /*
-                 * Tanpa aksi, keadaan ini adalah jalan buntu: pengunjung tidak
-                 * punya cara menuju katalog maupun kembali ke beranda.
-                 */
-                actions={[
-                  { label: "Jelajahi Katalog Lengkap", href: "/gallery" },
-                  { label: "Kembali ke Beranda", href: "/" },
-                ]}
               />
             )}
           </div>
