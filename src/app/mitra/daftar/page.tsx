@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -15,6 +15,7 @@ import {
   AlertCircle,
   ArrowLeft,
   CheckCircle2,
+  Loader2,
 } from "lucide-react";
 
 type FormState = {
@@ -56,6 +57,72 @@ export default function DaftarMitraPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [step, setStep] = useState<1 | 2>(1);
+  const [checkingExisting, setCheckingExisting] = useState(true);
+
+  // Periksa apakah perusahaan sudah pernah submit dan masih menunggu verifikasi BKK
+  useEffect(() => {
+    let isMounted = true;
+
+    const checkExistingSubmission = async () => {
+      if (typeof window === "undefined") return;
+
+      const savedUserId =
+        sessionStorage.getItem("mitra_user_id") ||
+        (() => {
+          try {
+            const raw = localStorage.getItem("kandaga_mitra_registration");
+            return raw ? JSON.parse(raw)?.userId : null;
+          } catch {
+            return null;
+          }
+        })();
+
+      if (savedUserId) {
+        try {
+          const res = await fetch(`/api/mitra/status?userId=${encodeURIComponent(savedUserId)}`, {
+            cache: "no-store",
+          });
+          if (res.ok) {
+            const statusData = await res.json();
+            if (statusData.registered && statusData.status === "pending") {
+              // Sudah submit dan masih berstatus pending -> langsung arahkan ke /mitra/menunggu
+              sessionStorage.setItem("mitra_pendaftaran_berhasil", "true");
+              sessionStorage.setItem("mitra_user_id", savedUserId);
+              if (statusData.companyName) {
+                sessionStorage.setItem("mitra_nama_perusahaan", statusData.companyName);
+              }
+              router.replace("/mitra/menunggu");
+              return;
+            } else if (statusData.status === "disetujui") {
+              // Sudah disetujui -> bersihkan penanda pendaftaran dan arahkan ke login
+              localStorage.removeItem("kandaga_mitra_registration");
+              sessionStorage.removeItem("mitra_user_id");
+              sessionStorage.removeItem("mitra_pendaftaran_berhasil");
+              router.replace("/auth/login");
+              return;
+            } else if (statusData.status === "ditolak") {
+              // Jika ditolak, bersihkan data lokal agar diperbolehkan mendaftar baru
+              localStorage.removeItem("kandaga_mitra_registration");
+              sessionStorage.removeItem("mitra_user_id");
+              sessionStorage.removeItem("mitra_pendaftaran_berhasil");
+            }
+          }
+        } catch {
+          // Jika terjadi kendala jaringan, izinkan pengguna melihat form
+        }
+      }
+
+      if (isMounted) {
+        setCheckingExisting(false);
+      }
+    };
+
+    checkExistingSubmission();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [router]);
 
   const update =
     (k: keyof FormState) =>
@@ -117,6 +184,21 @@ export default function DaftarMitraPage() {
 
       if (typeof window !== "undefined") {
         sessionStorage.setItem("mitra_pendaftaran_berhasil", "true");
+        if (data.userId) {
+          sessionStorage.setItem("mitra_user_id", data.userId);
+          try {
+            localStorage.setItem(
+              "kandaga_mitra_registration",
+              JSON.stringify({
+                userId: data.userId,
+                companyName: form.namaPerusahaan.trim(),
+                email: form.email.trim(),
+              })
+            );
+          } catch {
+            // storage quota fallback
+          }
+        }
         if (form.namaPerusahaan) {
           sessionStorage.setItem("mitra_nama_perusahaan", form.namaPerusahaan.trim());
         }
@@ -127,6 +209,14 @@ export default function DaftarMitraPage() {
       setLoading(false);
     }
   };
+
+  if (checkingExisting) {
+    return (
+      <div className="min-h-screen w-full bg-[#a61743] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-white animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div
