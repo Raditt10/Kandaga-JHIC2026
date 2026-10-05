@@ -21,7 +21,6 @@ import {
   LayoutDashboard,
   Settings,
   TrendingUp,
-  UserPlus,
   Users,
 } from "lucide-react"
 import DashboardShell, {
