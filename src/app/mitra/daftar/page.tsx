@@ -424,10 +424,11 @@ export default function DaftarMitraPage() {
           />
 
           <Image
-            src="/images/company-v2.webp"
+            src="/images/company.webp"
             alt="Ilustrasi Mitra Industri dan Perusahaan"
             fill
             priority
+            unoptimized
             sizes="(min-width: 1280px) 512px, 448px"
             className="object-cover object-center select-none"
             draggable={false}
