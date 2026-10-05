@@ -590,10 +590,6 @@ export default function DashboardShell({
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-bold text-ink truncate">{userName}</p>
                       <p className="text-[11px] text-ink-500 truncate">{session?.user?.email || ""}</p>
-                      <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                        {roleLabel}
-                      </span>
                     </div>
                   </div>
 
