@@ -6,10 +6,11 @@ import { motion, useInView } from "motion/react";
 import Image from "next/image";
 import { JurusanDetail } from "@/data/jurusanData";
 
-/** Foto model per jurusan (rasio 2:3). TKJ menyusul. */
+/** Foto model per jurusan (rasio 2:3, latar transparan). */
 const MODEL_BY_MAJOR: Record<string, string> = {
   "analis-kimia": "/images/model-ka1.webp",
   rpl: "/images/model-rpl.webp",
+  tkj: "/images/model-tkj1.webp",
 };
 
 export default function JurusanHero({

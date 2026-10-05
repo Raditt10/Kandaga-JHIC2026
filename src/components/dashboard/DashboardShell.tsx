@@ -283,6 +283,7 @@ export default function DashboardShell({
     <div className="min-h-screen w-full bg-white flex flex-col xl:flex-row font-sans antialiased text-ink">
       {/* ──────────────── 1. SIDEBAR ──────────────── */}
       <aside
+        data-sidebar="true"
         suppressHydrationWarning
         className={`w-full ${
           isSidebarCollapsed ? "xl:w-20 px-3 py-6 xl:overflow-visible" : "xl:w-64 2xl:w-72 p-6 xl:overflow-y-auto"

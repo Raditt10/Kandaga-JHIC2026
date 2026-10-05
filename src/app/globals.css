@@ -110,8 +110,16 @@ body {
 }
 
 /* ── Standarisasi Semua Icon ke Marun Kandaga (#8B1A2F) ── */
-svg.lucide:not([class*="text-white"]):not([class*="text-cream"]):not([class*="text-accent"]):not(.no-maroon) {
+/* Kecuali icon di sidebar dashboard (kembali seperti biasa: aktif = marun, inaktif = abu-abu ink-600)
+   dan elemen dengan teks putih/krem/aksen */
+svg.lucide:not(aside *):not([data-sidebar] *):not([class*="text-white"]):not([class*="text-cream"]):not([class*="text-accent"]):not(.no-maroon) {
   color: var(--color-primary, #8B1A2F);
+}
+
+/* Sidebar dashboard: kembalikan icon ke perilaku normal (mengikuti teks/status bawaan: aktif = marun, inaktif = abu-abu ink-600) */
+aside svg.lucide,
+[data-sidebar] svg.lucide {
+  color: inherit;
 }
 
 /* Pertahankan warna teks putih jika icon berada di dalam tombol / badge / banner dengan teks putih */
