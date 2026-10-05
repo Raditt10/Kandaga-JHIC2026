@@ -5,6 +5,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProjectCard from "@/components/gallery/ProjectCard";
 import Loading from "@/components/ui/Loading";
+import EmptyState from "@/components/ui/EmptyState";
 import GalleryToolbar, { FilterMajor, SortOption } from "@/components/gallery/GalleryToolbar";
 import GalleryPagination from "@/components/gallery/GalleryPagination";
 import type { GalleryProjectItem } from "@/data/galleryData";
@@ -183,24 +184,13 @@ export default function GalleryPage() {
                 </div>
               ) : (
                 /* Empty State */
-                <div className="mt-12 p-12 rounded-3xl border-2 border-dashed border-ink-200 bg-[#FBF9F6] text-center max-w-xl mx-auto flex flex-col items-center">
-                  <div className="w-14 h-14 rounded-2xl bg-white border border-ink-200 flex items-center justify-center text-ink-400 mb-4 shadow-xs">
-                    <SearchX className="w-7 h-7" />
-                  </div>
-                  <h3 className="font-heading text-xl font-bold text-ink">
-                    Karya Tidak Ditemukan
-                  </h3>
-                  <p className="mt-2 text-sm text-ink-600 max-w-md leading-relaxed">
-                    Tidak ada karya yang cocok dengan kata kunci &ldquo;{searchQuery}&rdquo; pada kategori yang dipilih. Cobalah kata kunci lain atau setel ulang filter.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleResetFilters}
-                    className="mt-6 px-5 py-2.5 bg-[#8B1A2F] text-white rounded-full text-xs sm:text-sm font-bold hover:bg-[#6B1424] transition-colors cursor-pointer shadow-xs"
-                  >
-                    Reset Semua Filter
-                  </button>
-                </div>
+                <EmptyState
+                  className="mt-12"
+                  icon={<SearchX className="w-8 h-8" />}
+                  title="Karya Tidak Ditemukan"
+                  description={`Tidak ada karya yang cocok dengan kata kunci “${searchQuery}” pada kategori yang dipilih. Cobalah kata kunci lain atau setel ulang filter.`}
+                  action={{ label: "Reset Semua Filter", onClick: handleResetFilters }}
+                />
               )}
 
               {/* Pagination */}

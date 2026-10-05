@@ -47,18 +47,21 @@ export function EmptyState({
     <div
       className={`flex w-full max-w-md flex-col items-center text-center ${className}`.trim()}
     >
-      {icon && (
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-ink-150 bg-[#FBF9F6]">
-          {icon}
-        </div>
-      )}
+      {/*
+       * Ikon tampil polos: tanpa kotak, border, maupun latar. Kehadiran ikon
+       * saja sudah cukup sebagai penanda keadaan kosong — bingkai di
+       * belakangnya hanya menambah elemen visual yang tidak perlu.
+       */}
+      {icon && <div className="mb-3 text-primary">{icon}</div>}
 
-      <h3 className="font-heading text-lg font-bold tracking-tight text-ink-900">
+      <h3 className="font-heading text-base font-bold tracking-tight text-ink-900/80">
         {title}
       </h3>
 
       {description && (
-        <p className="mt-2 text-sm leading-relaxed text-ink-600">{description}</p>
+        <p className="mt-1.5 text-xs leading-relaxed text-ink-600/80 sm:text-[13px]">
+          {description}
+        </p>
       )}
 
       {action &&

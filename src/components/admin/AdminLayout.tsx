@@ -20,7 +20,6 @@ import {
   Landmark,
   LayoutDashboard,
   Settings,
-  ShieldCheck,
   TrendingUp,
   UserPlus,
   Users,
@@ -94,7 +93,6 @@ export default function AdminLayout({
       navItems={navItems}
       settingsItems={settingsItems}
       roleLabel="Administrator"
-      roleIcon={ShieldCheck}
       searchPlaceholder="Cari karya siswa, pengguna, atau audit log..."
     >
       {children}

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import DashboardLayout, { DashboardTab } from "@/components/DashboardLayout"
 import AccountSettings from "@/components/settings/AccountSettings"
+import EmptyState from "@/components/ui/EmptyState"
 import { useSession } from "next-auth/react"
 import {
   GraduationCap,
@@ -725,13 +726,11 @@ export default function StudentDashboardPage() {
           {/* Project List Items */}
           <div className="space-y-4">
             {filteredProjects.length === 0 ? (
-              <div className="p-12 text-center bg-[#FBF9F6] rounded-3xl border-2 border-dashed border-ink-200 flex flex-col items-center">
-                <div className="w-14 h-14 rounded-2xl bg-white border border-ink-200/80 shadow-xs flex items-center justify-center text-[#8B1A2F] mb-3">
-                  <SearchX className="w-7 h-7" />
-                </div>
-                <h3 className="font-heading text-base font-bold text-ink">Tidak Ada Karya yang Cocok</h3>
-                <p className="text-sm text-ink-700 mt-1.5 max-w-sm">Coba sesuaikan kata kunci pencarian atau reset filter kategori karya Anda.</p>
-              </div>
+              <EmptyState
+                icon={<SearchX className="w-8 h-8" />}
+                title="Tidak Ada Karya yang Cocok"
+                description="Coba sesuaikan kata kunci pencarian atau reset filter kategori karya Anda."
+              />
             ) : (
               filteredProjects.map((project) => (
                 <div

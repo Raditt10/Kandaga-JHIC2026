@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Poppins, Plus_Jakarta_Sans, Tangerine, Montserrat, Bebas_Neue } from "next/font/google";
 import SmoothScrollProvider from "@/lib/SmoothScrollProvider";
 import AuthProvider from "@/lib/AuthProvider";
+import KeepTitle from "@/components/layout/KeepTitle";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -59,18 +60,8 @@ const SITE_DESCRIPTION =
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung",
-    /*
-     * "%s" diganti judul masing-masing halaman, lalu ditempeli "| Kandaga"
-     * sehingga nama merek tetap muncul di SEMUA judul halaman.
-     *
-     * Tanpa "%s", template tidak menambahkan melainkan MENGGANTI judul
-     * halaman — akibatnya seluruh halaman di situs berjudul sama persis.
-     * Itu merugikan SEO: mesin pencari dan calon pengunjung kehilangan
-     * pembeda antar halaman, dan tiap halaman tidak lagi punya kata kunci
-     * sendiri di judulnya.
-     */
-    template: "%s | Kandaga",
+    default: "Kandaga",
+    template: "Kandaga",
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
@@ -97,12 +88,12 @@ export const metadata: Metadata = {
     locale: "id_ID",
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: "Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung",
+    title: "Kandaga",
     description: SITE_DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Kandaga — Galeri Digital Karya Siswa SMKN 13 Bandung",
+    title: "Kandaga",
     description: SITE_DESCRIPTION,
   },
   robots: {
@@ -174,6 +165,7 @@ export default function RootLayout({
       className={`${poppins.variable} ${jakartaSans.variable} ${tangerine.variable} ${montserrat.variable} ${bebasNeue.variable}`}
     >
       <body suppressHydrationWarning>
+        <KeepTitle />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}

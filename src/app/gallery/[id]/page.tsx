@@ -165,6 +165,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 155)
+  const projectTitle = project.title || "Detail Karya"
 
   return {
     title: "Kandaga",
@@ -172,7 +173,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     alternates: { canonical: `/gallery/${project.id}` },
     openGraph: {
       type: "article",
-      title: "Kandaga",
+      title: `${projectTitle} | Kandaga`,
       description,
       url: `/gallery/${project.id}`,
       images: project.coverImage ? [{ url: project.coverImage }] : undefined,

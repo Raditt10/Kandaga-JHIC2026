@@ -22,18 +22,21 @@
  *                  datanya memang dimuat sekali lalu ditukar lewat state.
  */
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import {
   Bell,
+  ChevronDown,
+  ExternalLink,
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
   Search,
   Settings,
+  User,
 } from "lucide-react"
 
 export interface ShellNavItem {
@@ -60,9 +63,17 @@ interface DashboardShellProps {
   navItems: ShellNavItem[]
   /** Label peran, tampil sebagai sub-judul di bawah nama pengguna. */
   roleLabel: string
-  /** Ikon peran — ditampilkan sebagai chip kecil di header. */
+  /**
+   * Ikon peran — SENGAJA tidak dirender lagi.
+   *
+   * Dulu tampil sebagai chip kotak marun di navbar, tepat di antara tombol
+   * lonceng dan foto profil. Chip itu dihapus karena hanya hiasan tanpa
+   * fungsi klik, dan informasinya sudah ada di label peran pada menu profil.
+   * Prop ini tetap diterima supaya kontrak pemanggil (AdminLayout, BKKLayout,
+   * CompanyLayout, DashboardLayout) tidak perlu diubah — jangan dirender lagi.
+   */
   roleIcon?: React.ElementType
-  /** Kelas gradien Tailwind untuk chip ikon peran. */
+  /** Kelas gradien chip ikon peran — ikut tidak dipakai lagi, lihat `roleIcon`. */
   roleAccent?: string
   /** Judul grup menu di sidebar. */
   navSectionLabel?: string
@@ -92,13 +103,9 @@ type TNotif = {
   createdAt: string
 }
 
-const DEFAULT_ACCENT = "from-primary to-primary-dark"
-
 export default function DashboardShell({
   navItems,
   roleLabel,
-  roleIcon: RoleIcon,
-  roleAccent = DEFAULT_ACCENT,
   navSectionLabel = "OVERVIEW",
   searchPlaceholder = "Cari...",
   settingsLabel = "Lihat Website",
@@ -118,6 +125,28 @@ export default function DashboardShell({
   const [notifOpen, setNotifOpen] = useState(false)
   const [notifs, setNotifs] = useState<TNotif[]>([])
   const [unread, setUnread] = useState(0)
+
+  // ── Menu dropdown profil pengguna di header ──
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false)
+      }
+    }
+    if (userMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [userMenuOpen])
+
+  useEffect(() => {
+    setUserMenuOpen(false)
+  }, [pathname])
 
   const muatNotifikasi = async () => {
     try {
@@ -307,81 +336,7 @@ export default function DashboardShell({
           </div>
         </div>
 
-        {/* Bagian bawah: akses web + keluar */}
-        <div className="pt-4 border-t border-ink-150 space-y-1">
-          {!isSidebarCollapsed && (
-            <span className="block text-[11px] font-bold text-ink-600 tracking-wider uppercase mb-2 px-3">
-              SETTINGS
-            </span>
-          )}
-          {settingsItems.map((item) => {
-            const Icon = item.icon
-            const active =
-              item.active ??
-              (item.href
-                ? pathname === item.href ||
-                  (!item.exact && pathname.startsWith(`${item.href}/`))
-                : false)
 
-            return (
-              <Link
-                key={item.key}
-                href={item.href ?? "#"}
-                title={item.label}
-                aria-current={active ? "page" : undefined}
-                className={`flex items-center ${
-                  isSidebarCollapsed
-                    ? "xl:justify-center px-3 py-2.5"
-                    : "gap-3 px-3.5 py-2"
-                } rounded-xl text-xs font-semibold transition ${
-                  active
-                    ? "bg-ink-100 text-primary font-bold shadow-2xs"
-                    : "text-ink-600 hover:bg-ink-100 hover:text-ink"
-                }`}
-              >
-                <Icon
-                  className={`w-4 h-4 shrink-0 ${
-                    active ? "text-primary" : "text-ink-600"
-                  }`}
-                  aria-hidden="true"
-                />
-                {!isSidebarCollapsed && (
-                  <span className="whitespace-nowrap">{item.label}</span>
-                )}
-              </Link>
-            )
-          })}
-
-          <Link
-            href="/"
-            title={settingsLabel}
-            className={`flex items-center ${
-              isSidebarCollapsed
-                ? "xl:justify-center px-3 py-2.5"
-                : "gap-3 px-3.5 py-2"
-            } rounded-xl text-xs font-semibold text-ink-600 hover:bg-ink-100 hover:text-ink transition`}
-          >
-            <Settings className="w-4 h-4 text-ink-600 shrink-0" aria-hidden="true" />
-            {!isSidebarCollapsed && (
-              <span className="whitespace-nowrap">{settingsLabel}</span>
-            )}
-          </Link>
-          <button
-            type="button"
-            onClick={() => signOut({ callbackUrl: signOutCallbackUrl })}
-            title="Keluar"
-            className={`w-full flex items-center ${
-              isSidebarCollapsed
-                ? "xl:justify-center px-3 py-2.5"
-                : "gap-3 px-3.5 py-2"
-            } rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 transition cursor-pointer`}
-          >
-            <LogOut className="w-4 h-4 text-rose-600 shrink-0" aria-hidden="true" />
-            {!isSidebarCollapsed && (
-              <span className="whitespace-nowrap">Keluar</span>
-            )}
-          </button>
-        </div>
       </aside>
 
       {/* ──────────────── 2. AREA KONTEN ──────────────── */}
@@ -482,27 +437,113 @@ export default function DashboardShell({
               )}
             </div>
 
-            {RoleIcon && (
-              <span
-                title={roleLabel}
-                className={`hidden sm:flex w-9 h-9 rounded-xl bg-gradient-to-br ${roleAccent} text-white items-center justify-center shadow-xs`}
+            {/* ── User Profile Dropdown Menu (Pengaturan, Lihat Website, Keluar) ── */}
+            <div className="relative" ref={userMenuRef}>
+              <button
+                type="button"
+                onClick={() => setUserMenuOpen((prev) => !prev)}
+                className={`flex items-center gap-2.5 p-1 sm:px-2.5 sm:py-1.5 rounded-xl transition-all duration-150 cursor-pointer text-left select-none group ${
+                  userMenuOpen ? "bg-ink-100 shadow-2xs" : "hover:bg-ink-100/70"
+                }`}
+                aria-expanded={userMenuOpen}
+                aria-haspopup="true"
               >
-                <RoleIcon className="w-4 h-4" aria-hidden="true" />
-              </span>
-            )}
+                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-primary-dark text-white flex items-center justify-center font-bold text-xs shadow-xs ring-2 ring-primary/10 group-hover:ring-primary/25 transition">
+                  {userName.slice(0, 2).toUpperCase()}
+                </div>
+                <div className="hidden sm:block text-left">
+                  <span className="block text-xs font-bold text-ink leading-tight">
+                    {userName}
+                  </span>
+                  <span className="block text-[10px] text-ink-600 font-medium">
+                    {roleLabel}
+                  </span>
+                </div>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 text-ink-500 transition-transform duration-200 hidden sm:block ${
+                    userMenuOpen ? "rotate-180 text-primary" : "group-hover:text-ink-700"
+                  }`}
+                  aria-hidden="true"
+                />
+              </button>
 
-            <div className="flex items-center gap-2.5 pl-1">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-primary-dark text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                {userName.slice(0, 2).toUpperCase()}
-              </div>
-              <div className="hidden sm:block text-left">
-                <span className="block text-xs font-bold text-ink leading-tight">
-                  {userName}
-                </span>
-                <span className="block text-[10px] text-ink-600 font-medium">
-                  {roleLabel}
-                </span>
-              </div>
+              {/* Dropdown Menu Box */}
+              {userMenuOpen && (
+                <div
+                  className="absolute right-0 top-full mt-2 w-64 rounded-2xl bg-white border border-ink-150 shadow-xl shadow-black/10 p-2 z-50 animate-in fade-in-0 zoom-in-95 duration-150"
+                  role="menu"
+                  aria-orientation="vertical"
+                >
+                  {/* Header Profil Akun */}
+                  <div className="px-3 py-2.5 mb-1 bg-ink-50/70 rounded-xl border border-ink-100/60 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary to-primary-dark text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
+                      {userName.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-ink truncate">{userName}</p>
+                      <p className="text-[11px] text-ink-500 truncate">{session?.user?.email || ""}</p>
+                      <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                        {roleLabel}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Navigasi Settings & Website */}
+                  <div className="space-y-0.5 py-1">
+                    {settingsItems.map((item) => {
+                      const Icon = item.icon
+                      const active =
+                        item.active ??
+                        (item.href
+                          ? pathname === item.href ||
+                            (!item.exact && pathname.startsWith(`${item.href}/`))
+                          : false)
+
+                      return (
+                        <Link
+                          key={item.key}
+                          href={item.href ?? "#"}
+                          onClick={() => setUserMenuOpen(false)}
+                          className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                            active
+                              ? "bg-primary/10 text-primary font-bold"
+                              : "text-ink-700 hover:bg-ink-100 hover:text-ink"
+                          }`}
+                        >
+                          <Icon className={`w-4 h-4 ${active ? "text-primary" : "text-ink-500"}`} />
+                          <span>{item.label}</span>
+                        </Link>
+                      )
+                    })}
+
+                    <Link
+                      href="/"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-ink-700 hover:bg-ink-100 hover:text-ink transition"
+                    >
+                      <ExternalLink className="w-4 h-4 text-ink-500" />
+                      <span>{settingsLabel}</span>
+                    </Link>
+                  </div>
+
+                  {/* Garis Pemisah */}
+                  <div className="border-t border-ink-150/70 my-1" />
+
+                  {/* Tombol Logout */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUserMenuOpen(false)
+                      signOut({ callbackUrl: signOutCallbackUrl })
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4 text-rose-600" />
+                    <span>Keluar</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -4,7 +4,6 @@ import Image from "next/image";
 import { XCircle, Mail, RefreshCw, ArrowLeft } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Kandaga",
   description: "Pendaftaran akun perusahaan Anda tidak dapat diproses oleh BKK SMKN 13 Bandung.",
 };
 

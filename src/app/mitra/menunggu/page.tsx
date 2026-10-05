@@ -4,7 +4,6 @@ import Image from "next/image";
 import { Clock, CheckCircle2, Mail, Phone } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Kandaga",
   description: "Akun perusahaan Anda sedang ditinjau oleh Koordinator BKK SMKN 13 Bandung.",
 };
 
