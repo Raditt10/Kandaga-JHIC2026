@@ -132,9 +132,6 @@ html.lenis.lenis-scrolling {
 }
 
 
-
-
-
 /* ── Reduced motion — aksesibilitas wajib ── */
 @media (prefers-reduced-motion: reduce) {
   * {
