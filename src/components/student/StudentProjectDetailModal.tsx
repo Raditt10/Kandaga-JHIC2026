@@ -138,7 +138,7 @@ export default function StudentProjectDetailModal({
         </div>
 
         {/* ── Scrollable Modal Body (With Smooth Scrolling & Custom Scrollbar) ── */}
-        <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-8 scroll-smooth divide-y divide-ink-150/70">
+        <div data-lenis-prevent="true" className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-8 scroll-smooth divide-y divide-ink-150/70">
           {/* 1. Header Information & Title */}
           <div>
             <div className="flex items-center gap-2 text-xs text-ink-600 mb-2 font-mono">

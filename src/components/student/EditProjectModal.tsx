@@ -187,7 +187,7 @@ export default function EditProjectModal({
         </div>
 
         {/* ── Scrollable Form Body ── */}
-        <form id="edit-project-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6 scroll-smooth">
+        <form id="edit-project-form" onSubmit={handleSubmit} data-lenis-prevent="true" className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6 scroll-smooth">
           {/* Judul Karya */}
           <div>
             <label className="block text-xs font-bold text-ink-900 uppercase tracking-wider mb-2">

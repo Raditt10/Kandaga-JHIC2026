@@ -124,7 +124,7 @@ export function FilterDropdown<T extends string = string>({
             align === "left" ? "left-0" : "right-0"
           } mt-1.5 z-40 min-w-[200px] max-w-xs rounded-2xl border border-ink-150 bg-white p-1.5 shadow-xl animate-in fade-in zoom-in-95 duration-150`}
         >
-          <div className="space-y-0.5 max-h-60 overflow-y-auto">
+          <div data-lenis-prevent="true" className="space-y-0.5 max-h-60 overflow-y-auto">
             {options.map((opt) => {
               const isSelected = opt.value === value
               const Icon = opt.icon

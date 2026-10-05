@@ -313,6 +313,7 @@ export default function DashboardShell({
       {/* ──────────────── 1. SIDEBAR ──────────────── */}
       <aside
         data-sidebar="true"
+        data-lenis-prevent="true"
         suppressHydrationWarning
         className={`w-full ${
           isSidebarCollapsed ? "xl:w-20 px-3 py-6 xl:overflow-visible" : "xl:w-64 2xl:w-72 p-6 xl:overflow-y-auto"
@@ -544,7 +545,7 @@ export default function DashboardShell({
                     )}
                   </div>
 
-                  <div className="max-h-80 overflow-y-auto divide-y divide-ink-150">
+                  <div data-lenis-prevent="true" className="max-h-80 overflow-y-auto divide-y divide-ink-150">
                     {notifs.length === 0 ? (
                       <EmptyState
                         compact

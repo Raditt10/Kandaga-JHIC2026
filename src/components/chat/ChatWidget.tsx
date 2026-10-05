@@ -216,7 +216,7 @@ export default function ChatWidget() {
                     Kandaga AI
                   </h3>
                   <span className="px-1.5 py-0.5 rounded-full bg-white/10 text-[9px] font-mono text-rose-200 font-bold border border-white/10">
-                    Gemini 2.5
+                    Gemini AI
                   </span>
                 </div>
                 <p className="text-[11px] text-rose-200/70 font-mono tracking-wider mt-1">
@@ -263,7 +263,7 @@ export default function ChatWidget() {
           </div>
 
           {/* Messages Container */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#F8F9FA]/70">
+          <div data-lenis-prevent="true" className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#F8F9FA]/70">
             {messages.map((msg) => {
               const isAssistant = msg.role === "assistant"
               return (

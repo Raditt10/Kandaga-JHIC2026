@@ -3,6 +3,7 @@ import { Poppins, Plus_Jakarta_Sans, Tangerine, Montserrat, Bebas_Neue } from "n
 import SmoothScrollProvider from "@/lib/SmoothScrollProvider";
 import AuthProvider from "@/lib/AuthProvider";
 import KeepTitle from "@/components/layout/KeepTitle";
+import ChatWidget from "@/components/chat/ChatWidget";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -171,7 +172,10 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
         />
         <AuthProvider>
-          <SmoothScrollProvider>{children}</SmoothScrollProvider>
+          <SmoothScrollProvider>
+            {children}
+            <ChatWidget />
+          </SmoothScrollProvider>
         </AuthProvider>
       </body>
     </html>

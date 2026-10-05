@@ -1,71 +1,62 @@
 "use client";
 
-import { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import Lenis from "lenis";
+import { ReactLenis, type LenisRef } from "lenis/react";
+import "lenis/dist/lenis.css";
+
+export { useLenis } from "lenis/react";
 
 export default function SmoothScrollProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const lenisRef = useRef<LenisRef>(null);
   const pathname = usePathname();
 
+  // Reset scroll ke atas saat rute berubah (kecuali jika ada target anchor hash di URL)
   useEffect(() => {
-    // Disable smooth scroll on portal dashboards & form-heavy pages to prevent main-thread CPU congestion
-    if (
-      pathname &&
-      (pathname.startsWith("/admin") ||
-        pathname.startsWith("/student") ||
-        pathname.startsWith("/teacher") ||
-        pathname.startsWith("/company") ||
-        pathname.startsWith("/bkk") ||
-        pathname.startsWith("/dashboard"))
-    ) {
-      return;
-    }
-
-    const prefersReduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-    if (prefersReduced) return;
-
-    const lenis = new Lenis({
-      duration: 0.85,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      wheelMultiplier: 1.2,
-      touchMultiplier: 1.5,
-      smoothWheel: true,
-    });
-
-    // Expose lenis instance globally for smooth programmatic scroll navigation
-    (window as unknown as { lenis?: Lenis }).lenis = lenis;
-
-    // Pakai requestAnimationFrame dengan cleanup yang benar
-    let rafId: number;
-    function raf(time: number) {
-      lenis.raf(time);
-      rafId = requestAnimationFrame(raf);
-    }
-    rafId = requestAnimationFrame(raf);
-
-    // Pause saat tab tidak aktif — hemat CPU
-    const handleVisibility = () => {
-      if (document.hidden) {
-        cancelAnimationFrame(rafId);
-      } else {
-        rafId = requestAnimationFrame(raf);
+    if (lenisRef.current?.lenis) {
+      if (window.location.hash) {
+        const target = document.querySelector(window.location.hash);
+        if (target) {
+          lenisRef.current.lenis.scrollTo(target as HTMLElement, { offset: -80 });
+          return;
+        }
       }
-    };
-    document.addEventListener("visibilitychange", handleVisibility);
-
-    return () => {
-      delete (window as unknown as { lenis?: Lenis }).lenis;
-      cancelAnimationFrame(rafId);
-      document.removeEventListener("visibilitychange", handleVisibility);
-      lenis.destroy();
-    };
+      lenisRef.current.lenis.scrollTo(0, { immediate: true });
+    }
   }, [pathname]);
 
-  return <>{children}</>;
+  // Ekspos instance Lenis secara global di window.lenis untuk navigasi terprogram & inspeksi
+  useEffect(() => {
+    const instance = lenisRef.current?.lenis;
+    if (instance) {
+      (window as unknown as { lenis?: typeof instance }).lenis = instance;
+    }
+    return () => {
+      delete (window as unknown as { lenis?: unknown }).lenis;
+    };
+  }, []);
+
+  return (
+    <ReactLenis
+      ref={lenisRef}
+      root
+      options={{
+        lerp: 0.14,
+        wheelMultiplier: 1.0,
+        touchMultiplier: 1.0,
+        syncTouch: false,
+        smoothWheel: true,
+        anchors: true,
+        autoRaf: true,
+        respectReducedMotion: true,
+        allowNestedScroll: true,
+      }}
+    >
+      {children}
+    </ReactLenis>
+  );
 }

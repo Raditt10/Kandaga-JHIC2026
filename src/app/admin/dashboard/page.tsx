@@ -283,9 +283,8 @@ export default function AdminDashboardPage() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="font-heading text-sm sm:text-base font-extrabold text-ink flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-primary" />
-                <span>Mitra Industri Terverifikasi</span>
+              <h2 className="font-heading text-sm sm:text-base font-extrabold text-ink">
+                Mitra Industri Terverifikasi
               </h2>
               <p className="text-[11px] text-ink-300 mt-0.5">
                 Perusahaan yang sudah lolos verifikasi BKK dan aktif bekerja sama dengan sekolah.

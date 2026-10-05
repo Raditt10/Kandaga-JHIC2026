@@ -139,11 +139,12 @@ export async function POST(req: Request) {
       parts: [{ text: m.content }],
     }))
 
-    // Coba dengan model gemini-2.5-flash terlebih dahulu, fallback ke gemini-1.5-flash jika diperlukan
+    // Coba dengan model gemini-3.5-flash-lite terlebih dahulu, fallback jika diperlukan
     let generatedText = ""
     try {
+      const primaryModel = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite"
       const response = await ai.models.generateContent({
-        model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+        model: primaryModel,
         contents: contents,
         config: {
           systemInstruction: KANDAGA_SYSTEM_INSTRUCTION,
@@ -152,16 +153,20 @@ export async function POST(req: Request) {
       })
       generatedText = response.text || ""
     } catch (modelError: any) {
-      console.warn("Retrying with gemini-1.5-flash due to:", modelError?.message)
-      const fallbackResponse = await ai.models.generateContent({
-        model: "gemini-1.5-flash",
-        contents: contents,
-        config: {
-          systemInstruction: KANDAGA_SYSTEM_INSTRUCTION,
-          temperature: 0.7,
-        },
-      })
-      generatedText = fallbackResponse.text || ""
+      console.warn("Retrying with fallback model due to:", modelError?.message)
+      try {
+        const fallbackResponse = await ai.models.generateContent({
+          model: "gemini-3.5-flash",
+          contents: contents,
+          config: {
+            systemInstruction: KANDAGA_SYSTEM_INSTRUCTION,
+            temperature: 0.7,
+          },
+        })
+        generatedText = fallbackResponse.text || ""
+      } catch (fbErr: any) {
+        console.warn("Fallback model also failed:", fbErr?.message)
+      }
     }
 
     if (!generatedText) {

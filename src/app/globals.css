@@ -61,8 +61,19 @@ html.lenis, html.lenis body {
 .lenis.lenis-smooth {
   scroll-behavior: auto !important;
 }
-.lenis.lenis-smooth [data-lenis-prevent] {
+.lenis.lenis-smooth [data-lenis-prevent],
+[data-lenis-prevent] {
   overscroll-behavior: contain;
+}
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+/* Optimasi performa saat scrolling aktif — cegah beban hover & layout thrashing */
+html.lenis.lenis-scrolling {
+  pointer-events: none;
 }
 
 /* ── Font utility classes ── */
