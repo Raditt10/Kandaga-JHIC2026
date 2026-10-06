@@ -160,7 +160,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ projects: mapped }, { status: 200 });
   } catch (error) {
     console.error("GET /api/student/projects error:", error);
-    return NextResponse.json({ error: "Gagal memuat data proyek dari database" }, { status: 500 });
+    const detail = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: `Gagal memuat data proyek dari database: ${detail}` }, { status: 500 });
   }
 }
 
