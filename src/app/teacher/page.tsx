@@ -1,9 +1,11 @@
 "use client"
 
-import React, { useEffect, useState, useMemo } from "react"
+import React, { useEffect, useState, useMemo, useCallback, Suspense } from "react"
 import Image from "next/image"
+import { useSearchParams } from "next/navigation"
 import DashboardLayout, { DashboardTab } from "@/components/DashboardLayout"
 import AccountSettings from "@/components/settings/AccountSettings"
+import TeacherProfileView from "@/components/profile/TeacherProfileView"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { useSession } from "next-auth/react"
 import {
@@ -143,10 +145,60 @@ function toHistoryItem(p: TProject) {
   }
 }
 
-export default function TeacherDashboardPage() {
+const VALID_TEACHER_TABS = ["dashboard", "antrean", "karya-terverifikasi", "siswa-bimbingan", "riwayat", "profil", "pengaturan"]
+
+function TeacherDashboardContent() {
   const { data: session } = useSession()
-  const [activeTab, setActiveTab] = useState("dashboard")
+  const searchParams = useSearchParams()
+  const tabParam = searchParams.get("tab")
+
+  const initialTab = useMemo(() => {
+    if (tabParam && VALID_TEACHER_TABS.includes(tabParam)) {
+      return tabParam === "siswa-bimbingan" || tabParam === "riwayat" ? "karya-terverifikasi" : tabParam
+    }
+    if (typeof window !== "undefined") {
+      try {
+        const saved = sessionStorage.getItem("kandaga_teacher_tab")
+        if (saved && VALID_TEACHER_TABS.includes(saved) && saved !== "dashboard") {
+          return saved === "siswa-bimbingan" || saved === "riwayat" ? "karya-terverifikasi" : saved
+        }
+      } catch {}
+    }
+    return "dashboard"
+  }, [tabParam])
+
+  const [activeTab, setActiveTab] = useState<string>(initialTab)
   const [searchQuery, setSearchQuery] = useState("")
+
+  const handleTabChange = useCallback((tabId: string) => {
+    if (!VALID_TEACHER_TABS.includes(tabId)) return
+    const targetTab = tabId === "siswa-bimbingan" || tabId === "riwayat" ? "karya-terverifikasi" : tabId
+    setActiveTab(targetTab)
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem("kandaga_teacher_tab", targetTab)
+        const url = new URL(window.location.href)
+        if (targetTab === "dashboard") {
+          url.searchParams.delete("tab")
+        } else {
+          url.searchParams.set("tab", targetTab)
+        }
+        window.history.replaceState(null, "", url.toString())
+      } catch (e) {
+        console.error("Teacher tab sync error:", e)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (tabParam && VALID_TEACHER_TABS.includes(tabParam)) {
+      const resolved = tabParam === "siswa-bimbingan" || tabParam === "riwayat" ? "karya-terverifikasi" : tabParam
+      setActiveTab(resolved)
+      try {
+        sessionStorage.setItem("kandaga_teacher_tab", resolved)
+      } catch {}
+    }
+  }, [tabParam])
 
   // ── Data dari database ──────────────────────────────────────────────
   const [loading, setLoading] = useState(true)
@@ -186,6 +238,13 @@ export default function TeacherDashboardPage() {
   const [curationPage, setCurationPage] = useState(1)
   const [detailProject, setDetailProject] = useState<TProject | null>(null)
 
+  // ── Filter & paginasi karya terverifikasi ────────────────────────────────
+  const [verifiedSearch, setVerifiedSearch] = useState("")
+  const [debouncedVerifiedQuery, setDebouncedVerifiedQuery] = useState("")
+  const [verifiedCategory, setVerifiedCategory] = useState("all")
+  const [verifiedSort, setVerifiedSort] = useState<"newest" | "score-desc" | "score-asc">("newest")
+  const [verifiedPage, setVerifiedPage] = useState(1)
+
   useEffect(() => {
     const t = setTimeout(() => {
       setDebouncedCurationQuery(curationSearch)
@@ -194,11 +253,18 @@ export default function TeacherDashboardPage() {
     return () => clearTimeout(t)
   }, [curationSearch])
 
-  // Bila pengguna mengakses tab riwayat, arahkan ke antrean kurasi dengan filter disetujui
   useEffect(() => {
-    if (activeTab === "riwayat") {
-      setStatusFilter("approved")
-      setActiveTab("antrean")
+    const t = setTimeout(() => {
+      setDebouncedVerifiedQuery(verifiedSearch)
+      setVerifiedPage(1)
+    }, 300)
+    return () => clearTimeout(t)
+  }, [verifiedSearch])
+
+  // Bila pengguna mengakses tab riwayat atau siswa-bimbingan, arahkan ke karya-terverifikasi
+  useEffect(() => {
+    if (activeTab === "riwayat" || activeTab === "siswa-bimbingan") {
+      setActiveTab("karya-terverifikasi")
     }
   }, [activeTab])
 
@@ -275,6 +341,50 @@ export default function TeacherDashboardPage() {
     setCategoryFilter("all")
     setStatusFilter("all")
     setCurationPage(1)
+  }
+
+  // ── Data & paginasi karya terverifikasi ──
+  const verifiedProjects = useMemo(() => {
+    const list = allProjects.filter((p) => p.status === "approved")
+    return list
+      .filter((p) => {
+        if (verifiedCategory !== "all" && p.category !== verifiedCategory) return false
+        if (debouncedVerifiedQuery.trim()) {
+          const q = debouncedVerifiedQuery.trim().toLowerCase()
+          const text = `${p.title} ${p.studentName} ${p.studentClass} ${p.summary} ${p.techStack?.join(" ") || ""}`.toLowerCase()
+          if (!text.includes(q)) return false
+        }
+        return true
+      })
+      .sort((a, b) => {
+        if (verifiedSort === "score-desc") {
+          return (b.score ?? 0) - (a.score ?? 0)
+        }
+        if (verifiedSort === "score-asc") {
+          return (a.score ?? 0) - (b.score ?? 0)
+        }
+        const dateA = new Date(a.publishedAt || a.submittedAt).getTime()
+        const dateB = new Date(b.publishedAt || b.submittedAt).getTime()
+        return dateB - dateA
+      })
+  }, [allProjects, verifiedCategory, debouncedVerifiedQuery, verifiedSort])
+
+  const VERIFIED_PAGE_SIZE = 6
+  const totalVerified = verifiedProjects.length
+  const totalVerifiedPages = Math.max(1, Math.ceil(totalVerified / VERIFIED_PAGE_SIZE))
+  const paginatedVerifiedProjects = useMemo(() => {
+    const start = (verifiedPage - 1) * VERIFIED_PAGE_SIZE
+    return verifiedProjects.slice(start, start + VERIFIED_PAGE_SIZE)
+  }, [verifiedProjects, verifiedPage])
+
+  const verifiedStartItem = totalVerified === 0 ? 0 : (verifiedPage - 1) * VERIFIED_PAGE_SIZE + 1
+  const verifiedEndItem = Math.min(totalVerified, verifiedPage * VERIFIED_PAGE_SIZE)
+
+  const resetVerifiedFilters = () => {
+    setVerifiedSearch("")
+    setVerifiedCategory("all")
+    setVerifiedSort("newest")
+    setVerifiedPage(1)
   }
 
   // Bentuk data yang dipakai JSX
@@ -398,9 +508,10 @@ export default function TeacherDashboardPage() {
       badge: stats.menunggu > 0 ? `${stats.menunggu}` : undefined,
     },
     {
-      id: "siswa-bimbingan",
-      label: "Siswa Bimbingan",
-      icon: Users,
+      id: "karya-terverifikasi",
+      label: "Karya Terverifikasi",
+      icon: CheckCircle2,
+      badge: stats.disetujui > 0 ? `${stats.disetujui}` : undefined,
     },
   ]
 
@@ -412,7 +523,7 @@ export default function TeacherDashboardPage() {
       icon={BookOpen}
       tabs={teacherTabs}
       activeTab={activeTab}
-      onTabChange={setActiveTab}
+      onTabChange={handleTabChange}
     >
       {/* ── Status pemuatan, pesan, dan lingkup kurasi ── */}
       {loading && (
@@ -453,7 +564,7 @@ export default function TeacherDashboardPage() {
                 Selamat Bertugas, <span className="capitalize">{session?.user?.username || session?.user?.name || "Bapak/Ibu Guru"}</span>!
               </h1>
               <p className="text-rose-100 text-xs sm:text-sm mt-2 leading-relaxed opacity-90">
-                Sebagai Guru Pembimbing, Anda memverifikasi kelayakan karya siswa, memberikan penilaian standar ISO/BNSP, dan menyetujui penayangan portofolio di galeri utama Kandaga.
+                Sebagai Guru Pembimbing, Anda memverifikasi kelayakan karya siswa, memberikan penilaian standar yang telah ada di sekolah, dan menyetujui penayangan karya di galeri utama Kandaga.
               </p>
             </div>
 
@@ -476,7 +587,7 @@ export default function TeacherDashboardPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <button
               type="button"
-              onClick={() => setActiveTab("antrean")}
+              onClick={() => handleTabChange("antrean")}
               className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between text-left cursor-pointer"
             >
               <div className="flex items-center justify-between">
@@ -496,7 +607,27 @@ export default function TeacherDashboardPage() {
 
             <button
               type="button"
-              onClick={() => setActiveTab("antrean")}
+              onClick={() => handleTabChange("karya-terverifikasi")}
+              className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between text-left cursor-pointer"
+            >
+              <div className="flex items-center justify-between">
+                <CheckCircle2 className="w-5 h-5 text-primary" />
+                <ArrowUpRight className="w-4 h-4 text-ink-300 group-hover:text-primary transition" />
+              </div>
+              <div className="mt-4">
+                <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight block">
+                  {Math.max(historyRaw.length, (stats.disetujui || 0) + (stats.revisi || 0))}
+                </span>
+                <span className="text-xs font-bold text-ink-700 block mt-1">Karya yang telah di verifikasi</span>
+                <span className="text-[11px] text-ink-400 block mt-0.5">
+                  Telah melalui kurasi pembimbing
+                </span>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleTabChange("karya-terverifikasi")}
               className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between text-left cursor-pointer"
             >
               <div className="flex items-center justify-between">
@@ -513,24 +644,6 @@ export default function TeacherDashboardPage() {
                 </span>
               </div>
             </button>
-
-            <div className="p-5 rounded-2xl bg-white border border-ink-150 shadow-xs flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <Award className="w-5 h-5 text-primary" />
-                <ArrowUpRight className="w-4 h-4 text-ink-300" />
-              </div>
-              <div className="mt-4">
-                <span className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight block">
-                  {rataNilai ? `${rataNilai} / 100` : "— / 100"}
-                </span>
-                <span className="text-xs font-bold text-ink-700 block mt-1">Rata-Rata Nilai Riset</span>
-                <span className="text-[11px] text-ink-400 block mt-0.5">
-                  {bernilai.length > 0
-                    ? `Dari ${bernilai.length} karya yang sudah dinilai`
-                    : "Belum ada karya yang diberi nilai"}
-                </span>
-              </div>
-            </div>
           </div>
 
           {/* Quick Preview Antrean */}
@@ -542,7 +655,7 @@ export default function TeacherDashboardPage() {
               </div>
               <button
                 type="button"
-                onClick={() => setActiveTab("antrean")}
+                onClick={() => handleTabChange("antrean")}
                 className="text-xs font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
               >
                 <span>Lihat Semua Antrean ({curationQueue.length})</span>
@@ -550,43 +663,51 @@ export default function TeacherDashboardPage() {
               </button>
             </div>
 
-            <div className="space-y-3">
-              {curationQueue.map((item) => (
-                <div
-                  key={item.id}
-                  className="p-4 rounded-2xl border border-ink-150 bg-ink-100/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
-                        {item.major}
-                      </span>
-                      <span className="text-xs text-ink-300 font-mono">{item.classRoom}</span>
+            {curationQueue.length === 0 ? (
+              <EmptyState
+                title="Tidak Ada Antrean Verifikasi"
+                description="Semua karya siswa yang diajukan sudah diperiksa. Pengajuan baru yang membutuhkan validasi materi akan muncul di sini."
+                compact
+              />
+            ) : (
+              <div className="space-y-3">
+                {curationQueue.map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-4 rounded-2xl border border-ink-150 bg-ink-100/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                          {item.major}
+                        </span>
+                        <span className="text-xs text-ink-300 font-mono">{item.classRoom}</span>
+                      </div>
+                      <h3 className="font-heading text-base font-bold text-ink">{item.title}</h3>
+                      <p className="text-xs text-ink-600 font-medium">Diajukan oleh: {item.studentName}</p>
                     </div>
-                    <h3 className="font-heading text-base font-bold text-ink">{item.title}</h3>
-                    <p className="text-xs text-ink-600 font-medium">Diajukan oleh: {item.studentName}</p>
-                  </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => handleApprove(item.id)}
-                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>Setujui</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleRevision(item.id)}
-                      className="px-4 py-2 bg-ink-150 hover:bg-ink-150 text-ink rounded-xl text-xs font-bold transition cursor-pointer"
-                    >
-                      Revisi
-                    </button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleApprove(item.id)}
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Setujui</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRevision(item.id)}
+                        className="px-4 py-2 bg-ink-150 hover:bg-ink-150 text-ink rounded-xl text-xs font-bold transition cursor-pointer"
+                      >
+                        Revisi
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -841,77 +962,284 @@ export default function TeacherDashboardPage() {
         </div>
       )}
 
-      {/* ──────────────── TAB 3: SISWA BIMBINGAN ──────────────── */}
-      {activeTab === "siswa-bimbingan" && (
+      {/* ──────────────── TAB 3: KARYA TERVERIFIKASI ──────────────── */}
+      {(activeTab === "karya-terverifikasi" || activeTab === "siswa-bimbingan") && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          <div className="p-6 bg-white rounded-2xl border border-ink-150 shadow-xs">
-            <h1 className="font-heading text-xl sm:text-2xl font-extrabold text-ink">
-              Daftar Siswa Bimbingan Tugas Akhir
-            </h1>
-            <p className="font-sans text-xs sm:text-sm text-ink-600 mt-1 max-w-[65ch]">
-              Monitoring progres portofolio dan kelayakan karya siswa bimbingan akademik Anda.
-            </p>
-          </div>
+          {/* Header Card & Filter Bar */}
+          <div className="p-6 bg-white rounded-2xl border border-ink-150 shadow-xs space-y-5">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h1 className="font-heading text-xl sm:text-2xl font-extrabold text-ink flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                  <span>Karya Siswa Terverifikasi</span>
+                </h1>
+                <p className="font-sans text-xs sm:text-sm text-ink-600 mt-1 max-w-[65ch]">
+                  Portofolio dan karya tugas akhir siswa yang telah lulus kurasi kelayakan dan dipublikasikan di Galeri Utama Kandaga.
+                </p>
+              </div>
 
-          <div className="overflow-hidden rounded-2xl border border-ink-150 bg-white shadow-xs">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-ink-100 border-b border-ink-150">
-                    <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Nama Siswa</th>
-                    <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Kelas / Jurusan</th>
-                    <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Judul Proyek Tugas Akhir</th>
-                    <th className="text-left px-5 py-3.5 font-semibold text-ink-700 font-heading">Status Kurasi</th>
-                    <th className="text-right px-5 py-3.5 font-semibold text-ink-700 font-heading pr-5">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-ink-150 bg-white">
-                  {siswa.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="p-8">
-                        <EmptyState
-                          compact
-                          title="Belum Ada Siswa Terdaftar"
-                          description="Belum ada siswa terdaftar di jurusan Anda."
-                        />
-                      </td>
-                    </tr>
-                  )}
+              {/* Stat Ringkas */}
+              <div className="flex items-center gap-3">
+                <div className="px-4 py-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 text-left">
+                  <span className="text-[11px] font-bold text-emerald-700 block uppercase tracking-wider">
+                    Total Terverifikasi
+                  </span>
+                  <span className="text-lg font-extrabold text-emerald-900 font-mono">
+                    {allProjects.filter((p) => p.status === "approved").length} <span className="text-xs font-sans font-medium text-emerald-700">Karya</span>
+                  </span>
+                </div>
+                {rataNilai && (
+                  <div className="px-4 py-2.5 rounded-xl bg-ink-100 border border-ink-150 text-left">
+                    <span className="text-[11px] font-bold text-ink-600 block uppercase tracking-wider">
+                      Rata-Rata Nilai
+                    </span>
+                    <span className="text-lg font-extrabold text-ink font-mono">
+                      {rataNilai} <span className="text-xs font-sans font-medium text-ink-500">/ 100</span>
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
 
-                  {siswa.flatMap((s) => {
-                    // Satu baris per karya; siswa tanpa karya tetap ditampilkan.
-                    const karya =
-                      s.karya.length > 0
-                        ? s.karya
-                        : [{ id: `${s.id}-kosong`, title: "Belum mengajukan karya", status: "", score: null }];
+            {/* Controls Bar: Search, Category, Sorting */}
+            <div className="pt-4 border-t border-ink-150 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="relative flex-1 max-w-md">
+                <Search className="w-4 h-4 text-ink-300 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Cari karya terverifikasi, siswa, atau teknologi..."
+                  value={verifiedSearch}
+                  onChange={(e) => setVerifiedSearch(e.target.value)}
+                  className="w-full pl-9 pr-9 py-2 rounded-xl border border-ink-150 text-xs bg-ink-50/70 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary transition"
+                />
+                {verifiedSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setVerifiedSearch("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-300 hover:text-ink-600 cursor-pointer"
+                    aria-label="Hapus pencarian"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
 
-                    return karya.map((k) => (
-                      <tr key={k.id} className="hover:bg-ink-100/50 transition-colors">
-                        <td className="px-5 py-4 font-semibold text-ink text-sm">{s.name}</td>
-                        <td className="px-5 py-4 text-ink-600 font-mono text-sm">{s.class}</td>
-                        <td className="px-5 py-4 text-ink text-sm">{k.title}</td>
-                        <td className="px-5 py-4">
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-ink-100 text-ink-700 rounded-full border border-ink-200 font-semibold text-xs">
-                            {STATUS_KURASI[k.status] ?? k.status}
-                            {typeof k.score === "number" ? ` • Nilai ${k.score}` : ""}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4 text-right pr-5">
-                          <button
-                            type="button"
-                            onClick={() => setActiveTab("antrean")}
-                            className="px-3 py-1.5 rounded-xl border border-ink-150 hover:bg-ink-100 text-primary hover:text-primary-dark text-xs font-semibold transition cursor-pointer"
-                          >
-                            Lihat antrean
-                          </button>
-                        </td>
-                      </tr>
-                    ));
-                  })}
-                </tbody>
-              </table>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <div className="flex items-center gap-1.5 bg-ink-50 px-2.5 py-1.5 rounded-xl border border-ink-150">
+                  <Filter className="w-3.5 h-3.5 text-ink-400" />
+                  <select
+                    value={verifiedCategory}
+                    onChange={(e) => {
+                      setVerifiedCategory(e.target.value)
+                      setVerifiedPage(1)
+                    }}
+                    className="text-xs bg-transparent text-ink-700 focus:outline-none cursor-pointer font-medium"
+                  >
+                    <option value="all">Semua Kategori</option>
+                    <option value="RPL">RPL (Rekayasa Perangkat Lunak)</option>
+                    <option value="TKJ">TKJ (Teknik Komputer Jaringan)</option>
+                    <option value="KA">Analis Kimia</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-1.5 bg-ink-50 px-2.5 py-1.5 rounded-xl border border-ink-150">
+                  <span className="text-[11px] text-ink-500 font-medium">Urutan:</span>
+                  <select
+                    value={verifiedSort}
+                    onChange={(e) => {
+                      setVerifiedSort(e.target.value as any)
+                      setVerifiedPage(1)
+                    }}
+                    className="text-xs bg-transparent text-ink-700 focus:outline-none cursor-pointer font-medium"
+                  >
+                    <option value="newest">Terbaru</option>
+                    <option value="score-desc">Nilai Tertinggi</option>
+                    <option value="score-asc">Nilai Terendah</option>
+                  </select>
+                </div>
+
+                {(verifiedSearch || verifiedCategory !== "all" || verifiedSort !== "newest") && (
+                  <button
+                    type="button"
+                    onClick={resetVerifiedFilters}
+                    className="px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 transition cursor-pointer"
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
             </div>
           </div>
+
+          {/* Grid Karya Terverifikasi */}
+          {loading ? (
+            <div className="p-12 text-center bg-white rounded-2xl border border-ink-150 shadow-xs">
+              <Loader2 className="w-6 h-6 animate-spin text-ink-300 mx-auto" />
+              <p className="text-xs text-ink-300 mt-2">Memuat karya terverifikasi...</p>
+            </div>
+          ) : paginatedVerifiedProjects.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-ink-150 shadow-xs p-12 text-center">
+              <EmptyState
+                title={
+                  verifiedSearch || verifiedCategory !== "all"
+                    ? "Karya Tidak Ditemukan"
+                    : "Belum Ada Karya Terverifikasi"
+                }
+                description={
+                  verifiedSearch || verifiedCategory !== "all"
+                    ? "Tidak ada karya terverifikasi yang cocok dengan kriteria pencarian Anda."
+                    : "Karya siswa yang telah Anda setujui pada proses kurasi akan muncul di sini dan dipublikasikan di galeri sekolah."
+                }
+                action={
+                  verifiedSearch || verifiedCategory !== "all"
+                    ? { label: "Reset Filter", onClick: resetVerifiedFilters }
+                    : { label: "Buka Kurasi Karya", onClick: () => handleTabChange("antrean") }
+                }
+              />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {paginatedVerifiedProjects.map((p) => (
+                <div
+                  key={p.id}
+                  className="bg-white rounded-2xl border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col overflow-hidden group"
+                >
+                  {/* Thumbnail / Cover */}
+                  <div className="relative aspect-[16/10] w-full bg-ink-100 overflow-hidden border-b border-ink-150">
+                    <Image
+                      src={p.coverImage || "/images/preview-rpl.jpg"}
+                      alt={p.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover group-hover:scale-105 transition duration-300"
+                    />
+
+                    {/* Overlay Badges */}
+                    <div className="absolute top-3 left-3 z-10 flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-600/90 backdrop-blur-xs text-white text-[11px] font-bold shadow-xs">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>Terverifikasi</span>
+                    </div>
+
+                    <div className="absolute top-3 right-3 z-10 px-2 py-0.5 rounded-full bg-ink/75 backdrop-blur-xs text-white text-[10px] font-mono font-semibold">
+                      {p.category}
+                    </div>
+
+                    {p.score !== null && (
+                      <div className="absolute bottom-3 left-3 z-10 px-2.5 py-1 rounded-xl bg-white/95 backdrop-blur-xs text-primary font-mono text-xs font-extrabold shadow-xs border border-ink-150">
+                        Skor: {p.score}/100
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Body Info */}
+                  <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-xs text-ink-500">
+                        <span className="font-semibold text-ink-800">{p.studentName}</span>
+                        <span>•</span>
+                        <span>{p.studentClass}</span>
+                      </div>
+
+                      <h3 className="font-heading font-bold text-base text-ink line-clamp-2 leading-snug group-hover:text-primary transition">
+                        {p.title}
+                      </h3>
+
+                      <p className="text-xs text-ink-600 line-clamp-2 leading-relaxed">
+                        {p.summary || "Karya tugas akhir siswa SMKN 13 Bandung."}
+                      </p>
+
+                      {/* Tech Stack Pills */}
+                      {p.techStack && p.techStack.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {p.techStack.slice(0, 3).map((tech, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-0.5 rounded-md bg-ink-100 text-ink-700 text-[10px] font-mono"
+                            >
+                              {tech}
+                            </span>
+                          ))}
+                          {p.techStack.length > 3 && (
+                            <span className="text-[10px] text-ink-400 self-center">
+                              +{p.techStack.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="pt-3 border-t border-ink-150 flex items-center justify-between gap-2">
+                      <span className="text-[11px] text-ink-400">
+                        Tayang: {tanggal(p.publishedAt || p.submittedAt)}
+                      </span>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setDetailProject(p)}
+                          className="px-3 py-1.5 rounded-xl border border-ink-150 hover:bg-ink-100 text-ink-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                          title="Lihat Detail & Catatan Kurasi"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Detail</span>
+                        </button>
+
+                        <a
+                          href={`/gallery/${p.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1.5 rounded-xl border border-ink-150 hover:border-primary/30 hover:bg-primary/10 text-primary transition cursor-pointer"
+                          title="Buka di Galeri Utama (tab baru)"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Paginasi Karya Terverifikasi */}
+          {totalVerifiedPages > 1 && (
+            <div className="p-4 bg-white rounded-2xl border border-ink-150 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setVerifiedPage((p) => Math.max(1, p - 1))}
+                  disabled={verifiedPage === 1}
+                  className="px-3 py-1.5 rounded-xl border border-ink-150 text-xs font-semibold text-ink-600 hover:bg-ink-100 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <span>Sebelumnya</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setVerifiedPage((p) => Math.min(totalVerifiedPages, p + 1))}
+                  disabled={verifiedPage === totalVerifiedPages}
+                  className="px-3 py-1.5 rounded-xl border border-ink-150 text-xs font-semibold text-ink-600 hover:bg-ink-100 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1"
+                >
+                  <span>Selanjutnya</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="text-xs text-ink-500 flex items-center gap-1.5 font-medium">
+                <span>Halaman</span>
+                <span className="font-bold text-ink">{verifiedPage}</span>
+                <span>dari</span>
+                <span className="font-bold text-ink">{totalVerifiedPages}</span>
+                <span className="mx-1">•</span>
+                <span>
+                  Menampilkan {verifiedStartItem}–{verifiedEndItem} dari {totalVerified} karya
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -1305,8 +1633,19 @@ export default function TeacherDashboardPage() {
           </div>
         </div>
       )}
-      {/* ──────────────── TAB 5: PENGATURAN AKUN ──────────────── */}
+      {/* ──────────────── TAB 5: PROFIL GURU ──────────────── */}
+      {activeTab === "profil" && <TeacherProfileView />}
+
+      {/* ──────────────── TAB 6: PENGATURAN AKUN ──────────────── */}
       {activeTab === "pengaturan" && <AccountSettings />}
     </DashboardLayout>
+  )
+}
+
+export default function TeacherDashboardPage() {
+  return (
+    <Suspense fallback={null}>
+      <TeacherDashboardContent />
+    </Suspense>
   )
 }
