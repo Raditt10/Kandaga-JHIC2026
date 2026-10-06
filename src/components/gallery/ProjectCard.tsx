@@ -90,7 +90,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
           {/* Department badge */}
           <span
-            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border backdrop-blur-md bg-white/95 shadow-xs ${currentMajorStyle.badge}`}
+            className={`kandaga-island-terang inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border backdrop-blur-md bg-white/95 shadow-xs ${currentMajorStyle.badge}`}
           >
             {majorDisplay}
           </span>

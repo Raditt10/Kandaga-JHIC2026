@@ -12,18 +12,25 @@
 
 import React, { useEffect, useState } from "react"
 import {
-  BadgeCheck,
+  AlertCircle,
+  BellOff,
+  BellRing,
   Check,
   CheckCircle2,
-  AlertCircle,
   KeyRound,
   Link2,
   Loader2,
-  Settings,
+  Monitor,
+  Moon,
+  Palette,
   Sparkles,
+  Sun,
   Trash2,
-  UserCog,
 } from "lucide-react"
+import { THEME_OPTIONS, getStoredTheme, setThemeMode, type ThemeMode } from "@/lib/theme"
+
+/** Kunci localStorage untuk preferensi notifikasi perangkat. */
+const NOTIF_STORAGE_KEY = "kandaga_notif_device"
 
 function GoogleIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
@@ -58,26 +65,10 @@ type Akun = {
   bergabung: string | null
 }
 
-type DetailItem = { label: string; value: string }
-
-const ROLE_LABEL: Record<string, string> = {
-  student: "Siswa",
-  teacher: "Guru / Kurator Jurusan",
-  company: "Mitra Perusahaan",
-  bkk: "Koordinator BKK",
-  admin: "Administrator Sekolah",
-}
-
 export default function AccountSettings() {
   const [akun, setAkun] = useState<Akun | null>(null)
-  const [detail, setDetail] = useState<DetailItem[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
-
-  // Form nama
-  const [nama, setNama] = useState("")
-  const [simpanNama, setSimpanNama] = useState(false)
-  const [pesanNama, setPesanNama] = useState<{ ok: boolean; text: string } | null>(null)
 
   // Form Tautan Akun Google
   const [googleEmailInput, setGoogleEmailInput] = useState("")
@@ -92,6 +83,136 @@ export default function AccountSettings() {
   const [simpanPassword, setSimpanPassword] = useState(false)
   const [pesanPassword, setPesanPassword] = useState<{ ok: boolean; text: string } | null>(null)
 
+  // Tema tampilan (terang / gelap / ikut sistem)
+  const [themeMode, setThemeModeState] = useState<ThemeMode>("system")
+
+  // Notifikasi perangkat
+  const [notifSupported, setNotifSupported] = useState(true)
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission | "unsupported">(
+    "default"
+  )
+  const [notifOn, setNotifOn] = useState(false)
+  const [notifBusy, setNotifBusy] = useState(false)
+  const [pesanNotif, setPesanNotif] = useState<{ ok: boolean; text: string } | null>(null)
+
+  // Sinkronkan kontrol dengan keadaan sebenarnya di perangkat.
+  useEffect(() => {
+    setThemeModeState(getStoredTheme())
+
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      setNotifSupported(false)
+      setNotifPermission("unsupported")
+      return
+    }
+
+    const izin = Notification.permission
+    setNotifPermission(izin)
+
+    let tersimpan = false
+    try {
+      tersimpan = window.localStorage.getItem(NOTIF_STORAGE_KEY) === "1"
+    } catch {
+      tersimpan = false
+    }
+    // Saklar hanya menyala bila preferensi tersimpan DAN izin browser masih ada.
+    setNotifOn(tersimpan && izin === "granted")
+  }, [])
+
+  const ubahTema = (mode: ThemeMode) => {
+    setThemeMode(mode)
+    setThemeModeState(mode)
+  }
+
+  const statusIzin: Record<string, string> = {
+    granted: "Izin diberikan",
+    denied: "Diblokir browser",
+    default: "Izin belum diminta",
+    unsupported: "Tidak didukung browser ini",
+  }
+
+  const alihkanNotif = async () => {
+    if (notifBusy) return
+    setPesanNotif(null)
+
+    // ── Mematikan notifikasi ──
+    if (notifOn) {
+      setNotifOn(false)
+      try {
+        window.localStorage.setItem(NOTIF_STORAGE_KEY, "0")
+      } catch {}
+      setPesanNotif({
+        ok: true,
+        text: "Notifikasi perangkat dimatikan. Anda tidak akan menerima pemberitahuan di perangkat ini.",
+      })
+      return
+    }
+
+    // ── Menyalakan notifikasi ──
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      setPesanNotif({
+        ok: false,
+        text: "Browser ini tidak mendukung notifikasi perangkat.",
+      })
+      return
+    }
+
+    setNotifBusy(true)
+    try {
+      let izin = Notification.permission
+      if (izin === "default") {
+        izin = await Notification.requestPermission()
+      }
+      setNotifPermission(izin)
+
+      if (izin !== "granted") {
+        setNotifOn(false)
+        try {
+          window.localStorage.setItem(NOTIF_STORAGE_KEY, "0")
+        } catch {}
+        setPesanNotif({
+          ok: false,
+          text:
+            izin === "denied"
+              ? "Izin notifikasi diblokir. Buka pengaturan situs di browser Anda, izinkan notifikasi untuk Kandaga, lalu coba lagi."
+              : "Izin notifikasi belum diberikan, jadi notifikasi perangkat masih nonaktif.",
+        })
+        return
+      }
+
+      setNotifOn(true)
+      try {
+        window.localStorage.setItem(NOTIF_STORAGE_KEY, "1")
+      } catch {}
+
+      /*
+       * Kirim satu notifikasi uji sebagai bukti nyata bahwa izin bekerja.
+       * Di sebagian browser (umumnya Android), konstruktor Notification
+       * dilarang dan wajib lewat service worker. Kalau itu terjadi, jangan
+       * mengaku sudah terkirim — beri tahu apa adanya.
+       */
+      let ujiTerkirim = false
+      try {
+        new Notification("Kandaga — notifikasi aktif", {
+          body: "Mulai sekarang pemberitahuan penting akan muncul di perangkat ini.",
+          icon: "/logo.png",
+          tag: "kandaga-notif-uji",
+        })
+        ujiTerkirim = true
+      } catch {
+        ujiTerkirim = false
+      }
+
+      setPesanNotif({
+        ok: true,
+        text: ujiTerkirim
+          ? "Notifikasi perangkat diaktifkan. Satu notifikasi uji baru saja dikirim — cek pojok layar Anda."
+          : "Notifikasi perangkat diaktifkan. Browser ini tidak mengizinkan notifikasi uji langsung, tetapi izin sudah tersimpan.",
+      })
+    } finally {
+      setNotifBusy(false)
+    }
+  }
+
   const muat = async () => {
     setLoading(true)
     setLoadError(null)
@@ -102,8 +223,6 @@ export default function AccountSettings() {
         setLoadError(data.error || "Gagal memuat data akun.")
       } else {
         setAkun(data.akun)
-        setDetail(data.detail ?? [])
-        setNama(data.akun?.nama ?? "")
         if (data.akun?.googleEmail) {
           setGoogleEmailInput(data.akun.googleEmail)
         } else if (data.akun?.email?.toLowerCase().endsWith("@gmail.com")) {
@@ -170,20 +289,6 @@ export default function AccountSettings() {
     }
   }
 
-  const ubahNama = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setPesanNama(null)
-    if (nama.trim() === akun?.nama) {
-      setPesanNama({ ok: false, text: "Nama belum berubah." })
-      return
-    }
-    setSimpanNama(true)
-    const { ok, data } = await kirim({ nama })
-    setSimpanNama(false)
-    setPesanNama({ ok, text: ok ? data.pesan : data.error || "Gagal menyimpan nama." })
-    if (ok) muat()
-  }
-
   const ubahPassword = async (e: React.FormEvent) => {
     e.preventDefault()
     setPesanPassword(null)
@@ -231,81 +336,160 @@ export default function AccountSettings() {
     <div className="space-y-6 w-full">
       {/* Header — Bersih tanpa kotak card terpisah */}
       <div className="pb-1">
-        <h1 className="font-heading text-xl font-bold text-ink flex items-center gap-2.5">
-          <Settings className="w-5 h-5 text-primary" aria-hidden="true" />
-          Pengaturan Akun
+        <h1 className="font-heading text-xl font-bold text-ink">
+          Pengaturan
         </h1>
         <p className="text-xs text-ink-600 mt-1">
-          Data akun, nama tampilan, tautan autentikasi Google, dan kata sandi Anda.
+          Tema tampilan, notifikasi perangkat, tautan Google, dan kata sandi Anda.
         </p>
       </div>
 
       {/* Satu Kontainer Penuh Terpadu (Unified Full Panel Layout) */}
       <div className="bg-white rounded-3xl border border-ink-150 shadow-xs divide-y divide-ink-150 overflow-hidden w-full">
-        {/* Ringkasan akun */}
+        {/* Tampilan — tema terang / gelap / ikut sistem */}
         <div className={sectionClass}>
           <h2 className="text-sm font-bold text-ink flex items-center gap-2">
-            <UserCog className="w-4 h-4 text-ink-600" aria-hidden="true" />
-            Informasi Akun
+            <Palette className="w-4 h-4 text-ink-600" aria-hidden="true" />
+            Tampilan
           </h2>
 
-          <dl className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 pt-2">
-          <div>
-            <dt className="text-[11px] font-bold text-ink-600 uppercase tracking-wider">
-              Nama Akun
-            </dt>
-            <dd className="text-sm font-semibold text-ink mt-1">{akun?.nama}</dd>
-          </div>
-          <div>
-            <dt className="text-[11px] font-bold text-ink-600 uppercase tracking-wider">
-              Email
-            </dt>
-            <dd className="text-sm font-semibold text-ink mt-1">{akun?.email}</dd>
-          </div>
-          <div>
-            <dt className="text-[11px] font-bold text-ink-600 uppercase tracking-wider">
-              Peran
-            </dt>
-            <dd className="text-sm font-semibold text-ink mt-1">
-              {ROLE_LABEL[akun?.role ?? ""] ?? akun?.role}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-[11px] font-bold text-ink-600 uppercase tracking-wider">
-              Status
-            </dt>
-            <dd className="text-sm font-semibold text-ink mt-1 flex items-center gap-1.5">
-              <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" aria-hidden="true" />
-              {akun?.status === "aktif" ? "Aktif" : akun?.status}
-            </dd>
-          </div>
+          <p className="text-xs text-ink-600 leading-relaxed">
+            Pilih tema antarmuka. Mode <strong>Sistem</strong> mengikuti pengaturan perangkat
+            Anda dan otomatis berganti begitu perangkat beralih ke mode gelap.
+          </p>
 
-          <div>
-            <dt className="text-[11px] font-bold text-ink-600 uppercase tracking-wider">
-              Status Google
-            </dt>
-            <dd className="text-sm font-semibold text-ink mt-1 flex items-center gap-1.5">
-              {akun?.googleEmail ? (
-                <>
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" aria-hidden="true" />
-                  <span className="truncate text-emerald-700 font-medium">{akun.googleEmail}</span>
-                </>
+          <div
+            className="grid gap-3 sm:grid-cols-3 pt-1"
+            role="radiogroup"
+            aria-label="Pilihan tema tampilan"
+          >
+            {THEME_OPTIONS.map((opt) => {
+              const aktif = themeMode === opt.value
+              const Ikon = opt.value === "system" ? Monitor : opt.value === "dark" ? Moon : Sun
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={aktif}
+                  onClick={() => ubahTema(opt.value)}
+                  className={`relative flex items-start gap-3 p-3.5 rounded-xl border text-left transition cursor-pointer ${
+                    aktif
+                      ? "border-primary bg-primary/5 ring-2 ring-primary/15"
+                      : "border-ink-150 bg-white hover:border-ink-300 hover:bg-ink-100/60"
+                  }`}
+                >
+                  <Ikon
+                    className={`w-4 h-4 mt-0.5 shrink-0 ${aktif ? "text-primary" : "text-ink-600"}`}
+                    aria-hidden="true"
+                  />
+                  <span className="min-w-0">
+                    <span
+                      className={`block text-xs font-bold ${aktif ? "text-primary" : "text-ink"}`}
+                    >
+                      {opt.label}
+                    </span>
+                    <span className="block text-[11px] text-ink-600 mt-0.5">{opt.hint}</span>
+                  </span>
+                  {aktif && (
+                    <Check
+                      className="w-3.5 h-3.5 text-primary absolute top-3 right-3"
+                      aria-hidden="true"
+                    />
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Notifikasi perangkat */}
+        <div className={sectionClass}>
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-1">
+            <h2 className="text-sm font-bold text-ink flex items-center gap-2">
+              <BellRing className="w-4 h-4 text-ink-600" aria-hidden="true" />
+              Notifikasi Perangkat
+            </h2>
+            <span
+              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+                notifPermission === "granted"
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  : notifPermission === "denied"
+                    ? "bg-rose-50 text-rose-700 border-rose-200"
+                    : "bg-amber-50 text-amber-700 border-amber-200"
+              }`}
+            >
+              {notifPermission === "granted" ? (
+                <CheckCircle2 className="w-3 h-3 text-emerald-600" aria-hidden="true" />
               ) : (
-                <span className="text-ink-600 italic font-normal">Belum ditautkan</span>
+                <AlertCircle className="w-3 h-3" aria-hidden="true" />
               )}
-            </dd>
+              {statusIzin[notifPermission] ?? notifPermission}
+            </span>
           </div>
 
-          {detail.map((d, idx) => (
-            <div key={`${d.label}-${idx}`}>
-              <dt className="text-[11px] font-bold text-ink-600 uppercase tracking-wider">
-                {d.label}
-              </dt>
-              <dd className="text-sm font-semibold text-ink mt-1">{d.value}</dd>
+          <p className="text-xs text-ink-600 leading-relaxed">
+            Saat dinyalakan, Kandaga boleh mengirim pemberitahuan ke perangkat ini — misalnya
+            ketika karya Anda selesai diverifikasi atau ada pengumuman baru. Izin ini diberikan
+            oleh browser dan hanya berlaku di perangkat ini, bukan di perangkat lain.
+          </p>
+
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl bg-ink-100/60 border border-ink-150">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-white border border-ink-150 flex items-center justify-center shrink-0">
+                {notifOn ? (
+                  <BellRing className="w-5 h-5 text-primary" aria-hidden="true" />
+                ) : (
+                  <BellOff className="w-5 h-5 text-ink-600" aria-hidden="true" />
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-ink">
+                  {notifOn ? "Notifikasi aktif" : "Notifikasi nonaktif"}
+                </p>
+                <p className="text-[11px] text-ink-600 mt-0.5">
+                  {!notifSupported
+                    ? "Browser ini tidak mendukung notifikasi perangkat."
+                    : notifPermission === "denied"
+                      ? "Diblokir oleh browser. Izinkan lewat pengaturan situs di browser Anda."
+                      : notifPermission === "granted"
+                        ? "Izin sudah diberikan untuk Kandaga di perangkat ini."
+                        : "Browser akan meminta izin saat Anda menyalakannya."}
+                </p>
+              </div>
             </div>
-          ))}
-        </dl>
-      </div>
+
+            <button
+              type="button"
+              role="switch"
+              aria-checked={notifOn}
+              aria-label="Notifikasi perangkat"
+              disabled={notifBusy || !notifSupported || notifPermission === "denied"}
+              onClick={alihkanNotif}
+              className={`relative w-12 h-7 rounded-full shrink-0 transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                notifOn ? "bg-primary" : "bg-ink-300"
+              }`}
+            >
+              <span
+                className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-200 ${
+                  notifOn ? "left-6" : "left-1"
+                }`}
+              />
+            </button>
+          </div>
+
+          {pesanNotif && (
+            <div
+              className={`p-3 rounded-xl text-xs font-semibold border ${
+                pesanNotif.ok
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                  : "bg-rose-50 border-rose-200 text-rose-700"
+              }`}
+            >
+              {pesanNotif.text}
+            </div>
+          )}
+        </div>
 
       {/* Tautan Akun Google */}
       <div className={sectionClass}>
@@ -453,57 +637,6 @@ export default function AccountSettings() {
           </form>
         )}
       </div>
-
-      {/* Ubah nama */}
-      <form onSubmit={ubahNama} className={sectionClass}>
-        <h2 className="text-sm font-bold text-ink pb-1">
-          Ubah Nama Akun
-        </h2>
-
-        <div>
-          <label htmlFor="nama-akun" className={label}>
-            Nama akun
-          </label>
-          <input
-            id="nama-akun"
-            type="text"
-            value={nama}
-            onChange={(e) => setNama(e.target.value)}
-            className={input}
-            placeholder="mis. siswa13"
-          />
-          <p className="text-[11px] text-ink-600 mt-1.5">
-            Nama ini juga dipakai untuk login, jadi gunakan nama baru saat masuk berikutnya.
-          </p>
-        </div>
-
-        {pesanNama && (
-          <div
-            className={`p-3 rounded-xl text-xs font-semibold border ${
-              pesanNama.ok
-                ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                : "bg-rose-50 border-rose-200 text-rose-700"
-            }`}
-          >
-            {pesanNama.text}
-          </div>
-        )}
-
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={simpanNama}
-            className="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs font-bold transition cursor-pointer disabled:opacity-60 inline-flex items-center gap-2"
-          >
-            {simpanNama ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
-            ) : (
-              <Check className="w-3.5 h-3.5" aria-hidden="true" />
-            )}
-            Simpan Nama
-          </button>
-        </div>
-      </form>
 
       {/* Ubah kata sandi */}
       <form onSubmit={ubahPassword} className={sectionClass}>

@@ -17,50 +17,62 @@ function mapProjectTypeToSlug(type: ProjectType | string): { slug: "rpl" | "tkj"
 }
 
 async function ensureStudentProfile(userId: string, majorHint?: string) {
-  const existing = await prisma.student.findUnique({
-    where: { userId },
-  });
-  if (existing) return existing;
+  try {
+    const existing = await prisma.student.findUnique({
+      where: { userId },
+    });
+    if (existing) return existing;
 
-  const targetMajorName =
-    majorHint === "analis-kimia"
-      ? "Analis Kimia"
-      : majorHint === "tkj"
-      ? "TKJ"
-      : "RPL";
+    // Pastikan user ada di database
+    const user = await prisma.users.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+    if (!user) return null;
 
-  let major = await prisma.major.findFirst({
-    where: { name: { contains: targetMajorName, mode: "insensitive" } },
-  });
+    const targetMajorName =
+      majorHint === "analis-kimia"
+        ? "Analis Kimia"
+        : majorHint === "tkj"
+        ? "TKJ"
+        : "RPL";
 
-  if (!major) {
-    major = await prisma.major.findFirst();
-  }
+    let major = await prisma.major.findFirst({
+      where: { name: { contains: targetMajorName, mode: "insensitive" } },
+    });
 
-  if (!major) {
-    major = await prisma.major.create({
+    if (!major) {
+      major = await prisma.major.findFirst();
+    }
+
+    if (!major) {
+      major = await prisma.major.create({
+        data: {
+          name: "RPL",
+          fullName: "Rekayasa Perangkat Lunak",
+          image: "/images/preview-rpl.jpg",
+          link: "/jurusan/rpl",
+          description: "Pengembangan aplikasi web, mobile, dan sistem informasi berbasis kode.",
+        },
+      });
+    }
+
+    const randomNis = "13" + Date.now().toString().slice(-6);
+
+    return await prisma.student.create({
       data: {
-        name: "RPL",
-        fullName: "Rekayasa Perangkat Lunak",
-        image: "/images/preview-rpl.jpg",
-        link: "/jurusan/rpl",
-        description: "Pengembangan aplikasi web, mobile, dan sistem informasi berbasis kode.",
+        userId,
+        majorId: major.id,
+        nis: randomNis,
+        class: "XII RPL 1",
+        generation: 2025,
+        status: "aktif",
       },
     });
+  } catch (err) {
+    console.error("ensureStudentProfile error:", err);
+    return null;
   }
-
-  const randomNis = "13" + Math.floor(100000 + Math.random() * 900000).toString();
-
-  return await prisma.student.create({
-    data: {
-      userId,
-      majorId: major.id,
-      nis: randomNis,
-      class: "XII RPL 1",
-      generation: 2025,
-      status: "aktif",
-    },
-  });
 }
 
 function mapDatabaseProject(p: any) {
@@ -120,8 +132,12 @@ export async function GET(req: NextRequest) {
   const studentId = auth.userId;
 
   try {
-    // Pastikan profil siswa sudah ada di tabel students
-    await ensureStudentProfile(studentId);
+    // Pastikan profil siswa sudah ada di tabel students jika akun baru
+    try {
+      await ensureStudentProfile(studentId);
+    } catch (profileErr) {
+      console.warn("ensureStudentProfile warning:", profileErr);
+    }
 
     const dbProjects = await prisma.projects.findMany({
       // Karya yang sudah diarsipkan (soft-delete) tidak boleh muncul lagi.
@@ -141,13 +157,13 @@ export async function GET(req: NextRequest) {
         },
         student: {
           include: {
-            user: true,
+            user: { select: { id: true, name: true, email: true } },
             major: true,
           },
         },
         advisor: {
           include: {
-            user: true,
+            user: { select: { id: true, name: true, email: true } },
           },
         },
       },
@@ -193,10 +209,6 @@ export async function POST(req: NextRequest) {
       ? body.tools.filter((t: any) => typeof t === "string" && t.trim()).map((t: string) => t.trim())
       : [];
 
-    // Tools disiapkan dengan 2 kueri, bukan N kueri di dalam loop.
-    // Sebelumnya setiap nama tool memicu satu upsert serial (N+1), sehingga
-    // menyimpan karya dengan 8 teknologi berarti 8 round-trip ke database.
-    // `name` tetap disertakan karena project_tools menyimpannya terdenormalisasi.
     let projectToolsData: { toolId: number; name: string }[] = [];
     const uniqueToolNames = Array.from(new Set(toolNames));
     if (uniqueToolNames.length > 0) {
@@ -208,25 +220,51 @@ export async function POST(req: NextRequest) {
         where: { name: { in: uniqueToolNames } },
         select: { id: true, name: true },
       });
-      projectToolsData = uniqueToolNames.map((name) => ({
-        toolId: tools.find((t) => t.name === name)!.id,
-        name,
-      }));
+      const toolMap = new Map<string, number>();
+      for (const t of tools) {
+        toolMap.set(t.name.toLowerCase(), t.id);
+      }
+      const seenIds = new Set<number>();
+      for (const name of uniqueToolNames) {
+        const id = toolMap.get(name.toLowerCase());
+        if (id && !seenIds.has(id)) {
+          seenIds.add(id);
+          projectToolsData.push({ toolId: id, name });
+        }
+      }
     }
 
-    // 4. Persiapkan poin fitur / solusi
-    const features: string[] = Array.isArray(body.mainFeatures)
+    // 4. Persiapkan poin fitur / solusi (unik untuk cegah @@unique([projectId, feature]) collision)
+    const rawFeatures: string[] = Array.isArray(body.mainFeatures)
       ? body.mainFeatures.filter((f: any) => typeof f === "string" && f.trim()).map((f: string) => f.trim())
       : [];
+    const features = Array.from(new Set(rawFeatures));
 
-    // 5. Buat entitas proyek di database
+    // 5. Validasi guru pembimbing agar tidak memicu foreign key violation
+    let validAdvisorId: string | undefined = undefined;
+    if (body.advisorId && typeof body.advisorId === "string" && body.advisorId.trim()) {
+      const teacher = await prisma.teacher.findUnique({
+        where: { userId: body.advisorId.trim() },
+        select: { userId: true },
+      });
+      if (teacher) {
+        validAdvisorId = teacher.userId;
+      }
+    }
+    if (!validAdvisorId) {
+      const fallbackTeacher = await prisma.teacher.findFirst({
+        select: { userId: true },
+      });
+      if (fallbackTeacher) {
+        validAdvisorId = fallbackTeacher.userId;
+      }
+    }
+
+    // 6. Buat entitas proyek di database
     const created = await prisma.projects.create({
       data: {
         studentId,
-        // Guru pembimbing — opsional di DB, wajib di UI per alurKarya.md §1.
-        ...(body.advisorId && typeof body.advisorId === "string"
-          ? { advisorId: body.advisorId }
-          : {}),
+        ...(validAdvisorId ? { advisorId: validAdvisorId } : {}),
         title: body.title.trim(),
         description: body.description?.trim() || "",
         type: projectType,
@@ -277,8 +315,9 @@ export async function POST(req: NextRequest) {
     );
   } catch (error) {
     console.error("POST /api/student/projects error:", error);
+    const detail = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: "Gagal menyimpan karya ke database" },
+      { error: `Gagal menyimpan karya ke database: ${detail}` },
       { status: 500 }
     );
   }

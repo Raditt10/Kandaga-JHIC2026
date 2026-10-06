@@ -75,7 +75,10 @@ export default function Navbar({ onOpenLogin }: NavbarProps) {
 
   return (
     <header className="fixed top-5 left-0 right-0 mx-auto z-50 w-[96%] max-w-5xl lg:max-w-6xl transform-gpu will-change-transform">
-      <div className="bg-white/98 border border-zinc-200/90 shadow-sm shadow-zinc-900/5 rounded-full px-5 sm:px-7 py-2.5 flex items-center justify-between">
+      {/* `kandaga-island-terang` = pulau terang. Pill ini berlatar `bg-white/98`
+          yang sengaja tidak dipetakan ke tema gelap, jadi warna teksnya
+          dikembalikan ke palet terang lewat globals.css. */}
+      <div className="kandaga-island-terang bg-white/98 border border-zinc-200/90 shadow-sm shadow-zinc-900/5 rounded-full px-5 sm:px-7 py-2.5 flex items-center justify-between">
         {/* Left: Brand Icon & Navigation Links */}
         <div className="flex items-center gap-6 lg:gap-8">
           {/* Logo Brand Icon & Title (Minimalist & Elegant) */}
@@ -230,7 +233,7 @@ export default function Navbar({ onOpenLogin }: NavbarProps) {
 
       {/* Mobile Dropdown Panel */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden mt-2 bg-white/95 backdrop-blur-xl border border-zinc-200/80 rounded-3xl p-4 shadow-xl space-y-2 animate-in fade-in duration-200">
+        <div className="kandaga-island-terang lg:hidden mt-2 bg-white/95 backdrop-blur-xl border border-zinc-200/80 rounded-3xl p-4 shadow-xl space-y-2 animate-in fade-in duration-200">
           {["Beranda", "Karya Kami", "Tentang Kami", "Jurusan", "Kontak"].map(
             (item) => (
               <button

@@ -369,12 +369,15 @@ export default function GallerySection() {
                       onClick={() => { setActiveIndex(i); handleUserInteraction() }}
                       aria-label={`Kartu ${i + 1}`}
                     >
+                      {/* Warna lewat kelas, bukan nilai inline, supaya ikut
+                          tema gelap (lihat pemetaan `bg-[#8B1A2F]` di globals.css). */}
                       <motion.span
-                        className="block rounded-full bg-ink-300"
+                        className={`block rounded-full ${
+                          i === activeIndex ? "bg-[#8B1A2F]" : "bg-[#CCCCCC]"
+                        }`}
                         animate={{
                           width:  i === activeIndex ? 24 : 8,
                           height: 8,
-                          backgroundColor: i === activeIndex ? "#8B1A2F" : "#CCCCCC",
                         }}
                         transition={{ type: "spring", stiffness: 400, damping: 30 }}
                       />

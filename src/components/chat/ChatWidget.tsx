@@ -10,6 +10,7 @@ import {
   ChevronDown,
   ExternalLink,
   Loader2,
+  Move,
 } from "lucide-react"
 import Image from "next/image"
 import { QUICK_PROMPTS } from "@/lib/kandaga-knowledge"
@@ -50,6 +51,76 @@ function KalaMark({ size = 32, className = "" }: { size?: number; className?: st
   )
 }
 
+/** Titik jangkar yang diizinkan: 4 sudut + 4 titik tengah tepi layar. */
+type Anchor =
+  | "top-left"
+  | "top-center"
+  | "top-right"
+  | "middle-left"
+  | "middle-right"
+  | "bottom-left"
+  | "bottom-center"
+  | "bottom-right"
+
+const ANCHORS: Anchor[] = [
+  "top-left",
+  "top-center",
+  "top-right",
+  "middle-left",
+  "middle-right",
+  "bottom-left",
+  "bottom-center",
+  "bottom-right",
+]
+
+const BTN_SIZE = 76
+/** Jarak tetap dari tepi layar (px). */
+const EDGE = 24
+
+/** Ubah sebuah jangkar menjadi koordinat piksel di dalam viewport. */
+function anchorToPos(anchor: Anchor, vw: number, vh: number): { x: number; y: number } {
+  const maxX = Math.max(EDGE, vw - BTN_SIZE - EDGE)
+  const maxY = Math.max(EDGE, vh - BTN_SIZE - EDGE)
+  const midX = Math.max(EDGE, Math.min(maxX, (vw - BTN_SIZE) / 2))
+  const midY = Math.max(EDGE, Math.min(maxY, (vh - BTN_SIZE) / 2))
+
+  switch (anchor) {
+    case "top-left":
+      return { x: EDGE, y: EDGE }
+    case "top-center":
+      return { x: midX, y: EDGE }
+    case "top-right":
+      return { x: maxX, y: EDGE }
+    case "middle-left":
+      return { x: EDGE, y: midY }
+    case "middle-right":
+      return { x: maxX, y: midY }
+    case "bottom-left":
+      return { x: EDGE, y: maxY }
+    case "bottom-center":
+      return { x: midX, y: maxY }
+    case "bottom-right":
+      return { x: maxX, y: maxY }
+  }
+}
+
+/** Jangkar terdekat dari sebuah titik (dipakai saat widget dilepas setelah diseret). */
+function nearestAnchor(x: number, y: number, vw: number, vh: number): Anchor {
+  let best: Anchor = "bottom-right"
+  let bestDist = Number.POSITIVE_INFINITY
+
+  for (const a of ANCHORS) {
+    const p = anchorToPos(a, vw, vh)
+    const d = Math.hypot(p.x - x, p.y - y)
+    if (d < bestDist) {
+      bestDist = d
+      best = a
+    }
+  }
+
+  return best
+}
+
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
@@ -64,6 +135,168 @@ export default function ChatWidget() {
   const [inputValue, setInputValue] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [hasUnread, setHasUnread] = useState(false)
+
+  // Widget hanya boleh "menempel" pada salah satu dari 8 titik jangkar.
+  // Saat diseret ia mengikuti kursor bebas (dragPos), lalu melompat ke
+  // jangkar terdekat begitu dilepas (anchor).
+  const [anchor, setAnchor] = useState<Anchor>("bottom-right")
+  const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [viewport, setViewport] = useState({ w: 1280, h: 800 })
+  const [mounted, setMounted] = useState(false)
+  // Petunjuk "bisa dipindahkan" — tampil otomatis sekali saja untuk pengunjung baru.
+  const [showMoveHint, setShowMoveHint] = useState(false)
+
+  const dragStartRef = useRef<{
+    startX: number
+    startY: number
+    btnX: number
+    btnY: number
+    hasMoved: boolean
+  } | null>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  /** Menyimpan posisi drag terbaru agar pelepasan pointer tidak memakai nilai state yang basi. */
+  const dragPosRef = useRef<{ x: number; y: number } | null>(null)
+
+  // Ukuran viewport dipantau agar jangkar selalu dihitung ulang saat jendela berubah.
+  useEffect(() => {
+    const update = () => setViewport({ w: window.innerWidth, h: window.innerHeight })
+    update()
+    window.addEventListener("resize", update)
+    return () => window.removeEventListener("resize", update)
+  }, [])
+
+  /*
+   * Pulihkan jangkar terakhir yang dipilih pengguna, lalu tandai widget siap
+   * tampil.
+   *
+   * `setMounted(true)` sengaja diletakkan di sini, bukan di efek viewport,
+   * supaya render pertama yang menampilkan widget sudah memakai jangkar
+   * tersimpan. Kalau tidak, widget sempat muncul di jangkar bawaan
+   * (`bottom-right`) lebih dulu, lalu melompat ke posisi pilihan pengguna.
+   */
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("kandaga_kala_anchor")
+      if (saved && (ANCHORS as string[]).includes(saved)) {
+        setAnchor(saved as Anchor)
+      }
+    } catch {}
+    setMounted(true)
+  }, [])
+
+  /** Tandai petunjuk sudah pernah dilihat agar tidak muncul lagi. */
+  const dismissMoveHint = () => {
+    setShowMoveHint(false)
+    try {
+      localStorage.setItem("kandaga_kala_hint_seen", "1")
+    } catch {}
+  }
+
+  // Tampilkan petunjuk "bisa dipindahkan" sekali saja, lalu sembunyikan sendiri.
+  useEffect(() => {
+    if (!mounted) return
+    try {
+      if (localStorage.getItem("kandaga_kala_hint_seen")) return
+    } catch {
+      return
+    }
+
+    const showTimer = setTimeout(() => setShowMoveHint(true), 1400)
+    const hideTimer = setTimeout(() => dismissMoveHint(), 11000)
+
+    return () => {
+      clearTimeout(showTimer)
+      clearTimeout(hideTimer)
+    }
+  }, [mounted])
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (e.button !== 0) return
+    // Pengguna menyentuh widget → petunjuk dianggap sudah terbaca.
+    if (showMoveHint) dismissMoveHint()
+    const rect = buttonRef.current?.getBoundingClientRect()
+    const cur = dragPos ?? anchorToPos(anchor, viewport.w, viewport.h)
+
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId)
+    } catch {}
+
+    dragStartRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      btnX: rect ? rect.left : cur.x,
+      btnY: rect ? rect.top : cur.y,
+      hasMoved: false,
+    }
+  }
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const drag = dragStartRef.current
+    if (!drag) return
+    const dx = e.clientX - drag.startX
+    const dy = e.clientY - drag.startY
+
+    if (!drag.hasMoved && Math.hypot(dx, dy) > 4) {
+      drag.hasMoved = true
+      setIsDragging(true)
+    }
+
+    if (drag.hasMoved) {
+      // Selama diseret widget bebas mengikuti kursor, tetap di dalam layar.
+      const maxX = Math.max(EDGE, window.innerWidth - BTN_SIZE - EDGE)
+      const maxY = Math.max(EDGE, window.innerHeight - BTN_SIZE - EDGE)
+      const next = {
+        x: Math.max(EDGE, Math.min(maxX, drag.btnX + dx)),
+        y: Math.max(EDGE, Math.min(maxY, drag.btnY + dy)),
+      }
+      dragPosRef.current = next
+      setDragPos(next)
+    }
+  }
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const drag = dragStartRef.current
+    if (!drag) return
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    } catch {}
+
+    const wasDragged = drag.hasMoved
+    dragStartRef.current = null
+    setIsDragging(false)
+
+    if (wasDragged) {
+      // Dilepas di titik mana pun → menempel ke jangkar terdekat, lalu disimpan.
+      const released = dragPosRef.current ?? { x: drag.btnX, y: drag.btnY }
+      const next = nearestAnchor(released.x, released.y, viewport.w, viewport.h)
+      dragPosRef.current = null
+      setDragPos(null)
+      setAnchor(next)
+      try {
+        localStorage.setItem("kandaga_kala_anchor", next)
+      } catch {}
+    } else {
+      setIsOpen((prev) => !prev)
+    }
+  }
+
+  const handlePointerCancel = () => {
+    dragStartRef.current = null
+    dragPosRef.current = null
+    setDragPos(null)
+    setIsDragging(false)
+  }
+
+  const handleResetPosition = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    dragPosRef.current = null
+    setDragPos(null)
+    setAnchor("bottom-right")
+    try {
+      localStorage.removeItem("kandaga_kala_anchor")
+    } catch {}
+  }
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -189,11 +422,90 @@ export default function ChatWidget() {
     })
   }
 
+  // Posisi efektif: bebas mengikuti kursor saat diseret, selain itu tepat di jangkar.
+  const pos = dragPos ?? anchorToPos(anchor, viewport.w, viewport.h)
+  const vw = viewport.w
+  const vh = viewport.h
+
+  // Panel dibuka ke arah yang masih punya ruang lebih banyak.
+  const spaceAbove = pos.y
+  const spaceBelow = vh - (pos.y + BTN_SIZE)
+  const openDown = spaceBelow >= spaceAbove
+
+  const isMiddle = anchor === "middle-left" || anchor === "middle-right"
+  const isCentered = anchor === "top-center" || anchor === "bottom-center"
+  const onLeftHalf = pos.x + BTN_SIZE / 2 < vw / 2
+
+  // Jangkar yang sedang disorot saat menyeret.
+  const activeTarget = isDragging ? nearestAnchor(pos.x, pos.y, vw, vh) : anchor
+
+  const panelMaxHeight = isMiddle
+    ? Math.max(240, vh - EDGE * 2)
+    : Math.max(240, (openDown ? spaceBelow : spaceAbove) - 12)
+
+  const panelPlacement = isMiddle
+    ? "top-1/2 -translate-y-1/2"
+    : openDown
+      ? "top-[calc(100%+12px)] slide-in-from-top-3"
+      : "bottom-[calc(100%+12px)] slide-in-from-bottom-3"
+
+  const panelAlignX = isCentered
+    ? "left-1/2 -translate-x-1/2"
+    : anchor.endsWith("left")
+      ? "left-0"
+      : "right-0"
+
   return (
-    <div className="fixed bottom-8 right-6 z-50 print:hidden font-sans flex flex-col items-end gap-3 pointer-events-none select-none">
+    <div
+      /*
+       * `kala-light` = pulau terang. Widget ini sengaja tidak ikut tema gelap
+       * (warna marunnya sudah jadi identitas tersendiri), jadi seluruh isinya
+       * dipaksa kembali ke palet terang lewat aturan di globals.css.
+       */
+      /*
+       * `invisible` selama posisi belum diketahui.
+       *
+       * Markup ini dirender server tanpa tahu ukuran viewport maupun jangkar
+       * yang tersimpan di localStorage, jadi ia sempat dicat browser di posisi
+       * bawaan `bottom-8 right-6` sebelum hidrasi dan efek pemulihan selesai —
+       * itulah kedipan "pindah ke posisi default" yang terlihat saat refresh.
+       *
+       * Karena HTML server sudah dicat sebelum React hidup, satu-satunya cara
+       * menghilangkan kedipan itu adalah tidak menampakkannya sejak awal.
+       * Begitu `mounted` menyala, widget muncul langsung di jangkar yang benar.
+       */
+      className={`kala-light fixed z-50 print:hidden font-sans pointer-events-none select-none ${
+        mounted ? "" : "bottom-8 right-6 invisible"
+      } ${isDragging ? "" : "transition-[left,top] duration-300 ease-out"}`}
+      style={mounted ? { left: pos.x, top: pos.y } : undefined}
+    >
+      {/* Bayangan 8 titik jangkar — hanya tampil saat widget sedang diseret.
+          z-index negatif membuatnya berada di belakang tombol & panel. */}
+      {isDragging && (
+        <div className="pointer-events-none fixed inset-0 -z-10 print:hidden">
+          {ANCHORS.map((a) => {
+            const p = anchorToPos(a, vw, vh)
+            const isActive = a === activeTarget
+            return (
+              <span
+                key={a}
+                style={{ left: p.x, top: p.y, width: BTN_SIZE, height: BTN_SIZE }}
+                className={`absolute rounded-full border-2 border-dashed transition-all duration-150 ${
+                  isActive
+                    ? "border-[#8B1A2F] bg-[#8B1A2F]/10 scale-105"
+                    : "border-zinc-400/50 bg-white/40"
+                }`}
+              />
+            )
+          })}
+        </div>
+      )}
       {/* ────────────────── 1. CHAT POPUP WINDOW ────────────────── */}
       {isOpen && (
-        <div className="pointer-events-auto select-auto w-[380px] sm:w-[420px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100vh-7.5rem)] bg-white rounded-3xl shadow-2xl border border-zinc-200/90 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-3 duration-200">
+        <div
+          className={`absolute pointer-events-auto select-auto w-[380px] sm:w-[420px] max-w-[calc(100vw-2rem)] h-[560px] bg-white rounded-3xl shadow-2xl border border-zinc-200/90 flex flex-col overflow-hidden animate-in fade-in duration-200 ${panelPlacement} ${panelAlignX}`}
+          style={{ maxHeight: panelMaxHeight }}
+        >
           {/* Header Bar — Marun Simple Solid */}
           <div className="bg-[#8B1A2F] text-white px-4 py-3.5 flex items-center justify-between border-b border-[#731224] shrink-0">
             <div className="flex items-center gap-3">
@@ -333,24 +645,90 @@ export default function ChatWidget() {
 
       {/* ────────────────── 2. FLOATING CHAT TRIGGER / CLOSE BUTTON ────────────────── */}
       <button
+        ref={buttonRef}
         type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="pointer-events-auto group relative flex h-[76px] w-[76px] items-center justify-center rounded-full bg-[#8B1A2F] hover:bg-[#9E2037] shadow-xl shadow-black/25 border-[3px] border-white hover:scale-105 active:scale-95 transition-[transform,background-color,box-shadow] duration-150 cursor-pointer shrink-0"
-        aria-label={isOpen ? "Tutup chat" : "Buka asisten KALA"}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+        onDoubleClick={handleResetPosition}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault()
+            setIsOpen((prev) => !prev)
+          }
+        }}
+        style={{ touchAction: "none" }}
+        className={`pointer-events-auto group relative flex h-[76px] w-[76px] items-center justify-center rounded-full bg-[#8B1A2F] hover:bg-[#9E2037] border-[3px] border-white shrink-0 ${
+          isDragging
+            ? "cursor-grabbing scale-110 shadow-2xl shadow-black/35"
+            : "cursor-pointer shadow-xl shadow-black/25 hover:scale-105 active:scale-95 transition-[transform,background-color,box-shadow] duration-150"
+        }`}
+        /* Catatan: atribut `title` sengaja tidak dipakai supaya tooltip bawaan
+           browser tidak menumpuk di atas balon info milik widget. */
+        aria-label={
+          isOpen
+            ? "Tutup chat KALA"
+            : "Buka asisten KALA. Klik untuk membuka, seret untuk memindahkan ke sudut atau tepi layar, klik ganda untuk kembali ke kanan bawah."
+        }
       >
         {isOpen ? (
-          <X className="w-9 h-9 text-white stroke-[2.5]" />
+          <X className="w-9 h-9 text-white stroke-[2.5] pointer-events-none" />
         ) : (
           <>
-            {/* Tooltip bubble saat tombol di-hover */}
-            <div className="absolute right-[calc(100%+14px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 translate-x-2 group-hover:translate-x-0 whitespace-nowrap bg-white text-zinc-800 text-xs font-medium px-4 py-2.5 rounded-2xl shadow-xl border border-zinc-200/90 flex items-center gap-2">
-              <span className="text-sm">👋</span>
-              <span>Hai! Ada yang bisa KALA bantu?</span>
-              {/* Segitiga panah ke kanan */}
-              <span className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 bg-white border-r border-t border-zinc-200/90 rotate-45" />
-            </div>
+            {/* Balon info: sapaan + keterangan bahwa widget bisa dipindahkan.
+                Muncul otomatis sekali untuk pengunjung baru, dan tetap muncul saat di-hover.
+                Disembunyikan ketika widget sedang diseret atau panel sedang terbuka. */}
+            {!isDragging && !isOpen && (
+              <div
+                className={`absolute top-1/2 -translate-y-1/2 pointer-events-none w-[264px] transition-all duration-300 ${
+                  onLeftHalf ? "left-[calc(100%+14px)]" : "right-[calc(100%+14px)]"
+                } ${
+                  showMoveHint
+                    ? "opacity-100 translate-x-0"
+                    : `opacity-0 group-hover:opacity-100 group-hover:translate-x-0 ${
+                        onLeftHalf ? "-translate-x-2" : "translate-x-2"
+                      }`
+                }`}
+              >
+                {/* Balon sapaan — satu-satunya elemen di dalam alur, sehingga
+                    selalu tegak lurus dengan tombol dan panahnya tepat mengarah
+                    ke tombol. Lebarnya dipatok agar teks tidak terpotong
+                    per kata saat kontainer absolut menyusut. */}
+                <div className="relative w-full bg-white text-zinc-800 rounded-2xl shadow-xl border border-zinc-200/90 px-4 py-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-sm leading-5">👋</span>
+                    <span className="text-xs font-medium leading-snug">
+                      Hai! Ada yang bisa KALA bantu?
+                    </span>
+                  </div>
 
-            <KalaMark size={58} className="shadow-xs" />
+                  {/* Segitiga panah ke arah tombol */}
+                  <span
+                    className={`absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rotate-45 ${
+                      onLeftHalf
+                        ? "-left-1.5 border-l border-b border-zinc-200/90"
+                        : "-right-1.5 border-r border-t border-zinc-200/90"
+                    }`}
+                  />
+                </div>
+
+                {/* Balon info "bisa dipindahkan" — sengaja di luar alur agar tidak
+                    menggeser balon sapaan. Diletakkan di sisi yang masih lapang:
+                    di bawah bila tombol di paruh atas, di atas bila di paruh bawah. */}
+                <div
+                  className={`absolute w-full bg-[#8B1A2F] text-white rounded-2xl shadow-lg px-3.5 py-2 flex items-center gap-2 ${
+                    openDown ? "top-[calc(100%+8px)]" : "bottom-[calc(100%+8px)]"
+                  }`}
+                >
+                  <span className="text-[11px] font-medium leading-snug">
+                    Aku bisa dipindahkan, seret aku ke ke sudut layar ya!.
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <KalaMark size={58} className="shadow-xs pointer-events-none" />
             {hasUnread && (
               <span className="absolute top-0.5 right-0.5 w-5 h-5 bg-emerald-500 text-white font-bold text-[11px] rounded-full flex items-center justify-center shadow-md">
                 1

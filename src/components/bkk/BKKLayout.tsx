@@ -72,6 +72,7 @@ export default function BKKLayout({
     <DashboardShell
       brandHref="/bkk"
       navItems={NAV_ITEMS}
+      profileHref="/bkk/profil"
       settingsItems={[
         {
           key: "pengaturan",

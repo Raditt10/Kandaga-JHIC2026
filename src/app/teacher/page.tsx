@@ -7,6 +7,7 @@ import DashboardLayout, { DashboardTab } from "@/components/DashboardLayout"
 import AccountSettings from "@/components/settings/AccountSettings"
 import TeacherProfileView from "@/components/profile/TeacherProfileView"
 import { EmptyState } from "@/components/ui/EmptyState"
+import { FilterDropdown } from "@/components/ui/FilterDropdown"
 import { useSession } from "next-auth/react"
 import {
   BookOpen,
@@ -719,9 +720,8 @@ function TeacherDashboardContent() {
           <div className="p-5 rounded-2xl bg-white border border-ink-150 shadow-xs space-y-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <h1 className="font-heading text-lg font-bold text-ink flex items-center gap-2">
-                  <FolderGit2 className="w-5 h-5 text-primary" />
-                  <span>Kurasi Karya &amp; Moderasi Galeri</span>
+                <h1 className="font-heading text-lg font-bold text-ink">
+                  Kurasi Karya &amp; Moderasi Galeri
                 </h1>
                 <p className="text-xs text-ink-600 mt-0.5">
                   Daftar karya inovasi dan portofolio siswa Kandaga ({totalCuration} karya). Hover kartu untuk membuka halaman kurasi.
@@ -757,22 +757,20 @@ function TeacherDashboardContent() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Filter className="w-3.5 h-3.5 text-ink-300" />
-                  <select
-                    value={categoryFilter}
-                    onChange={(e) => {
-                      setCategoryFilter(e.target.value)
-                      setCurationPage(1)
-                    }}
-                    className="text-xs px-3 py-1.5 rounded-xl border border-ink-150 bg-white text-ink-700 focus:outline-none focus:ring-2 focus:ring-primary/15 cursor-pointer font-medium"
-                  >
-                    <option value="all">Semua Kategori</option>
-                    <option value="RPL">RPL (Rekayasa Perangkat Lunak)</option>
-                    <option value="TKJ">TKJ (Teknik Komputer Jaringan)</option>
-                    <option value="KA">Analis Kimia</option>
-                  </select>
-                </div>
+                <FilterDropdown
+                  size="sm"
+                  value={categoryFilter}
+                  onChange={(val) => {
+                    setCategoryFilter(val)
+                    setCurationPage(1)
+                  }}
+                  options={[
+                    { value: "all", label: "Semua Kategori" },
+                    { value: "RPL", label: "RPL (Rekayasa Perangkat Lunak)" },
+                    { value: "TKJ", label: "TKJ (Teknik Komputer Jaringan)" },
+                    { value: "KA", label: "Analis Kimia" },
+                  ]}
+                />
               </div>
             </div>
 
@@ -965,100 +963,77 @@ function TeacherDashboardContent() {
       {/* ──────────────── TAB 3: KARYA TERVERIFIKASI ──────────────── */}
       {(activeTab === "karya-terverifikasi" || activeTab === "siswa-bimbingan") && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          {/* Header Card & Filter Bar */}
-          <div className="p-6 bg-white rounded-2xl border border-ink-150 shadow-xs space-y-5">
+          {/* Header & Filter Controls Bar */}
+          <div className="p-5 rounded-2xl bg-white border border-ink-150 shadow-xs space-y-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <h1 className="font-heading text-xl sm:text-2xl font-extrabold text-ink flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="w-5 h-5" />
-                  </div>
-                  <span>Karya Siswa Terverifikasi</span>
+                <h1 className="font-heading text-lg font-bold text-ink">
+                  Karya Siswa Terverifikasi
                 </h1>
-                <p className="font-sans text-xs sm:text-sm text-ink-600 mt-1 max-w-[65ch]">
-                  Portofolio dan karya tugas akhir siswa yang telah lulus kurasi kelayakan dan dipublikasikan di Galeri Utama Kandaga.
+                <p className="text-xs text-ink-600 mt-0.5">
+                  Daftar karya inovasi dan portofolio siswa Kandaga ({totalVerified} karya). Hover kartu untuk membuka halaman kurasi.
                 </p>
               </div>
 
-              {/* Stat Ringkas */}
-              <div className="flex items-center gap-3">
-                <div className="px-4 py-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 text-left">
-                  <span className="text-[11px] font-bold text-emerald-700 block uppercase tracking-wider">
-                    Total Terverifikasi
-                  </span>
-                  <span className="text-lg font-extrabold text-emerald-900 font-mono">
-                    {allProjects.filter((p) => p.status === "approved").length} <span className="text-xs font-sans font-medium text-emerald-700">Karya</span>
-                  </span>
+              {/* Filtering & Search Controls */}
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-ink-300 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Cari karya / siswa..."
+                    value={verifiedSearch}
+                    onChange={(e) => {
+                      setVerifiedSearch(e.target.value)
+                      setVerifiedPage(1)
+                    }}
+                    className="pl-8 pr-8 py-1.5 rounded-xl border border-ink-150 text-xs bg-ink-100/70 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary transition"
+                  />
+                  {verifiedSearch && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setVerifiedSearch("")
+                        setVerifiedPage(1)
+                      }}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-300 hover:text-ink-600 cursor-pointer"
+                      aria-label="Bersihkan pencarian"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
-                {rataNilai && (
-                  <div className="px-4 py-2.5 rounded-xl bg-ink-100 border border-ink-150 text-left">
-                    <span className="text-[11px] font-bold text-ink-600 block uppercase tracking-wider">
-                      Rata-Rata Nilai
-                    </span>
-                    <span className="text-lg font-extrabold text-ink font-mono">
-                      {rataNilai} <span className="text-xs font-sans font-medium text-ink-500">/ 100</span>
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
 
-            {/* Controls Bar: Search, Category, Sorting */}
-            <div className="pt-4 border-t border-ink-150 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="relative flex-1 max-w-md">
-                <Search className="w-4 h-4 text-ink-300 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Cari karya terverifikasi, siswa, atau teknologi..."
-                  value={verifiedSearch}
-                  onChange={(e) => setVerifiedSearch(e.target.value)}
-                  className="w-full pl-9 pr-9 py-2 rounded-xl border border-ink-150 text-xs bg-ink-50/70 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary transition"
+                <FilterDropdown
+                  size="sm"
+                  value={verifiedCategory}
+                  onChange={(val) => {
+                    setVerifiedCategory(val)
+                    setVerifiedPage(1)
+                  }}
+                  options={[
+                    { value: "all", label: "Semua Kategori" },
+                    { value: "RPL", label: "RPL (Rekayasa Perangkat Lunak)" },
+                    { value: "TKJ", label: "TKJ (Teknik Komputer Jaringan)" },
+                    { value: "KA", label: "Analis Kimia" },
+                  ]}
                 />
-                {verifiedSearch && (
-                  <button
-                    type="button"
-                    onClick={() => setVerifiedSearch("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-300 hover:text-ink-600 cursor-pointer"
-                    aria-label="Hapus pencarian"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
 
-              <div className="flex flex-wrap items-center gap-2.5">
-                <div className="flex items-center gap-1.5 bg-ink-50 px-2.5 py-1.5 rounded-xl border border-ink-150">
-                  <Filter className="w-3.5 h-3.5 text-ink-400" />
-                  <select
-                    value={verifiedCategory}
-                    onChange={(e) => {
-                      setVerifiedCategory(e.target.value)
-                      setVerifiedPage(1)
-                    }}
-                    className="text-xs bg-transparent text-ink-700 focus:outline-none cursor-pointer font-medium"
-                  >
-                    <option value="all">Semua Kategori</option>
-                    <option value="RPL">RPL (Rekayasa Perangkat Lunak)</option>
-                    <option value="TKJ">TKJ (Teknik Komputer Jaringan)</option>
-                    <option value="KA">Analis Kimia</option>
-                  </select>
-                </div>
-
-                <div className="flex items-center gap-1.5 bg-ink-50 px-2.5 py-1.5 rounded-xl border border-ink-150">
-                  <span className="text-[11px] text-ink-500 font-medium">Urutan:</span>
-                  <select
-                    value={verifiedSort}
-                    onChange={(e) => {
-                      setVerifiedSort(e.target.value as any)
-                      setVerifiedPage(1)
-                    }}
-                    className="text-xs bg-transparent text-ink-700 focus:outline-none cursor-pointer font-medium"
-                  >
-                    <option value="newest">Terbaru</option>
-                    <option value="score-desc">Nilai Tertinggi</option>
-                    <option value="score-asc">Nilai Terendah</option>
-                  </select>
-                </div>
+                <FilterDropdown
+                  size="sm"
+                  label="Urutan"
+                  icon={null}
+                  value={verifiedSort}
+                  onChange={(val) => {
+                    setVerifiedSort(val as "newest" | "score-desc" | "score-asc")
+                    setVerifiedPage(1)
+                  }}
+                  options={[
+                    { value: "newest", label: "Terbaru" },
+                    { value: "score-desc", label: "Nilai Tertinggi" },
+                    { value: "score-asc", label: "Nilai Terendah" },
+                  ]}
+                />
 
                 {(verifiedSearch || verifiedCategory !== "all" || verifiedSort !== "newest") && (
                   <button
@@ -1073,14 +1048,14 @@ function TeacherDashboardContent() {
             </div>
           </div>
 
-          {/* Grid Karya Terverifikasi */}
+          {/* Projects Cards Grid */}
           {loading ? (
             <div className="p-12 text-center bg-white rounded-2xl border border-ink-150 shadow-xs">
               <Loader2 className="w-6 h-6 animate-spin text-ink-300 mx-auto" />
-              <p className="text-xs text-ink-300 mt-2">Memuat karya terverifikasi...</p>
+              <p className="text-xs text-ink-300 mt-2">Memuat karya dari database...</p>
             </div>
           ) : paginatedVerifiedProjects.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-ink-150 shadow-xs p-12 text-center">
+            <div className="bg-white rounded-2xl border border-ink-150 shadow-xs">
               <EmptyState
                 title={
                   verifiedSearch || verifiedCategory !== "all"
@@ -1089,154 +1064,143 @@ function TeacherDashboardContent() {
                 }
                 description={
                   verifiedSearch || verifiedCategory !== "all"
-                    ? "Tidak ada karya terverifikasi yang cocok dengan kriteria pencarian Anda."
-                    : "Karya siswa yang telah Anda setujui pada proses kurasi akan muncul di sini dan dipublikasikan di galeri sekolah."
+                    ? "Tidak ada karya yang sesuai dengan filter atau kata kunci pencarian."
+                    : "Belum ada karya siswa yang telah disetujui atau diverifikasi."
                 }
                 action={
                   verifiedSearch || verifiedCategory !== "all"
-                    ? { label: "Reset Filter", onClick: resetVerifiedFilters }
-                    : { label: "Buka Kurasi Karya", onClick: () => handleTabChange("antrean") }
+                    ? {
+                        label: "Reset Filter",
+                        onClick: resetVerifiedFilters,
+                      }
+                    : undefined
                 }
               />
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {paginatedVerifiedProjects.map((p) => (
+            <div
+              key={`${verifiedCategory}-${debouncedVerifiedQuery}-${verifiedSort}-${verifiedPage}`}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 animate-in fade-in-50 duration-300"
+            >
+              {paginatedVerifiedProjects.map((proj) => (
                 <div
-                  key={p.id}
-                  className="bg-white rounded-2xl border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col overflow-hidden group"
+                  key={proj.id}
+                  className="relative group p-4 rounded-2xl bg-white border border-ink-150 shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between overflow-hidden"
                 >
-                  {/* Thumbnail / Cover */}
-                  <div className="relative aspect-[16/10] w-full bg-ink-100 overflow-hidden border-b border-ink-150">
-                    <Image
-                      src={p.coverImage || "/images/preview-rpl.jpg"}
-                      alt={p.title}
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      className="object-cover group-hover:scale-105 transition duration-300"
-                    />
+                  <button
+                    type="button"
+                    onClick={() => setDetailProject(proj)}
+                    className="absolute inset-0 bg-ink/75 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 z-30 flex flex-col items-center justify-center p-4 text-center cursor-pointer border-none"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-white/20 hover:bg-white text-white hover:text-ink flex items-center justify-center backdrop-blur-md shadow-xl transition-all duration-200 transform scale-90 group-hover:scale-100 mb-2">
+                      <Eye className="w-6 h-6" />
+                    </div>
+                    <span className="text-white text-xs font-semibold tracking-wide drop-shadow-sm">
+                      Lihat Detail &amp; Kurasi Karya
+                    </span>
+                  </button>
 
-                    {/* Overlay Badges */}
-                    <div className="absolute top-3 left-3 z-10 flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-600/90 backdrop-blur-xs text-white text-[11px] font-bold shadow-xs">
-                      <CheckCircle2 className="w-3 h-3" />
-                      <span>Terverifikasi</span>
+                  <div>
+                    <div className="relative h-44 rounded-xl overflow-hidden bg-ink-100 mb-3">
+                      <Image
+                        src={proj.coverImage || "/images/preview-rpl.jpg"}
+                        alt={proj.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <span className="absolute top-2.5 right-2.5 z-10 bg-ink/70 backdrop-blur-md text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border border-white/10">
+                        {proj.category}
+                      </span>
+                      <span
+                        className={`absolute bottom-2.5 left-2.5 z-10 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border ${
+                          STATUS_STYLE[proj.status] ?? "bg-white text-ink border-ink-150"
+                        }`}
+                      >
+                        {STATUS_LABEL[proj.status] ?? proj.status}
+                      </span>
                     </div>
 
-                    <div className="absolute top-3 right-3 z-10 px-2 py-0.5 rounded-full bg-ink/75 backdrop-blur-xs text-white text-[10px] font-mono font-semibold">
-                      {p.category}
-                    </div>
-
-                    {p.score !== null && (
-                      <div className="absolute bottom-3 left-3 z-10 px-2.5 py-1 rounded-xl bg-white/95 backdrop-blur-xs text-primary font-mono text-xs font-extrabold shadow-xs border border-ink-150">
-                        Skor: {p.score}/100
-                      </div>
-                    )}
+                    <h2 className="font-bold text-sm text-ink group-hover:text-primary transition-colors leading-snug line-clamp-2">
+                      {proj.title}
+                    </h2>
+                    <p className="text-xs text-ink-600 mt-1.5 line-clamp-2 leading-relaxed font-sans">
+                      {proj.summary}
+                    </p>
                   </div>
 
-                  {/* Body Info */}
-                  <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-xs text-ink-500">
-                        <span className="font-semibold text-ink-800">{p.studentName}</span>
-                        <span>•</span>
-                        <span>{p.studentClass}</span>
+                  <div className="pt-3 mt-3 border-t border-ink-150 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-6 h-6 rounded-full bg-primary/10 text-primary font-bold text-[9px] flex items-center justify-center shrink-0">
+                        {proj.studentName.slice(0, 1)}
                       </div>
-
-                      <h3 className="font-heading font-bold text-base text-ink line-clamp-2 leading-snug group-hover:text-primary transition">
-                        {p.title}
-                      </h3>
-
-                      <p className="text-xs text-ink-600 line-clamp-2 leading-relaxed">
-                        {p.summary || "Karya tugas akhir siswa SMKN 13 Bandung."}
-                      </p>
-
-                      {/* Tech Stack Pills */}
-                      {p.techStack && p.techStack.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 pt-1">
-                          {p.techStack.slice(0, 3).map((tech, idx) => (
-                            <span
-                              key={idx}
-                              className="px-2 py-0.5 rounded-md bg-ink-100 text-ink-700 text-[10px] font-mono"
-                            >
-                              {tech}
-                            </span>
-                          ))}
-                          {p.techStack.length > 3 && (
-                            <span className="text-[10px] text-ink-400 self-center">
-                              +{p.techStack.length - 3}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Footer Actions */}
-                    <div className="pt-3 border-t border-ink-150 flex items-center justify-between gap-2">
-                      <span className="text-[11px] text-ink-400">
-                        Tayang: {tanggal(p.publishedAt || p.submittedAt)}
-                      </span>
-
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => setDetailProject(p)}
-                          className="px-3 py-1.5 rounded-xl border border-ink-150 hover:bg-ink-100 text-ink-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
-                          title="Lihat Detail & Catatan Kurasi"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>Detail</span>
-                        </button>
-
-                        <a
-                          href={`/gallery/${p.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-1.5 rounded-xl border border-ink-150 hover:border-primary/30 hover:bg-primary/10 text-primary transition cursor-pointer"
-                          title="Buka di Galeri Utama (tab baru)"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
+                      <div className="min-w-0">
+                        <span className="font-semibold text-ink text-xs block leading-tight line-clamp-1">
+                          {proj.studentName}
+                        </span>
+                        <span className="text-[10px] text-ink-300 block">
+                          {proj.studentClass} • {proj.advisorName}
+                        </span>
                       </div>
                     </div>
+                    <span className="text-ink-600 font-medium text-[11px] shrink-0 font-mono">
+                      {proj.score !== null ? `Nilai ${proj.score}` : "Belum dinilai"}
+                    </span>
                   </div>
                 </div>
               ))}
             </div>
           )}
 
-          {/* Paginasi Karya Terverifikasi */}
+          {/* Pagination Bar */}
           {totalVerifiedPages > 1 && (
-            <div className="p-4 bg-white rounded-2xl border border-ink-150 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-ink-150 shadow-xs text-xs text-ink-600">
+              <div className="flex items-center gap-1.5">
                 <button
                   type="button"
+                  disabled={verifiedPage <= 1}
                   onClick={() => setVerifiedPage((p) => Math.max(1, p - 1))}
-                  disabled={verifiedPage === 1}
-                  className="px-3 py-1.5 rounded-xl border border-ink-150 text-xs font-semibold text-ink-600 hover:bg-ink-100 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1"
+                  className="w-8 h-8 rounded-xl border border-ink-150 bg-white flex items-center justify-center text-ink-600 hover:bg-ink-100 hover:text-ink disabled:opacity-35 disabled:cursor-not-allowed transition cursor-pointer"
+                  title="Halaman sebelumnya"
+                  aria-label="Halaman sebelumnya"
                 >
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                  <span>Sebelumnya</span>
+                  <ChevronLeft className="w-4 h-4" />
                 </button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalVerifiedPages }).map((_, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setVerifiedPage(idx + 1)}
+                      className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        verifiedPage === idx + 1
+                          ? "bg-primary text-white shadow-xs"
+                          : "bg-ink-100 text-ink-600 hover:bg-ink-150 border border-ink-150"
+                      }`}
+                    >
+                      {idx + 1}
+                    </button>
+                  ))}
+                </div>
                 <button
                   type="button"
+                  disabled={verifiedPage >= totalVerifiedPages}
                   onClick={() => setVerifiedPage((p) => Math.min(totalVerifiedPages, p + 1))}
-                  disabled={verifiedPage === totalVerifiedPages}
-                  className="px-3 py-1.5 rounded-xl border border-ink-150 text-xs font-semibold text-ink-600 hover:bg-ink-100 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1"
+                  className="w-8 h-8 rounded-xl border border-ink-150 bg-white flex items-center justify-center text-ink-600 hover:bg-ink-100 hover:text-ink disabled:opacity-35 disabled:cursor-not-allowed transition cursor-pointer"
+                  title="Halaman berikutnya"
+                  aria-label="Halaman berikutnya"
                 >
-                  <span>Selanjutnya</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
 
-              <div className="text-xs text-ink-500 flex items-center gap-1.5 font-medium">
-                <span>Halaman</span>
-                <span className="font-bold text-ink">{verifiedPage}</span>
-                <span>dari</span>
-                <span className="font-bold text-ink">{totalVerifiedPages}</span>
-                <span className="mx-1">•</span>
-                <span>
-                  Menampilkan {verifiedStartItem}–{verifiedEndItem} dari {totalVerified} karya
+              <div className="flex items-center gap-2">
+                <span>Menampilkan karya</span>
+                <span className="font-bold text-ink">
+                  {verifiedStartItem}–{verifiedEndItem}
                 </span>
+                <span>dari</span>
+                <span className="font-bold text-ink">{totalVerified}</span>
               </div>
             </div>
           )}

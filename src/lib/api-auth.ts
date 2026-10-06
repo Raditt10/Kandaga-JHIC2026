@@ -23,6 +23,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth-options"
 import { normalizeRole } from "@/lib/auth"
+import prisma from "@/lib/prisma"
 
 type AuthOk = { userId: string; role: string; error?: undefined }
 type AuthFail = { userId?: undefined; role?: undefined; error: NextResponse }
@@ -52,6 +53,34 @@ export async function requireRole(allowed: string[]): Promise<AuthOk | AuthFail>
     }
   }
 
+  // Verifikasi akun benar-benar ada di database (mencegah error jika DB pernah di-seed/reset saat sesi masih aktif)
+  try {
+    const dbUser = await prisma.users.findUnique({
+      where: { id: session.user.id },
+      select: { id: true, status: true },
+    })
+
+    if (!dbUser) {
+      return {
+        error: NextResponse.json(
+          { error: "Sesi login tidak valid atau telah kadaluarsa. Silakan login kembali." },
+          { status: 401 }
+        ),
+      }
+    }
+
+    if (dbUser.status !== "aktif") {
+      return {
+        error: NextResponse.json(
+          { error: "Akun dinonaktifkan. Hubungi administrator." },
+          { status: 403 }
+        ),
+      }
+    }
+  } catch (dbErr) {
+    console.error("requireRole user validation error:", dbErr)
+  }
+
   return { userId: session.user.id, role }
 }
 
@@ -62,4 +91,5 @@ export async function requireStudent(): Promise<AuthOk | AuthFail> {
 export async function requireTeacher(): Promise<AuthOk | AuthFail> {
   return requireRole(["teacher"])
 }
+
 

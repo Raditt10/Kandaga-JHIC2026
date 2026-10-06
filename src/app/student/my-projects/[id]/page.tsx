@@ -1,546 +1,656 @@
-"use client";
+"use client"
 
-import React, { useState, useEffect, use } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { notFound, useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
-import Loading from "@/components/ui/Loading";
-import EditProjectModal from "@/components/student/EditProjectModal";
-import type { GalleryProjectItem } from "@/data/galleryData";
+import React, { useState, use, useEffect } from "react"
+import Image from "next/image"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
+import DashboardLayout from "@/components/DashboardLayout"
+import {
+  AVATAR_CACHE_BASE,
+  PROFILE_CACHE_BASE,
+  readUserCache,
+} from "@/lib/user-cache"
 import {
   ArrowLeft,
-  Globe,
-  Lock,
+  CheckCircle2,
+  Clock,
+  Calendar,
+  AlertTriangle,
+  AlertCircle,
+  Loader2,
+  ImageIcon,
+  GraduationCap,
+  ExternalLink,
+  Eye,
   Pencil,
   Trash2,
-  Calendar,
-  Eye,
-  CheckCircle2,
-  Sparkles,
-  ExternalLink,
-  ChevronRight,
-  Share2,
-  FileCode,
-  ShieldCheck,
-  Award,
-} from "lucide-react";
+} from "lucide-react"
 
 interface PageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string }>
+}
+
+interface StudentDetailProject {
+  id: string
+  title: string
+  description: string
+  major: string
+  majorLabel: string
+  category?: string
+  studentName: string
+  studentClass: string
+  studentAvatar?: string
+  advisor?: {
+    name?: string
+    role?: string
+    reviewNotes?: string
+  }
+  createdAt: string
+  status: string
+  score: number | null
+  reviewNotes: string | null
+  coverImage: string | null
+  galleryImages: string[]
+  tools: string[]
+  solutionHighlights?: string[]
+  isPrivate: boolean
+  metrics?: {
+    views?: number
+    likes?: number
+  }
+  links?: {
+    githubUrl?: string
+    demoUrl?: string
+  }
+}
+
+function formatTanggal(iso: string | null | undefined): string {
+  if (!iso) return "—"
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return "—"
+  return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
 }
 
 export default function StudentProjectDetailPage({ params }: PageProps) {
-  const resolvedParams = use(params);
-  const router = useRouter();
-  const [project, setProject] = useState<GalleryProjectItem | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const resolvedParams = use(params)
+  const projectId = resolvedParams.id
 
-  const loadProject = async () => {
-    setIsLoading(true);
-    try {
-      const res = await fetch(`/api/student/projects/${resolvedParams.id}`);
-      if (!res.ok) {
-        setProject(null);
-        return;
-      }
-      const data = await res.json();
-      if (data.project) {
-        setProject(data.project);
-      } else if (data.projects) {
-        setProject(data.projects);
-      } else {
-        setProject(null);
-      }
-    } catch (error) {
-      console.error("Failed to fetch project data:", error);
-      showToast("Gagal memuat data karya.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const router = useRouter()
+  const { data: session } = useSession()
+
+  const [project, setProject] = useState<StudentDetailProject | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showRequestDeleteModal, setShowRequestDeleteModal] = useState(false)
+  const [confirmTitleInput, setConfirmTitleInput] = useState("")
+  const [userAvatar, setUserAvatar] = useState<string | null>(null)
 
   useEffect(() => {
-    loadProject();
+    const userId = session?.user?.id
+    if (!userId) return
 
-    const handleUpdate = () => {
-      loadProject();
-    };
-
-    window.addEventListener("kandaga_projects_updated", handleUpdate);
-    return () => {
-      window.removeEventListener("kandaga_projects_updated", handleUpdate);
-    };
-  }, [resolvedParams.id]);
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 4000);
-  };
-
-  const handleToggleVisibility = async () => {
-    if (!project) return;
-    const targetIsPrivate = !project.isPrivate;
-    try {
-      const res = await fetch(`/api/student/projects/${resolvedParams.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isPrivate: targetIsPrivate }),
-      });
-      const data = await res.json();
-      if (data.success && data.project) {
-        setProject(data.project);
-        showToast(
-          data.project.isPrivate
-            ? "Status visibilitas diubah menjadi PRIVAT."
-            : "Karya berhasil DIPUBLIKASIKAN di Galeri Resmi SMKN 13!"
-        );
-      } else {
-        showToast(data.error || "Gagal memperbarui status visibilitas karya.");
-      }
-    } catch (error) {
-      console.error("Error toggling visibility:", error);
-      showToast("Gagal memperbarui status visibilitas.");
+    const cached = readUserCache<string>(AVATAR_CACHE_BASE, userId)
+    if (cached) {
+      setUserAvatar(cached)
+      return
     }
-  };
 
-  const handleDelete = async () => {
-    if (!project) return;
-    if (
-      confirm(
-        `Apakah Anda yakin ingin menghapus karya "${project.title}"? Tindakan ini permanen.`
-      )
-    ) {
+    const cachedProfile = readUserCache<{ photoUrl?: string }>(PROFILE_CACHE_BASE, userId)
+    if (cachedProfile?.photoUrl) {
+      setUserAvatar(cachedProfile.photoUrl)
+      return
+    }
+
+    if (session?.user?.image) {
+      setUserAvatar(session.user.image)
+    }
+  }, [session?.user?.id, session?.user?.image])
+
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
       try {
-        const deleted = await fetch(`/api/student/projects/${resolvedParams.id}`, {
-          method: "DELETE",
-        });
-        const deletedData = await deleted.json();
-        if (deletedData.success) {
-          showToast("Karya berhasil dihapus!");
-          router.push("/student/my-projects");
+        const res = await fetch(`/api/student/projects/${projectId}`, { cache: "no-store" })
+        const data = await res.json()
+        if (!alive) return
+        if (!res.ok) {
+          setLoadError(data.error || "Karya tidak ditemukan.")
         } else {
-          showToast(deletedData.error || "Gagal menghapus karya.");
+          setProject(data.project)
         }
-      } catch (error) {
-        console.error("Failed to delete project:", error);
-        showToast("Gagal menghapus karya.");
+      } catch {
+        if (alive) setLoadError("Gagal menghubungi server.")
+      } finally {
+        if (alive) setLoading(false)
       }
+    })()
+    return () => {
+      alive = false
     }
-  };
+  }, [projectId])
 
-  const handleSaveEdit = async (updates: Partial<GalleryProjectItem>) => {
-    if (!project) return;
-    try {
-      const updated = await fetch(`/api/student/projects/${resolvedParams.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updates),
-      });
-      const updatedData = await updated.json();
-      if (updatedData.success && updatedData.project) {
-        setProject(updatedData.project);
-        setIsEditModalOpen(false);
-        showToast("Perubahan detail karya berhasil disimpan!");
-      } else {
-        showToast(updatedData.error || "Gagal menyimpan perubahan karya.");
-      }
-    } catch (error) {
-      console.error("Failed to update project data:", error);
-      showToast("Gagal memperbarui karya.");
-    }
-  };
-
-  if (!isLoading && !project) {
-    notFound();
+  if (loading) {
+    return (
+      <DashboardLayout
+        roleTitle="Siswa"
+        roleSlug="student"
+        icon={GraduationCap}
+        activeTab="karya-saya"
+        breadcrumbLabel="Karya Saya"
+        breadcrumbHref="/student?tab=karya-saya"
+        pageTitle="Detail Karya"
+      >
+        <div className="p-16 flex items-center justify-center text-ink-600 gap-3">
+          <Loader2 className="w-5 h-5 animate-spin text-primary" />
+          <span className="text-sm font-medium">Memuat detail karya…</span>
+        </div>
+      </DashboardLayout>
+    )
   }
 
-  const currentMajor = project?.major || project?.jurusan || "rpl";
-  const currentMajorLabel = project?.majorLabel || project?.jurusanLabel || "RPL";
-  const isPrivate = Boolean(project?.isPrivate);
+  if (loadError || !project) {
+    return (
+      <DashboardLayout
+        roleTitle="Siswa"
+        roleSlug="student"
+        icon={GraduationCap}
+        activeTab="karya-saya"
+        breadcrumbLabel="Karya Saya"
+        breadcrumbHref="/student?tab=karya-saya"
+        pageTitle="Detail Karya"
+      >
+        <div className="p-12 text-center bg-white rounded-2xl border border-ink-150 shadow-xs max-w-lg mx-auto my-12">
+          <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-3" />
+          <h2 className="text-base font-bold text-ink">Karya Tidak Ditemukan</h2>
+          <p className="text-xs text-ink-600 mt-1 mb-6">
+            {loadError ?? `Karya dengan ID "${projectId}" tidak terdaftar dalam portofolio Anda.`}
+          </p>
+          <Link
+            href="/student?tab=karya-saya"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary-dark transition"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Kembali ke Daftar Karya
+          </Link>
+        </div>
+      </DashboardLayout>
+    )
+  }
 
-  const images =
-    project?.galleryImages && project.galleryImages.length > 0
-      ? project.galleryImages
-      : [project?.coverImage || "/images/preview-rpl.jpg"];
+  const isApproved = project.status === "approved"
+  const isRevisi = project.status === "revisi"
+
+  const handleDelete = async (confirmationTitle?: string) => {
+    setDeleting(true)
+    setActionError(null)
+    try {
+      const res = await fetch(`/api/student/projects/${projectId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(confirmationTitle ? { confirmationTitle } : {}),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || "Gagal menghapus karya.")
+      router.push("/student?tab=karya-saya&deleted=true")
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Gagal menghapus karya.")
+      setDeleting(false)
+      setShowDeleteModal(false)
+      setShowRequestDeleteModal(false)
+    }
+  }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      {isLoading && <Loading text="Memuat detail karya..." />}
-      <Navbar />
+    <DashboardLayout
+      roleTitle="Siswa"
+      roleSlug="student"
+      icon={GraduationCap}
+      activeTab="karya-saya"
+      breadcrumbLabel="Karya Saya"
+      breadcrumbHref="/student?tab=karya-saya"
+      pageTitle={project.title}
+    >
+      <div className="space-y-6 animate-in fade-in duration-200 pb-12">
+        {/* Tombol Kembali (Arrow Left) */}
+        <div>
+          <Link
+            href="/student?tab=karya-saya"
+            className="p-2.5 rounded-xl border border-ink-150 hover:bg-ink-100 text-ink-600 hover:text-ink transition inline-flex items-center justify-center cursor-pointer bg-white shadow-xs"
+            title="Kembali ke Daftar Karya"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+        </div>
 
-      {project && (
-        <main className="flex-1 pt-24 pb-20">
-          {/* ── Breadcrumb Bar ── */}
-          <div className="border-b border-ink-150 bg-[#FBF9F6]">
-            <div className="mx-auto max-w-7xl px-6 py-4 flex flex-wrap items-center justify-between gap-4">
-              <nav
-                aria-label="Breadcrumb"
-                className="flex items-center gap-2 text-xs sm:text-sm text-ink-600"
-              >
-                <Link href="/" className="hover:text-ink transition-colors">
-                  Beranda
-                </Link>
-                <ChevronRight className="w-3.5 h-3.5 text-ink-300" />
-                <Link
-                  href="/student/my-projects"
-                  className="hover:text-ink transition-colors"
-                >
-                  Karya Saya
-                </Link>
-                <ChevronRight className="w-3.5 h-3.5 text-ink-300" />
-                <span className="font-semibold text-ink truncate max-w-[200px] sm:max-w-xs">
-                  {project.title}
-                </span>
-              </nav>
-
-              <Link
-                href="/student/my-projects"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-ink-600 hover:text-black transition"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Kembali ke Karya Saya</span>
-              </Link>
-            </div>
-          </div>
-
-          {/* ── Creator Action & Visibility Control Bar ── */}
-          <div className="bg-ink text-white border-b border-ink-700">
-            <div className="mx-auto max-w-7xl px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-              {/* Visibility status indicator */}
-              <div className="flex items-center gap-3">
-                <span
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
-                    isPrivate
-                      ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-                      : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-                  }`}
-                >
-                  {isPrivate ? (
-                    <>
-                      <Lock className="w-3.5 h-3.5" />
-                      <span>Status: PRIVAT</span>
-                    </>
-                  ) : (
-                    <>
-                      <Globe className="w-3.5 h-3.5" />
-                      <span>Status: PUBLIK (Di Etalase Galeri)</span>
-                    </>
-                  )}
-                </span>
-                <span className="text-xs text-ink-300 hidden sm:inline">
-                  {isPrivate
-                    ? "Karya ini tersembunyi dari publik."
-                    : "Karya ini dapat ditemukan oleh industri & publik."}
-                </span>
-              </div>
-
-              {/* Action Buttons for Creator */}
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <button
-                  type="button"
-                  onClick={handleToggleVisibility}
-                  className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer border ${
-                    isPrivate
-                      ? "bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500"
-                      : "bg-ink hover:bg-ink-700 text-ink-300 border-ink-700"
-                  }`}
-                >
-                  {isPrivate ? (
-                    <>
-                      <Globe className="w-3.5 h-3.5" />
-                      <span>Publikasikan Karya</span>
-                    </>
-                  ) : (
-                    <>
-                      <Lock className="w-3.5 h-3.5" />
-                      <span>Ubah ke Privat</span>
-                    </>
-                  )}
-                </button>
-
-                {/* Edit button — locked for approved karya */}
-                {(project.status as string) === "approved" ? (
-                  <span
-                    title="Karya yang sudah disetujui guru tidak dapat diedit"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-ink-100 text-ink-300 border border-ink-150 cursor-not-allowed select-none"
-                  >
-                    <Lock className="w-3.5 h-3.5" />
-                    <span>Terverifikasi — Terkunci</span>
-                  </span>
+        {/* 2-Column Responsive Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Kolom Kiri: Gambar, Kreator, Metadata (5 cols) */}
+          <div className="lg:col-span-5 space-y-6">
+            {/* Box Cover Image */}
+            <div className="bg-white p-4 rounded-2xl border border-ink-150 shadow-xs space-y-4">
+              <div className="relative h-72 w-full rounded-2xl overflow-hidden bg-ink-100 border border-ink-150 shadow-inner">
+                {project.coverImage ? (
+                  <Image
+                    src={project.coverImage}
+                    alt={project.title}
+                    fill
+                    priority
+                    sizes="(max-width: 1024px) 100vw, 420px"
+                    className="object-cover"
+                  />
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => setIsEditModalOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-[#6B1424] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                    <span>Edit Informasi Karya</span>
-                  </button>
-                )}
-
-                {!isPrivate && (
-                  <Link
-                    href={`/gallery/${project.id}`}
-                    target="_blank"
-                    className="inline-flex items-center gap-1.5 px-3 py-2 bg-ink hover:bg-ink-700 text-ink-300 rounded-xl text-xs font-medium transition"
-                    title="Buka halaman etalase publik galeri"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    <span>Lihat di Galeri</span>
-                  </Link>
-                )}
-
-                <button
-                  type="button"
-                  onClick={handleDelete}
-                  className="p-2 rounded-xl text-ink-300 hover:text-rose-400 hover:bg-rose-950/40 transition cursor-pointer"
-                  title="Hapus karya ini"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Toast Notification */}
-          {toastMessage && (
-            <div className="mx-auto max-w-7xl px-6 pt-4">
-              <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm font-semibold flex items-center gap-2.5 shadow-xs">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>{toastMessage}</span>
-              </div>
-            </div>
-          )}
-
-          {/* Read-only notice for approved projects */}
-          {(project.status as string) === "approved" && (
-            <div className="mx-auto max-w-7xl px-6 pt-4">
-              <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-start gap-2.5">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <p>
-                  <strong>Karya ini sudah diverifikasi guru dan tayang di Galeri Kandaga.</strong>{" "}
-                  Konten tidak dapat diubah untuk menjaga integritas label &ldquo;Terverifikasi Sekolah&rdquo;.
-                  Jika ada kesalahan, hubungi guru pembimbing Anda.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* ── Main Content Area ── */}
-          <div className="mx-auto max-w-7xl px-6 pt-8">
-            {/* Header Hero Section */}
-            <div className="mb-8">
-              {/* Badges */}
-              <div className="flex flex-wrap items-center gap-2 mb-4">
-                <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
-                  {currentMajorLabel}
-                </span>
-
-                <span className="px-3 py-1 rounded-full text-xs font-medium bg-ink-100 text-ink-700 border border-ink-150">
-                  Tahun {project.year}
-                </span>
-
-                {project.status === "featured" && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E8C97A] text-[#543b00]">
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>Karya Unggulan Sekolah</span>
-                  </span>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-ink-300 p-4 text-center">
+                    <ImageIcon className="w-10 h-10 stroke-[1.5]" />
+                    <span className="text-xs font-medium">Gambar sampul belum diunggah</span>
+                  </div>
                 )}
               </div>
 
-              {/* Title */}
-              <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold text-ink tracking-tight">
-                {project.title}
-              </h1>
-
-              {/* Tagline */}
-              <p className="mt-4 text-base sm:text-lg text-ink-700 leading-relaxed max-w-[65ch]">
-                {project.tagline || project.description}
-              </p>
-            </div>
-
-            {/* Media Showcase (Hero aspect 16/9) */}
-            <div className="mb-12">
-              <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-ink-100 border border-ink-150 shadow-md">
-                <Image
-                  src={images[activeImageIndex] || project.coverImage}
-                  alt={project.title}
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              </div>
-
-              {/* Thumbnails strip */}
-              {images.length > 1 && (
-                <div className="mt-4 flex items-center gap-3 overflow-x-auto pb-2">
-                  {images.map((img, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setActiveImageIndex(idx)}
-                      className={`relative w-24 h-16 rounded-xl overflow-hidden shrink-0 border-2 transition cursor-pointer ${
-                        activeImageIndex === idx
-                          ? "border-primary ring-2 ring-primary/30"
-                          : "border-transparent opacity-70 hover:opacity-100"
-                      }`}
-                    >
-                      <Image src={img} alt={`Preview ${idx + 1}`} fill className="object-cover" />
-                    </button>
-                  ))}
+              {/* Tanggal & Status Kurasi (Menggantikan posisi Nilai: belum dinilai) */}
+              <div className="flex items-center justify-between p-3 rounded-2xl bg-ink-100 border border-ink-150 text-xs">
+                <div className="flex items-center gap-1.5 text-ink-600">
+                  <Calendar className="w-3.5 h-3.5 text-ink-400" />
+                  <span>Diajukan {formatTanggal(project.createdAt)}</span>
                 </div>
-              )}
-            </div>
-
-            {/* Grid 2 Kolom: Detail Narasi + Sidebar */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-              {/* Kolom Kiri: Deskripsi & Inovasi */}
-              <div className="lg:col-span-8 space-y-10">
-                {/* Deskripsi */}
                 <div>
-                  <h2 className="font-heading text-xl sm:text-2xl font-bold text-ink mb-4">
-                    Tentang Karya Proyek
-                  </h2>
-                  <div className="text-base text-ink-700 leading-relaxed space-y-4 max-w-[65ch]">
-                    {project.description.split("\n\n").map((para, i) => (
-                      <p key={i}>{para}</p>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Solution Highlights */}
-                {project.solutionHighlights && project.solutionHighlights.length > 0 && (
-                  <div className="pt-8 border-t border-ink-150">
-                    <h2 className="font-heading text-xl sm:text-2xl font-bold text-ink mb-4">
-                      Poin Inovasi & Nilai Tambah
-                    </h2>
-                    <ul className="space-y-3 max-w-[65ch]">
-                      {project.solutionHighlights.map((point, i) => (
-                        <li key={i} className="flex items-start gap-3">
-                          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                          <span className="text-base text-ink-700 leading-relaxed">{point}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Review Pembimbing */}
-                {project.advisor && (
-                  <div className="p-6 sm:p-8 rounded-2xl bg-[#FBF9F6] border border-ink-150">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary mb-3">
-                      <ShieldCheck className="w-3.5 h-3.5" />
-                      <span>Catatan Pembimbing Sekolah</span>
+                  {isApproved ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[11px] font-bold">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>Terkurasi</span>
                     </span>
-                    <blockquote className="text-base text-ink-700 italic leading-relaxed">
-                      &ldquo;{project.advisor.reviewNotes}&rdquo;
-                    </blockquote>
-                    <div className="mt-4 pt-4 border-t border-ink-150 text-xs text-ink-600">
-                      <span className="font-bold text-ink-900 block">{project.advisor.name}</span>
-                      <span>{project.advisor.role}</span>
-                    </div>
-                  </div>
-                )}
+                  ) : isRevisi ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-[11px] font-bold">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>Perlu Revisi</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-[11px] font-bold">
+                      <Clock className="w-3 h-3" />
+                      <span>Belum Dikurasi</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Informasi Siswa Kreator */}
+            <div className="bg-white p-5 rounded-2xl border border-ink-150 shadow-xs space-y-3.5">
+              <h3 className="text-sm font-bold text-ink">
+                Informasi Kreator Siswa
+              </h3>
+              <div className="flex items-center gap-3 pt-1">
+                <div className="relative w-12 h-12 rounded-full overflow-hidden border border-ink-150 bg-ink-100 shrink-0 shadow-2xs flex items-center justify-center">
+                  <Image
+                    src={
+                      userAvatar ||
+                      (project.studentAvatar && project.studentAvatar !== "/images/siswa.webp"
+                        ? project.studentAvatar
+                        : null) ||
+                      (session?.user?.image as string | null) ||
+                      project.studentAvatar ||
+                      "/images/siswa.webp"
+                    }
+                    alt={project.studentName || "Foto siswa"}
+                    fill
+                    sizes="48px"
+                    className="object-cover"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-sm font-bold text-ink leading-tight truncate">{project.studentName}</h4>
+                  <p className="text-xs text-ink-600 mt-0.5">
+                    {project.studentClass} · {project.majorLabel}
+                  </p>
+                </div>
               </div>
 
-              {/* Kolom Kanan: Sidebar Metadata & Links */}
-              <div className="lg:col-span-4 space-y-6">
-                {/* Tech Stack Box */}
-                <div className="p-6 rounded-2xl bg-white border border-ink-150 shadow-xs">
-                  <h3 className="font-heading text-base font-bold text-ink mb-3 flex items-center gap-2">
-                    <FileCode className="w-4 h-4 text-primary" />
-                    <span>Teknologi Digunakan</span>
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {project.tools && project.tools.length > 0 ? (
-                      project.tools.map((tool) => (
-                        <span
-                          key={tool}
-                          className="px-3 py-1 rounded-lg bg-ink-100 text-ink-700 text-xs font-medium"
-                        >
-                          {tool}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-xs text-ink-600 italic">Belum ada tools ditambahkan.</span>
-                    )}
-                  </div>
-                </div>
+              <div className="pt-3 border-t border-ink-150 flex items-center justify-between text-xs text-ink-600">
+                <span>Guru Pembimbing:</span>
+                <span className="font-semibold text-ink-700">
+                  {project.advisor?.name || "Guru Pembimbing"}
+                </span>
+              </div>
+            </div>
 
-                {/* Tautan Proyek */}
-                <div className="p-6 rounded-2xl bg-white border border-ink-150 shadow-xs space-y-3">
-                  <h3 className="font-heading text-base font-bold text-ink mb-1">
-                    Tautan Proyek
-                  </h3>
-
-                  {project.links?.demoUrl ? (
+            {/* Tautan Proyek (GitHub / Live Demo) */}
+            {(project.links?.githubUrl || project.links?.demoUrl) && (
+              <div className="bg-white p-5 rounded-2xl border border-ink-150 shadow-xs space-y-3">
+                <h3 className="text-sm font-bold text-ink">
+                  Tautan Eksternal Proyek
+                </h3>
+                <div className="space-y-2">
+                  {project.links?.demoUrl && (
                     <a
                       href={project.links.demoUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full flex items-center justify-between p-3 rounded-2xl bg-primary text-white text-xs font-bold hover:bg-[#6B1424] transition shadow-xs"
+                      className="p-3 rounded-xl bg-ink-50 hover:bg-ink-100 border border-ink-150 text-xs font-semibold text-ink-700 flex items-center justify-between transition group"
                     >
-                      <span className="flex items-center gap-2">
-                        <ExternalLink className="w-4 h-4" />
-                        <span>Kunjungi Live Demo</span>
-                      </span>
-                      <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
+                      <div className="flex items-center gap-2">
+                        <Eye className="w-4 h-4 text-primary" />
+                        <span>Live Demo / Aplikasi Aktif</span>
+                      </div>
+                      <ExternalLink className="w-3.5 h-3.5 text-ink-400 group-hover:text-primary transition" />
                     </a>
-                  ) : null}
-
-                  {project.links?.githubUrl ? (
+                  )}
+                  {project.links?.githubUrl && (
                     <a
                       href={project.links.githubUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full flex items-center justify-between p-3 rounded-2xl bg-ink text-white text-xs font-bold hover:bg-black transition shadow-xs"
+                      className="p-3 rounded-xl bg-ink-50 hover:bg-ink-100 border border-ink-150 text-xs font-semibold text-ink-700 flex items-center justify-between transition group"
                     >
-                      <span className="flex items-center gap-2">
-                        <FileCode className="w-4 h-4" />
-                        <span>Repositori GitHub</span>
-                      </span>
-                      <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
+                      <div className="flex items-center gap-2">
+                        <ExternalLink className="w-4 h-4 text-ink-700" />
+                        <span>Repository Berkas / GitHub</span>
+                      </div>
+                      <ExternalLink className="w-3.5 h-3.5 text-ink-400 group-hover:text-ink-700 transition" />
                     </a>
-                  ) : null}
-
-                  {!project.links?.demoUrl && !project.links?.githubUrl && (
-                    <p className="text-xs text-ink-600 italic">
-                      Belum ada tautan demo atau repositori yang disertakan.
-                    </p>
                   )}
                 </div>
+              </div>
+            )}
+          </div>
 
-                {/* Edit Button in Sidebar */}
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(true)}
-                  className="w-full py-3 px-4 rounded-2xl border-2 border-dashed border-ink-300 text-xs font-bold text-ink-700 hover:border-primary hover:text-primary transition cursor-pointer flex items-center justify-center gap-2"
+          {/* Kolom Kanan: Detail Konten, Catatan Kurasi (7 cols) */}
+          <div className="lg:col-span-7 space-y-6">
+            {/* Box Abstrak & Ringkasan */}
+            <div className="bg-white p-6 rounded-2xl border border-ink-150 shadow-xs space-y-4">
+              <div>
+                <h2 className="text-lg sm:text-xl font-heading font-bold text-ink leading-snug">
+                  {project.title}
+                </h2>
+              </div>
+
+              <div className="pt-2 space-y-2">
+                <h3 className="text-sm font-bold text-ink">
+                  Ringkasan & Abstrak Karya
+                </h3>
+                <p className="text-xs sm:text-sm text-ink-700 leading-relaxed font-sans bg-ink-100/70 p-4 rounded-2xl border border-ink-150 whitespace-pre-line">
+                  {project.description || "Tidak ada rincian deskripsi karya."}
+                </p>
+              </div>
+
+              {/* Fitur Utama / Solusi Unggulan */}
+              {project.solutionHighlights && project.solutionHighlights.length > 0 && (
+                <div className="pt-2 space-y-2">
+                  <h3 className="text-sm font-bold text-ink">
+                    Fitur Utama & Solusi Unggulan
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {project.solutionHighlights.map((feat, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3 rounded-xl bg-ink-50 border border-ink-150 text-xs font-medium text-ink-700 flex items-start gap-2"
+                      >
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>{feat}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Alat & Teknologi yang Dipakai */}
+              <div className="pt-2 space-y-2">
+                <h3 className="text-sm font-bold text-ink">
+                  Alat & Teknologi yang Dipakai
+                </h3>
+                {project.tools && project.tools.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {project.tools.map((t, idx) => (
+                      <span
+                        key={idx}
+                        className="px-3 py-1 rounded-full bg-ink-100 border border-ink-150 text-xs font-mono font-medium text-ink-700"
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-ink-400 italic">
+                    Belum mencantumkan instrumen atau teknologi.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Catatan Pembimbing / Feedback ke Siswa */}
+            <div className="bg-white p-6 rounded-2xl border border-ink-150 shadow-xs space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-ink">
+                  Catatan Pembimbing & Hasil Kurasi
+                </h3>
+                {project.score !== null && (
+                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                    Skor: {project.score}/100
+                  </span>
+                )}
+              </div>
+
+              {project.reviewNotes || project.advisor?.reviewNotes ? (
+                <div className="p-4 rounded-2xl border border-ink-150 bg-ink-50/80 space-y-2">
+                  <div className="flex items-center justify-between text-xs text-ink-500">
+                    <span className="font-semibold text-ink-700">
+                      Umpan Balik Guru Pembimbing
+                    </span>
+                    <span className="text-[11px]">{project.advisor?.name}</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-ink-800 leading-relaxed font-sans">
+                    {project.reviewNotes || project.advisor?.reviewNotes}
+                  </p>
+                </div>
+              ) : (
+                <div className="p-4 rounded-2xl border border-dashed border-ink-200 bg-ink-50/50 text-center py-6">
+                  <Clock className="w-8 h-8 text-amber-500/70 mx-auto mb-2" />
+                  <p className="text-xs font-medium text-ink-700">
+                    Belum Ada Catatan Kurasi dari Pembimbing
+                  </p>
+                  <p className="text-[11px] text-ink-400 mt-1 max-w-sm mx-auto">
+                    Karya Anda sedang dalam antrean kurasi. Hasil penilaian dan catatan arahan akan ditampilkan di sini setelah guru memeriksa karya.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Tombol Aksi: Edit Draft Karya & Hapus Karya */}
+            <div className="bg-white p-5 rounded-2xl border border-ink-150 shadow-xs space-y-3">
+              {actionError && (
+                <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{actionError}</span>
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                <Link
+                  href={`/student/create-project?edit=${project.id}`}
+                  className="w-full sm:flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs font-bold transition shadow-xs cursor-pointer"
                 >
-                  <Pencil className="w-4 h-4" />
-                  <span>Ubah Data Karya Ini</span>
-                </button>
+                  <Pencil className="w-3.5 h-3.5" />
+                  <span>{project.isPrivate || project.status === "private" ? "Edit Draft Karya" : "Edit Karya"}</span>
+                </Link>
+
+                {isApproved ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConfirmTitleInput("")
+                      setActionError(null)
+                      setShowRequestDeleteModal(true)
+                    }}
+                    disabled={deleting}
+                    className="w-full sm:flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 hover:border-rose-300 text-xs font-bold transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shadow-xs"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Ajukan Hapus Karya</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActionError(null)
+                      setShowDeleteModal(true)
+                    }}
+                    disabled={deleting}
+                    className="w-full sm:flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 hover:border-rose-300 text-xs font-bold transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shadow-xs"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Hapus Karya</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
-        </main>
+        </div>
+      </div>
+
+      {/* Modal Konfirmasi Hapus Karya (Belum Terverifikasi Guru) */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/50 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl border border-ink-150 shadow-xl max-w-md w-full p-6 space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-ink">Hapus Karya Ini?</h3>
+                <p className="text-xs text-ink-600 mt-1 leading-relaxed">
+                  Apakah Anda yakin ingin menghapus karya <strong className="text-ink font-semibold">"{project.title}"</strong>? Karya ini belum diverifikasi dan akan dipindahkan ke arsip.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-ink-150">
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
+                className="px-4 py-2 rounded-xl border border-ink-150 text-ink-700 hover:bg-ink-50 text-xs font-bold transition cursor-pointer disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete()}
+                disabled={deleting}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition cursor-pointer disabled:opacity-60 shadow-xs"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Menghapus...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Ya, Hapus Karya</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* Edit Modal */}
-      <EditProjectModal
-        project={project}
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        onSave={handleSaveEdit}
-      />
+      {/* Modal Konfirmasi Ajukan Hapus Karya (Sudah Terverifikasi Guru) */}
+      {showRequestDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/50 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl border border-ink-150 shadow-xl max-w-md w-full p-6 space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shrink-0">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold text-ink">Ajukan Hapus Karya</h3>
+                <p className="text-xs text-ink-600 leading-relaxed">
+                  Karya ini telah <strong className="text-emerald-700 font-semibold">terverifikasi resmi oleh guru pembimbing</strong>. Untuk mengonfirmasi pengajuan hapus karya ini, silakan ketik nama karya di bawah ini secara persis.
+                </p>
+              </div>
+            </div>
 
-      <Footer />
-    </div>
-  );
+            <div className="space-y-3 pt-1">
+              <div>
+                <label className="block text-[11px] font-bold text-ink-600 uppercase tracking-wider mb-1">
+                  Nama Karya
+                </label>
+                <div className="p-3 rounded-xl bg-ink-50 border border-ink-150 font-mono text-xs font-bold text-ink select-all break-words">
+                  {project.title}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-ink mb-1.5">
+                  Ketik nama karya di atas untuk konfirmasi:
+                </label>
+                <input
+                  type="text"
+                  value={confirmTitleInput}
+                  onChange={(e) => setConfirmTitleInput(e.target.value)}
+                  placeholder="Ketik persis seperti nama karya di atas..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-ink-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 text-xs font-sans outline-hidden bg-white transition"
+                  autoFocus
+                />
+                {confirmTitleInput.length > 0 && (
+                  <div className={`mt-1.5 text-[11px] font-medium flex items-center gap-1.5 ${
+                    confirmTitleInput.trim() === project.title.trim()
+                      ? "text-emerald-600"
+                      : "text-rose-600"
+                  }`}>
+                    {confirmTitleInput.trim() === project.title.trim() ? (
+                      <>
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Nama karya sesuai</span>
+                      </>
+                    ) : (
+                      <>
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        <span>Nama karya belum sesuai</span>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-ink-150">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowRequestDeleteModal(false)
+                  setConfirmTitleInput("")
+                }}
+                disabled={deleting}
+                className="px-4 py-2 rounded-xl border border-ink-150 text-ink-700 hover:bg-ink-50 text-xs font-bold transition cursor-pointer disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(confirmTitleInput.trim())}
+                disabled={deleting || confirmTitleInput.trim() !== project.title.trim()}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-xs"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Memproses...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Ajukan Hapus Karya</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </DashboardLayout>
+  )
 }

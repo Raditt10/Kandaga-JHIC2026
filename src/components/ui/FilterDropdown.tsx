@@ -19,6 +19,9 @@ export interface FilterDropdownProps<T extends string = string> {
   className?: string
   align?: "left" | "right"
   disabled?: boolean
+  size?: "sm" | "md"
+  icon?: React.ComponentType<{ className?: string }> | null
+  buttonClassName?: string
 }
 
 export function FilterDropdown<T extends string = string>({
@@ -30,6 +33,9 @@ export function FilterDropdown<T extends string = string>({
   className = "",
   align = "right",
   disabled = false,
+  size = "md",
+  icon: TriggerIcon = Filter,
+  buttonClassName = "",
 }: FilterDropdownProps<T>) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -68,6 +74,11 @@ export function FilterDropdown<T extends string = string>({
 
   const selectedOption = options.find((opt) => opt.value === value)
 
+  const sizeClasses =
+    size === "sm"
+      ? "px-3 py-1.5 text-xs rounded-xl gap-1.5"
+      : "px-3.5 py-2.5 text-sm rounded-xl gap-2"
+
   return (
     <div ref={dropdownRef} className={`relative inline-block text-left ${className}`}>
       {/* Trigger Button */}
@@ -77,18 +88,20 @@ export function FilterDropdown<T extends string = string>({
         disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className={`group inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border text-sm font-semibold transition cursor-pointer select-none shadow-2xs ${
+        className={`group inline-flex items-center font-semibold transition cursor-pointer select-none shadow-2xs ${sizeClasses} ${
           isOpen
             ? "border-primary ring-2 ring-primary/20 bg-primary/5 text-primary"
-            : "border-ink-150 bg-white text-ink-700 hover:border-primary/50 hover:text-ink-900"
-        } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+            : "border-ink-150 bg-white text-ink-700 hover:border-primary/50 hover:text-ink-900 border"
+        } ${disabled ? "opacity-50 cursor-not-allowed" : ""} ${buttonClassName}`}
       >
-        <Filter
-          className={`w-3.5 h-3.5 shrink-0 transition-colors ${
-            isOpen ? "text-primary" : "text-ink-400 group-hover:text-primary"
-          }`}
-          aria-hidden="true"
-        />
+        {TriggerIcon && (
+          <TriggerIcon
+            className={`w-3.5 h-3.5 shrink-0 transition-colors ${
+              isOpen ? "text-primary" : "text-ink-400 group-hover:text-primary"
+            }`}
+            aria-hidden="true"
+          />
+        )}
 
         <div className="flex items-center gap-1.5 truncate">
           {label && <span className="text-ink-400 text-xs font-medium">{label}:</span>}

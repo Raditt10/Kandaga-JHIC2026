@@ -22,12 +22,31 @@
  *                  datanya memang dimuat sekali lalu ditukar lewat state.
  */
 
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react"
+
+/**
+ * useLayoutEffect di klien, useEffect di server.
+ *
+ * useLayoutEffect memperingatkan bila dipanggil saat render di server, jadi
+ * pilihannya ditentukan sekali di level modul — browser memakai
+ * useLayoutEffect (berjalan sebelum halaman digambar), server memakai
+ * useEffect yang aman.
+ */
+const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import { EmptyState } from "@/components/ui/EmptyState"
+import { useSidebarPreference } from "@/components/dashboard/SidebarPreferenceProvider"
+import {
+  AVATAR_CACHE_BASE,
+  PROFILE_CACHE_BASE,
+  clearUserCache,
+  purgeLegacyAccountCache,
+  readUserCache,
+  writeUserCache,
+} from "@/lib/user-cache"
 import {
   Bell,
   ChevronDown,
@@ -38,7 +57,9 @@ import {
   Search,
   Settings,
   User,
+  X,
 } from "lucide-react"
+import { onAvatarUpdate } from "@/lib/socket"
 
 export interface ShellNavItem {
   /** Kunci unik untuk list rendering. */
@@ -97,7 +118,9 @@ interface DashboardShellProps {
   pageTitle?: string
   /** Tujuan tautan logo/brand Kandaga di sidebar (default: ke beranda dashboard role). */
   brandHref?: string
-  /** Tujuan tautan "Dashboard" pada breadcrumb. */
+  /** Label untuk tautan pertama pada breadcrumb (default: "Dashboard"). */
+  breadcrumbLabel?: string
+  /** Tujuan tautan pada breadcrumb. */
   breadcrumbHref?: string
   children: React.ReactNode
 }
@@ -160,24 +183,61 @@ export default function DashboardShell({
   signOutCallbackUrl = "/auth/login",
   pageTitle,
   brandHref,
+  breadcrumbLabel = "Dashboard",
   breadcrumbHref = "/",
   children,
 }: DashboardShellProps) {
   const { data: session } = useSession()
   const pathname = usePathname()
   const router = useRouter()
+  /*
+   * Preferensi dari server, kalau ada.
+   *
+   * Layout per-peran (`app/<peran>/layout.tsx`) membaca cookie
+   * `kandaga_sidebar_collapsed` saat server merender dan menitipkannya lewat
+   * context. Nilainya sudah tersedia pada render pertama, jadi HTML server
+   * sudah tercetak dalam keadaan yang benar.
+   *
+   * Urutan prioritas: prop `initialCollapsed` (dipakai dashboard Admin yang
+   * punya layout sendiri) → context dari layout per-peran → `null` bila tidak
+   * ada keduanya.
+   */
+  const serverCollapsed = useSidebarPreference()
+  const resolvedInitialCollapsed =
+    typeof initialCollapsed === "boolean" ? initialCollapsed : serverCollapsed
+
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
-    if (typeof initialCollapsed === "boolean") {
-      globalSidebarCollapsed = initialCollapsed
-      return initialCollapsed
+    if (typeof resolvedInitialCollapsed === "boolean") {
+      globalSidebarCollapsed = resolvedInitialCollapsed
+      return resolvedInitialCollapsed
     }
-    return readSidebarCollapsedPreference()
+    /*
+     * JANGAN membaca localStorage/cookie di sini.
+     *
+     * Nilai itu tidak ada saat server merender, jadi render pertama server
+     * selalu "terbuka"; di klien pembacaannya bisa menghasilkan "terlipat".
+     * Perbedaan itu membuat HTML server tidak sama dengan render pertama
+     * klien, dan React melaporkannya sebagai
+     * "Hydration failed because the server rendered HTML didn't match".
+     *
+     * Preferensi tersimpan tetap dipakai, tapi diterapkan setelah komponen
+     * hidup — lihat layout effect di bawah. Jalur ini hanya terpakai kalau
+     * tidak ada server yang menitipkan nilainya.
+     */
+    return false
   })
 
-  // Sinkronisasi preferensi jika ada pembaruan di client/storage
-  useEffect(() => {
+  /*
+   * Terapkan preferensi tersimpan sesudah mount.
+   *
+   * Sengaja memakai layout effect, bukan useEffect: koreksinya harus terjadi
+   * SEBELUM browser menggambar, kalau tidak sidebar sempat terlihat terbuka
+   * lalu beranimasi menutup (aside-nya punya `transition-all duration-300`).
+   */
+  useIsomorphicLayoutEffect(() => {
+    if (typeof resolvedInitialCollapsed === "boolean") return
     const pref = readSidebarCollapsedPreference()
-    if (typeof initialCollapsed !== "boolean" && pref !== isSidebarCollapsed) {
+    if (pref !== isSidebarCollapsed) {
       setIsSidebarCollapsed(pref)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -224,17 +284,18 @@ export default function DashboardShell({
   const computedProfileHref =
     profileHref ||
     (userRole === "student"
-      ? "/student"
+      ? "/student?tab=profil"
       : userRole === "company"
       ? "/company/profil"
       : userRole === "teacher"
-      ? "/teacher"
+      ? "/teacher?tab=profil"
       : userRole === "bkk"
-      ? "/bkk/pengaturan"
-      : "/admin/pengaturan?tab=akun")
+      ? "/bkk/profil"
+      : "/admin/profil")
 
   // ── Notifikasi nyata dari database (sebelumnya lonceng hanya hiasan) ──
   const [notifOpen, setNotifOpen] = useState(false)
+  const notifRef = useRef<HTMLDivElement>(null)
   const [notifs, setNotifs] = useState<TNotif[]>([])
   const [unread, setUnread] = useState(0)
 
@@ -242,22 +303,99 @@ export default function DashboardShell({
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
 
+  // ── Real-time User Avatar State ──
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null)
+
+  /*
+   * Avatar awal dibaca dari cache MILIK AKUN YANG SEDANG MASUK.
+   *
+   * Sebelumnya kuncinya global (`kandaga_user_avatar`, `kandaga_student_profile`),
+   * sehingga di peramban yang dipakai bergantian foto dan data akun sebelumnya
+   * ikut tampil di akun berikutnya. Sekarang kuncinya memuat id akun, dan bila
+   * id itu belum tersedia pembacaan sengaja dilewati.
+   */
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
-        setUserMenuOpen(false)
-      }
+    // Sapu sisa kunci versi lama yang tidak memuat id akun.
+    purgeLegacyAccountCache()
+
+    const userId = session?.user?.id
+    if (!userId) {
+      setUserAvatarUrl(null)
+      return
     }
-    if (userMenuOpen) {
-      document.addEventListener("mousedown", handleClickOutside)
+
+    const cachedAvatar = readUserCache<string>(AVATAR_CACHE_BASE, userId)
+    if (cachedAvatar) {
+      setUserAvatarUrl(cachedAvatar)
+      return
+    }
+
+    const cachedProfile = readUserCache<{ photoUrl?: string }>(PROFILE_CACHE_BASE, userId)
+    if (cachedProfile?.photoUrl) setUserAvatarUrl(cachedProfile.photoUrl)
+  }, [session?.user?.id])
+
+  // Sinkronisasi avatar awal dari endpoint /api/akun
+  useEffect(() => {
+    let active = true
+    if (session?.user?.id) {
+      fetch("/api/akun")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (active && data?.akun?.photoUrl) {
+            setUserAvatarUrl(data.akun.photoUrl)
+            writeUserCache(AVATAR_CACHE_BASE, session?.user?.id, data.akun.photoUrl)
+          }
+        })
+        .catch(() => {})
     }
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
+      active = false
     }
-  }, [userMenuOpen])
+  }, [session?.user?.id])
+
+  // Sinkronisasi avatar real-time via Socket.IO
+  useEffect(() => {
+    const unsubscribe = onAvatarUpdate((data) => {
+      if (!data.userId || data.userId === session?.user?.id) {
+        setUserAvatarUrl(data.photoUrl)
+        writeUserCache(AVATAR_CACHE_BASE, data.userId ?? session?.user?.id, data.photoUrl)
+      }
+    })
+    return unsubscribe
+  }, [session?.user?.id])
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node
+      if (userMenuRef.current && !userMenuRef.current.contains(target)) {
+        setUserMenuOpen(false)
+      }
+      if (notifRef.current && !notifRef.current.contains(target)) {
+        setNotifOpen(false)
+      }
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setUserMenuOpen(false)
+        setNotifOpen(false)
+      }
+    }
+
+    if (userMenuOpen || notifOpen) {
+      document.addEventListener("mousedown", handleClickOutside)
+      document.addEventListener("keydown", handleKeyDown)
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+      document.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [userMenuOpen, notifOpen])
 
   useEffect(() => {
     setUserMenuOpen(false)
+    setNotifOpen(false)
   }, [pathname])
 
   const muatNotifikasi = async () => {
@@ -510,7 +648,7 @@ export default function DashboardShell({
             {/* Lonceng notifikasi — datanya nyata dari /api/notifications.
                 Tombol "Pesan" dihapus karena aplikasi ini tidak punya sistem
                 pesan; sebelumnya hanya hiasan tanpa handler. */}
-            <div className="relative">
+            <div className="relative" ref={notifRef}>
               <button
                 type="button"
                 title="Notifikasi"
@@ -520,7 +658,11 @@ export default function DashboardShell({
                   setNotifOpen((v) => !v)
                   if (!notifOpen) muatNotifikasi()
                 }}
-                className="w-9 h-9 rounded-xl bg-ink-100 hover:bg-ink-100 border border-ink-150 flex items-center justify-center text-ink-600 hover:text-ink transition relative cursor-pointer"
+                className={`w-9 h-9 rounded-xl border flex items-center justify-center transition relative cursor-pointer ${
+                  notifOpen
+                    ? "bg-ink-150 text-ink border-ink-200 shadow-2xs"
+                    : "bg-ink-100 hover:bg-ink-150/70 border-ink-150 text-ink-600 hover:text-ink"
+                }`}
               >
                 <Bell className="w-4 h-4" aria-hidden="true" />
                 {unread > 0 && (
@@ -531,18 +673,29 @@ export default function DashboardShell({
               </button>
 
               {notifOpen && (
-                <div className="absolute right-0 mt-2 w-80 max-w-[85vw] bg-white border border-ink-150 rounded-2xl shadow-xl z-50 overflow-hidden">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-ink-150">
+                <div className="absolute right-0 mt-2 w-80 max-w-[85vw] bg-white border border-ink-150 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in-0 zoom-in-95 duration-150">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-ink-150 bg-ink-50/50">
                     <span className="text-xs font-bold text-ink">Notifikasi</span>
-                    {unread > 0 && (
+                    <div className="flex items-center gap-2">
+                      {unread > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => tandaiDibaca()}
+                          className="text-[11px] font-semibold text-primary hover:underline cursor-pointer"
+                        >
+                          Tandai semua dibaca
+                        </button>
+                      )}
                       <button
                         type="button"
-                        onClick={() => tandaiDibaca()}
-                        className="text-[11px] font-semibold text-primary hover:underline cursor-pointer"
+                        onClick={() => setNotifOpen(false)}
+                        title="Tutup Notifikasi"
+                        aria-label="Tutup Notifikasi"
+                        className="p-1 rounded-lg text-ink-400 hover:text-ink hover:bg-ink-100 transition cursor-pointer"
                       >
-                        Tandai semua dibaca
+                        <X className="w-3.5 h-3.5" />
                       </button>
-                    )}
+                    </div>
                   </div>
 
                   <div data-lenis-prevent="true" className="max-h-80 overflow-y-auto divide-y divide-ink-150">
@@ -595,15 +748,26 @@ export default function DashboardShell({
                 aria-expanded={userMenuOpen}
                 aria-haspopup="true"
               >
-                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-primary-dark text-white flex items-center justify-center font-bold text-xs shadow-xs ring-2 ring-primary/10 group-hover:ring-primary/25 transition">
-                  {userName.slice(0, 2).toUpperCase()}
+                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-primary-dark text-white flex items-center justify-center font-bold text-xs shadow-xs ring-2 ring-primary/10 group-hover:ring-primary/25 transition overflow-hidden relative shrink-0">
+                  {userAvatarUrl ? (
+                    <Image
+                      src={userAvatarUrl}
+                      alt={userName}
+                      width={36}
+                      height={36}
+                      className="w-full h-full object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    userName.slice(0, 2).toUpperCase()
+                  )}
                 </div>
-                <div className="hidden sm:block text-left">
-                  <span className="block text-xs font-bold text-ink leading-tight">
+                <div className="hidden sm:block text-left max-w-[160px] md:max-w-[200px]">
+                  <span className="block text-xs font-bold text-ink leading-tight truncate">
                     {userName}
                   </span>
-                  <span className="block text-[10px] text-ink-600 font-medium">
-                    {roleLabel}
+                  <span className="block text-[10px] text-ink-500 font-medium truncate font-mono">
+                    {session?.user?.email || ""}
                   </span>
                 </div>
                 <ChevronDown
@@ -623,8 +787,19 @@ export default function DashboardShell({
                 >
                   {/* Header Profil Akun */}
                   <div className="px-3 py-2.5 mb-1 bg-ink-50/70 rounded-xl border border-ink-100/60 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary to-primary-dark text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
-                      {userName.slice(0, 2).toUpperCase()}
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary to-primary-dark text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0 overflow-hidden relative">
+                      {userAvatarUrl ? (
+                        <Image
+                          src={userAvatarUrl}
+                          alt={userName}
+                          width={40}
+                          height={40}
+                          className="w-full h-full object-cover"
+                          unoptimized
+                        />
+                      ) : (
+                        userName.slice(0, 2).toUpperCase()
+                      )}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-bold text-ink truncate">{userName}</p>
@@ -723,6 +898,8 @@ export default function DashboardShell({
                     type="button"
                     onClick={() => {
                       setUserMenuOpen(false)
+                      // Jangan tinggalkan data akun ini di peramban bersama.
+                      clearUserCache(session?.user?.id)
                       signOut({ callbackUrl: signOutCallbackUrl })
                     }}
                     className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition cursor-pointer"
@@ -743,7 +920,7 @@ export default function DashboardShell({
               href={breadcrumbHref}
               className="font-semibold text-ink-600 hover:text-ink-700 transition"
             >
-              Dashboard
+              {breadcrumbLabel}
             </Link>
             <span className="text-ink-300" aria-hidden="true">
               /

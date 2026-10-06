@@ -9,6 +9,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth-options"
 import prisma from "@/lib/prisma"
 
 function typeToSlug(type: string): "rpl" | "tkj" | "analis-kimia" {
@@ -76,14 +78,24 @@ export async function GET(
       },
     })
 
-    // Karya tidak ada, atau belum disetujui, atau sudah dihapus, atau diprivat
-    if (
-      !dbProject ||
-      dbProject.status !== "approved" ||
-      dbProject.deletedAt !== null ||
-      dbProject.isPrivate
-    ) {
+    // Karya tidak ada atau sudah dihapus
+    if (!dbProject || dbProject.deletedAt !== null) {
       return NextResponse.json({ error: "Karya tidak ditemukan." }, { status: 404 })
+    }
+
+    // Jika belum approved atau isPrivate, hanya boleh dilihat oleh pemiliknya, guru, atau admin
+    if (dbProject.status !== "approved" || dbProject.isPrivate) {
+      const session = await getServerSession(authOptions)
+      const userId = session?.user?.id
+      const role = String(session?.user?.role || "").toUpperCase()
+      const isOwner = Boolean(
+        userId &&
+          (userId === dbProject.studentId || userId === dbProject.student?.userId)
+      )
+      const isPrivileged = role === "ADMIN" || role === "TEACHER"
+      if (!isOwner && !isPrivileged) {
+        return NextResponse.json({ error: "Karya tidak ditemukan." }, { status: 404 })
+      }
     }
 
     // Naikkan view count (fire-and-forget, kegagalan tidak memblokir respons)

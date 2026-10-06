@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
-import { requireStudent } from "@/lib/api-auth";
+import { requireRole } from "@/lib/api-auth";
 
 export async function POST(req: NextRequest) {
   try {
-    // Sebelumnya endpoint ini tidak memeriksa apa pun: siapa pun di internet
-    // bisa menulis berkas ke public/assets/uploads tanpa login.
-    const auth = await requireStudent();
+    const auth = await requireRole(["student", "teacher", "company", "bkk", "admin"]);
     if (auth.error) return auth.error;
 
     const formData = await req.formData();

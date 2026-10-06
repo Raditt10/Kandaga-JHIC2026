@@ -4,24 +4,25 @@ import React, { Suspense, useEffect, useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import AdminLayout from "@/components/admin/AdminLayout"
 import AccountSettings from "@/components/settings/AccountSettings"
-import { Settings, Shield, Bell, Globe, Save, Check, User } from "lucide-react"
+import AdminProfileView from "@/components/profile/AdminProfileView"
+import { Settings, Shield, Bell, Globe, Save, Check, User, KeyRound } from "lucide-react"
 
 function AdminPengaturanContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const tabParam = searchParams.get("tab")
-  const [activeTab, setActiveTab] = useState<"akun" | "sistem">(
-    tabParam === "akun" ? "akun" : "sistem"
+  const [activeTab, setActiveTab] = useState<"profil" | "akun" | "sistem">(
+    tabParam === "profil" ? "profil" : tabParam === "akun" ? "akun" : "sistem"
   )
 
   useEffect(() => {
     const tab = searchParams.get("tab")
-    if (tab === "akun" || tab === "sistem") {
+    if (tab === "profil" || tab === "akun" || tab === "sistem") {
       setActiveTab(tab)
     }
   }, [searchParams])
 
-  const handleTabChange = (tab: "akun" | "sistem") => {
+  const handleTabChange = (tab: "profil" | "akun" | "sistem") => {
     setActiveTab(tab)
     router.replace(`/admin/pengaturan?tab=${tab}`)
   }
@@ -44,7 +45,19 @@ function AdminPengaturanContent() {
   return (
     <div className="space-y-6 w-full animate-in fade-in duration-200">
       {/* Tab Switcher */}
-      <div className="inline-flex p-1 bg-ink-100 rounded-2xl border border-ink-150 gap-1">
+      <div className="inline-flex p-1 bg-ink-100 rounded-2xl border border-ink-150 gap-1 flex-wrap">
+        <button
+          type="button"
+          onClick={() => handleTabChange("profil")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+            activeTab === "profil"
+              ? "bg-white text-ink shadow-xs"
+              : "text-ink-600 hover:text-ink hover:bg-white/50"
+          }`}
+        >
+          <User className="w-4 h-4 text-primary" />
+          Profil Administrator
+        </button>
         <button
           type="button"
           onClick={() => handleTabChange("akun")}
@@ -54,8 +67,8 @@ function AdminPengaturanContent() {
               : "text-ink-600 hover:text-ink hover:bg-white/50"
           }`}
         >
-          <User className="w-4 h-4 text-primary" />
-          Profil & Akun Saya
+          <KeyRound className="w-4 h-4 text-primary" />
+          Akun & Keamanan
         </button>
         <button
           type="button"
@@ -71,7 +84,9 @@ function AdminPengaturanContent() {
         </button>
       </div>
 
-      {activeTab === "akun" ? (
+      {activeTab === "profil" ? (
+        <AdminProfileView />
+      ) : activeTab === "akun" ? (
         <AccountSettings />
       ) : (
         <>

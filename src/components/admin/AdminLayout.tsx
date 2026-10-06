@@ -96,7 +96,7 @@ export default function AdminLayout({
         initialCollapsed={initialCollapsed}
         navItems={navItems}
         settingsItems={settingsItems}
-        profileHref="/admin/pengaturan?tab=akun"
+        profileHref="/admin/profil"
         roleLabel="Administrator"
         searchPlaceholder="Cari karya siswa, pengguna, atau audit log..."
       >

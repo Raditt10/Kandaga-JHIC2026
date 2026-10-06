@@ -8,29 +8,44 @@
  * Memerlukan sesi login dengan role Student.
  */
 
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { requireStudent } from "@/lib/api-auth"
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const auth = await requireStudent()
     if (auth.error) return auth.error
 
-    // Cari jurusan siswa yang login
-    const student = await prisma.student.findUnique({
-      where: { userId: auth.userId },
-      select: { majorId: true },
-    })
+    const url = new URL(req.url)
+    const majorParam = url.searchParams.get("major")
 
-    // Jika siswa belum punya profil lengkap, kembalikan semua guru
-    // supaya form tidak kosong (ensureStudentProfile belum dijalankan).
-    const whereClause = student?.majorId
-      ? { majorId: student.majorId }
-      : {}
+    let targetMajorId: string | undefined = undefined
 
-    const teachers = await prisma.teacher.findMany({
-      where: whereClause,
+    if (majorParam) {
+      const targetName =
+        majorParam === "analis-kimia" || majorParam === "ka"
+          ? "Analis Kimia"
+          : majorParam === "tkj"
+          ? "TKJ"
+          : "RPL"
+      const majorRow = await prisma.major.findFirst({
+        where: { name: { contains: targetName, mode: "insensitive" } },
+        select: { id: true },
+      })
+      if (majorRow) targetMajorId = majorRow.id
+    }
+
+    if (!targetMajorId) {
+      const student = await prisma.student.findUnique({
+        where: { userId: auth.userId },
+        select: { majorId: true },
+      })
+      if (student?.majorId) targetMajorId = student.majorId
+    }
+
+    let teachers = await prisma.teacher.findMany({
+      where: targetMajorId ? { majorId: targetMajorId } : {},
       select: {
         userId: true,
         nip: true,
@@ -39,6 +54,19 @@ export async function GET() {
       },
       orderBy: { user: { name: "asc" } },
     })
+
+    // Jika filter jurusan kosong, ambil semua guru agar form tidak buntu
+    if (teachers.length === 0) {
+      teachers = await prisma.teacher.findMany({
+        select: {
+          userId: true,
+          nip: true,
+          user: { select: { name: true } },
+          major: { select: { name: true, fullName: true } },
+        },
+        orderBy: { user: { name: "asc" } },
+      })
+    }
 
     return NextResponse.json({
       advisors: teachers.map((t) => ({

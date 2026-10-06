@@ -38,14 +38,18 @@ function mapDatabaseProject(p: any) {
     galleryImages: gallery,
     status: p.status || "pending",
     isPrivate: Boolean(p.isPrivate),
+    score: p.score ?? null,
+    reviewNotes: p.reviewNotes || null,
     createdAt: p.createdAt ? new Date(p.createdAt).toISOString() : new Date().toISOString(),
     tools: (p.tools || []).map((t: any) => t.name || t.tool?.name).filter(Boolean),
     studentId: p.studentId,
     studentName: p.student?.user?.name || "Siswa SMKN 13",
-    studentAvatar: p.student?.photoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+    studentAvatar: p.student?.photoUrl || "/images/siswa.webp",
     studentClass: p.student?.class || "XII",
     isStudentPrivate: false,
+    advisorId: p.advisorId || null,
     advisor: {
+      id: p.advisorId || null,
       name: p.advisor?.user?.name || "Guru Pembimbing",
       role: "Guru Pembimbing Kompetensi Keahlian",
       reviewNotes: p.reviewNotes || "Menunggu penilaian kelayakan karya.",
@@ -58,6 +62,8 @@ function mapDatabaseProject(p: any) {
       ...(p.githubUrl ? { githubUrl: p.githubUrl } : {}),
       ...(p.demoUrl   ? { demoUrl:   p.demoUrl   } : {}),
     },
+    githubUrl: p.githubUrl || null,
+    demoUrl: p.demoUrl || null,
   };
 }
 
@@ -183,22 +189,6 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
       return NextResponse.json({ error: "Karya ini bukan milik Anda" }, { status: 403 });
     }
 
-    // H1 — Karya yang sudah disetujui guru terkunci dari editing siswa.
-    // Begitu karya tayang di galeri publik (dan mungkin sudah dilihat atau
-    // di-bookmark mitra industri), mengizinkan edit diam-diam akan merusak
-    // kredibilitas label "Terverifikasi Sekolah". Siswa harus mengajukan
-    // karya baru jika ingin memperbarui isi karya yang sudah approved.
-    if (existing.status === "approved") {
-      return NextResponse.json(
-        {
-          error:
-            "Karya yang sudah disetujui guru tidak dapat diedit. " +
-            "Hubungi guru pembimbing jika ada kesalahan yang perlu diperbaiki.",
-        },
-        { status: 403 }
-      );
-    }
-
     const updateData: any = {};
 
     if (body.title && typeof body.title === "string") {
@@ -215,10 +205,17 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
     }
     if (typeof body.isPrivate === "boolean") {
       updateData.isPrivate = body.isPrivate;
-      updateData.status = body.isPrivate ? "private" : "pending";
+      if (body.isPrivate) {
+        updateData.status = "private";
+      } else if (existing.status === "private" || existing.status === "draft") {
+        updateData.status = "pending";
+      }
     }
     if (body.coverImage) {
       updateData.coverImage = body.coverImage;
+    }
+    if (body.advisorId !== undefined) {
+      updateData.advisorId = body.advisorId ? String(body.advisorId).trim() : null;
     }
     // Tautan eksternal — string kosong = hapus tautan
     if (typeof body.githubUrl === "string") {
@@ -277,6 +274,28 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
       }
     }
 
+    // Perbarui fitur utama / solusi unggulan bila diberikan.
+    // Bentuknya deretan teks, jadi polanya sama seperti tools: hapus semua
+    // baris lama lalu tulis ulang yang baru. Tanpa ini, bagian "Fitur Utama &
+    // Solusi Unggulan" tidak ikut berubah saat draf karya diedit.
+    if (Array.isArray(body.mainFeatures)) {
+      await prisma.projectsMainFeatures.deleteMany({ where: { projectId: id } });
+
+      const features = Array.from(
+        new Set(
+          (body.mainFeatures as unknown[])
+            .filter((f): f is string => typeof f === "string" && f.trim().length > 0)
+            .map((f) => f.trim())
+        )
+      );
+
+      if (features.length > 0) {
+        await prisma.projectsMainFeatures.createMany({
+          data: features.map((feature) => ({ projectId: id, feature })),
+        });
+      }
+    }
+
     const updated = await prisma.projects.update({
       where: { id },
       data: updateData,
@@ -326,6 +345,23 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
       return NextResponse.json({ error: "Karya ini bukan milik Anda" }, { status: 403 });
     }
 
+    // Jika karya sudah disetujui guru, wajib sertakan konfirmasi judul yang sesuai
+    const body = await req.json().catch(() => ({}));
+    const isApproved = existing.status === "approved";
+
+    if (isApproved) {
+      const confirmationTitle = typeof body?.confirmationTitle === "string" ? body.confirmationTitle.trim() : "";
+      if (confirmationTitle !== existing.title.trim()) {
+        return NextResponse.json(
+          {
+            error:
+              "Nama karya yang dimasukkan tidak sesuai. Harap masukkan nama karya secara persis untuk mengonfirmasi pengajuan hapus karya terverifikasi.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // AGENTS.md §6: "soft-delete via deleted_at untuk arsip alumni — JANGAN
     // hard-delete karya". Sebelumnya baris ini memakai prisma.projects.delete()
     // yang menghapus permanen beserta seluruh media & relasinya.
@@ -336,10 +372,10 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
 
     await audit({
       userId: auth.userId,
-      action: "project.soft_delete",
+      action: isApproved ? "project.request_delete_approved" : "project.soft_delete",
       entity: "projects",
       entityId: id,
-      data: { title: existing.title },
+      data: { title: existing.title, wasApproved: isApproved },
     });
 
     // Invalidate Redis gallery and student caches
@@ -351,7 +387,12 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
     }
 
     return NextResponse.json(
-      { success: true, message: "Karya dipindahkan ke arsip (bisa dipulihkan admin)." },
+      {
+        success: true,
+        message: isApproved
+          ? "Pengajuan hapus karya terverifikasi berhasil diproses."
+          : "Karya berhasil dihapus dan dipindahkan ke arsip.",
+      },
       { status: 200 }
     );
   } catch (error) {

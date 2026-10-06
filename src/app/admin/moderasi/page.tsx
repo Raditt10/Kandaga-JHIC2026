@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 import AdminLayout from "@/components/admin/AdminLayout"
 import { EmptyState } from "@/components/ui/EmptyState"
+import { FilterDropdown } from "@/components/ui/FilterDropdown"
 
 /**
  * Kurasi Karya & Moderasi Galeri.
@@ -193,22 +194,20 @@ export default function AdminModerasiPage() {
                 )}
               </div>
 
-              <div className="flex items-center gap-2">
-                <Filter className="w-3.5 h-3.5 text-ink-300" />
-                <select
-                  value={categoryFilter}
-                  onChange={(e) => {
-                    setCategoryFilter(e.target.value)
-                    setPage(1)
-                  }}
-                  className="text-xs px-3 py-1.5 rounded-xl border border-ink-150 bg-white text-ink-700 focus:outline-none focus:ring-2 focus:ring-primary/15 cursor-pointer font-medium"
-                >
-                  <option value="all">Semua Kategori</option>
-                  <option value="RPL">RPL (Rekayasa Perangkat Lunak)</option>
-                  <option value="TKJ">TKJ (Teknik Komputer Jaringan)</option>
-                  <option value="KA">Analis Kimia</option>
-                </select>
-              </div>
+              <FilterDropdown
+                size="sm"
+                value={categoryFilter}
+                onChange={(val) => {
+                  setCategoryFilter(val)
+                  setPage(1)
+                }}
+                options={[
+                  { value: "all", label: "Semua Kategori" },
+                  { value: "RPL", label: "RPL (Rekayasa Perangkat Lunak)" },
+                  { value: "TKJ", label: "TKJ (Teknik Komputer Jaringan)" },
+                  { value: "KA", label: "Analis Kimia" },
+                ]}
+              />
             </div>
           </div>
 

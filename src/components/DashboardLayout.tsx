@@ -15,7 +15,16 @@
  */
 
 import React from "react"
-import { Settings } from "lucide-react"
+import { useRouter } from "next/navigation"
+import {
+  Settings,
+  LayoutDashboard,
+  FolderGit2,
+  Briefcase,
+  Clock,
+  Users,
+  CheckCircle2,
+} from "lucide-react"
 import DashboardShell, {
   type ShellNavItem,
 } from "@/components/dashboard/DashboardShell"
@@ -26,6 +35,18 @@ export interface DashboardTab {
   icon: React.ElementType
   badge?: string
 }
+
+const DEFAULT_STUDENT_TABS: DashboardTab[] = [
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "karya-saya", label: "Karya Saya", icon: FolderGit2 },
+  { id: "magang", label: "Peluang Magang & BKK", icon: Briefcase },
+]
+
+const DEFAULT_TEACHER_TABS: DashboardTab[] = [
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "antrean", label: "Kurasi Karya", icon: FolderGit2 },
+  { id: "karya-terverifikasi", label: "Karya Terverifikasi", icon: CheckCircle2 },
+]
 
 interface DashboardLayoutProps {
   roleTitle: string
@@ -41,6 +62,10 @@ interface DashboardLayoutProps {
    * (mis. /student/create-project) — bukan halaman bertab.
    */
   pageTitle?: string
+  /** Label untuk tautan pertama pada breadcrumb (mis. "Karya Saya" atau "Dashboard"). */
+  breadcrumbLabel?: string
+  /** URL tujuan tautan pertama pada breadcrumb. */
+  breadcrumbHref?: string
   children: React.ReactNode
 }
 
@@ -53,10 +78,23 @@ export default function DashboardLayout({
   activeTab,
   onTabChange,
   pageTitle,
+  breadcrumbLabel,
+  breadcrumbHref,
   children,
 }: DashboardLayoutProps) {
+  const router = useRouter()
+
+  const effectiveTabs =
+    tabs.length > 0
+      ? tabs
+      : roleSlug === "student"
+      ? DEFAULT_STUDENT_TABS
+      : roleSlug === "teacher"
+      ? DEFAULT_TEACHER_TABS
+      : []
+
   // Menu Profil dan Pengaturan dipusatkan di dropdown header akun (navbar kanan atas)
-  const navItems: ShellNavItem[] = tabs
+  const navItems: ShellNavItem[] = effectiveTabs
     .filter((tab) => tab.id !== "profil" && tab.id !== "pengaturan")
     .map((tab) => ({
       key: tab.id,
@@ -64,33 +102,65 @@ export default function DashboardLayout({
       icon: tab.icon,
       badge: tab.badge,
       active: activeTab === tab.id,
-      onSelect: () => onTabChange?.(tab.id),
+      onSelect: () => {
+        if (onTabChange) {
+          onTabChange(tab.id)
+        } else {
+          router.push(tab.id === "dashboard" ? `/${roleSlug}` : `/${roleSlug}?tab=${tab.id}`)
+        }
+      },
     }))
 
-  const profileTab = tabs.find((t) => t.id === "profil")
+  const profileTab = effectiveTabs.find((t) => t.id === "profil")
   const onProfileSelect =
-    onTabChange && (profileTab || roleSlug === "student")
+    onTabChange && (profileTab || roleSlug === "student" || roleSlug === "teacher")
       ? () => onTabChange("profil")
+      : roleSlug === "student" || roleSlug === "teacher"
+      ? () => router.push(`/${roleSlug}?tab=profil`)
       : undefined
 
-  const settingsTab = tabs.find((t) => t.id === "pengaturan")
+  const settingsTab = effectiveTabs.find((t) => t.id === "pengaturan")
   const settingsItems: ShellNavItem[] =
-    onTabChange && (settingsTab || roleSlug === "student" || roleSlug === "teacher")
+    roleSlug === "student" || roleSlug === "teacher"
       ? [
           {
             key: "pengaturan",
             label: settingsTab?.label || "Pengaturan",
             icon: settingsTab?.icon || Settings,
             active: activeTab === "pengaturan",
-            onSelect: () => onTabChange("pengaturan"),
+            onSelect: () => {
+              if (onTabChange) {
+                onTabChange("pengaturan")
+              } else {
+                router.push(`/${roleSlug}?tab=pengaturan`)
+              }
+            },
           },
         ]
       : []
 
   const searchPlaceholder =
     roleSlug === "teacher"
-      ? "Cari karya, siswa bimbingan, atau riwayat kurasi..."
+      ? "Cari karya, siswa, atau riwayat kurasi..."
       : "Cari karya, peluang magang, atau data profil..."
+
+  const resolvedBreadcrumbLabel =
+    breadcrumbLabel ||
+    (activeTab === "karya-saya"
+      ? "Karya Saya"
+      : activeTab === "antrean"
+      ? "Kurasi Karya"
+      : activeTab === "karya-terverifikasi"
+      ? "Karya Terverifikasi"
+      : "Dashboard")
+
+  const resolvedBreadcrumbHref =
+    breadcrumbHref ||
+    (activeTab === "karya-saya"
+      ? `/${roleSlug}?tab=karya-saya`
+      : activeTab === "antrean"
+      ? `/${roleSlug}?tab=antrean`
+      : `/${roleSlug}`)
 
   return (
     <DashboardShell
@@ -105,7 +175,8 @@ export default function DashboardLayout({
       navSectionLabel="Menu Navigasi"
       searchPlaceholder={searchPlaceholder}
       pageTitle={pageTitle}
-      breadcrumbHref={`/${roleSlug}`}
+      breadcrumbLabel={resolvedBreadcrumbLabel}
+      breadcrumbHref={resolvedBreadcrumbHref}
     >
       {children}
     </DashboardShell>

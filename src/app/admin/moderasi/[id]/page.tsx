@@ -461,12 +461,9 @@ export default function AdminDetailModerasiPage({ params }: PageProps) {
             </div>
 
             <div className="bg-white p-6 rounded-2xl border border-ink-150 shadow-xs space-y-4">
-              <div className="flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-primary" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-ink-700">
-                  Catatan Moderator / Feedback ke Siswa
-                </h3>
-              </div>
+              <h3 className="text-sm font-bold text-ink">
+                Catatan Moderator / Feedback ke Siswa
+              </h3>
 
               <textarea
                 rows={3}

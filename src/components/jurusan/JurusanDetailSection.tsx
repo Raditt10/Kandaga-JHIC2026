@@ -372,7 +372,9 @@ export default function JurusanDetailSection({
           )}
 
           {/* Rutinitas & Praktik Riil Sehari-hari (Tetap ada di setiap tab) */}
-          <div className="p-6 rounded-2xl bg-zinc-900 text-white space-y-4">
+          {/* `kandaga-island-gelap` = pulau gelap: latarnya literal dan tidak
+              ikut tema, jadi teks di dalamnya dikembalikan ke palet terang. */}
+          <div className="kandaga-island-gelap p-6 rounded-2xl bg-zinc-900 text-white space-y-4">
             <h4 className="font-heading font-bold text-base sm:text-lg">
               Praktik Lapangan & Rutinitas Nyata Siswa di Jurusan Ini:
             </h4>

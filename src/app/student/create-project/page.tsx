@@ -1,23 +1,22 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import DashboardLayout from "@/components/DashboardLayout";
 import Loading from "@/components/ui/Loading";
 import type { JurusanSlug } from "@/types";
 import {
+  ArrowLeft,
   Upload,
   Globe,
   Lock,
-  Sparkles,
   Plus,
   Trash2,
   CheckCircle2,
   ChevronRight,
-  ArrowLeft,
   Image as ImageIcon,
   ExternalLink,
   Code,
@@ -26,34 +25,103 @@ import {
   HelpCircle,
   Loader2,
   GraduationCap,
+  Store,
+  AlertCircle,
+  Save,
 } from "lucide-react";
 
-const PRESET_COVERS = [
-  { label: "RPL Software Preview", url: "/images/preview-rpl.jpg" },
-  { label: "TKJ Network Infrastructure", url: "/images/preview-iot.jpg" },
-  { label: "Analis Kimia Lab Testing", url: "/images/preview-kimia.jpg" },
-  { label: "Kolaborasi Riset Industri", url: "/images/hero-kolaborasi.jpg" },
-];
+const MAJOR_SECTION_CONFIG: Record<
+  JurusanSlug,
+  {
+    title: string;
+    description: string;
+    toolsLabel: string;
+    customPlaceholder: string;
+    link1Label: string;
+    link1Placeholder: string;
+    link2Label: string;
+    link2Placeholder: string;
+  }
+> = {
+  "analis-kimia": {
+    title: "Metode, Instrumen & Dokumen Riset",
+    description:
+      "Pilih instrumen atau metode analisis laboratorium yang digunakan serta cantumkan tautan laporan riset dan data pendukung pengujian.",
+    toolsLabel: "Metode Analisis & Instrumen Laboratorium yang Digunakan",
+    customPlaceholder: "Instrumen atau metode lab lain...",
+    link1Label: "Tautan Laporan Riset / Jurnal Ilmiah (Opsional)",
+    link1Placeholder: "https://drive.google.com/... (Google Drive / Dokumen Laporan Riset)",
+    link2Label: "Tautan Data Pengujian / Dokumentasi Lab (Opsional)",
+    link2Placeholder: "https://... (Google Drive / Spreadsheet data hasil uji)",
+  },
+  tkj: {
+    title: "Perangkat Jaringan, Protokol & Tautan Proyek",
+    description:
+      "Pilih perangkat jaringan, sistem operasi, atau protokol yang digunakan serta sematkan tautan dokumentasi topologi atau konfigurasi.",
+    toolsLabel: "Perangkat, Sistem & Protokol yang Digunakan",
+    customPlaceholder: "Perangkat atau protokol jaringan lain...",
+    link1Label: "Tautan Demo Topologi / Simulasi (Opsional)",
+    link1Placeholder: "https://... (Video demo / packet tracer cloud)",
+    link2Label: "Tautan Repositori / Dokumentasi Konfigurasi (Opsional)",
+    link2Placeholder: "https://github.com/... (Dokumentasi konfigurasi / script)",
+  },
+  rpl: {
+    title: "Teknologi, Instrumen & Tautan Proyek",
+    description:
+      "Pilih teknologi, framework, atau bahasa yang digunakan serta sematkan tautan live demo dan repositori proyek.",
+    toolsLabel: "Teknologi / Bahasa Pemrograman yang Digunakan",
+    customPlaceholder: "Pustaka, database, atau framework lain...",
+    link1Label: "Tautan Live Demo / Aplikasi (Opsional)",
+    link1Placeholder: "https://...",
+    link2Label: "Tautan Repositori GitHub / Git (Opsional)",
+    link2Placeholder: "https://github.com/...",
+  },
+};
 
-const SUGGESTED_TOOLS = [
-  "Next.js",
-  "React",
-  "TypeScript",
-  "Tailwind CSS",
-  "Python",
-  "PostgreSQL",
-  "Prisma",
-  "MikroTik",
-  "Cisco Packet Tracer",
-  "Linux Debian",
-  "IoT / ESP32",
-  "Arduino",
-  "LoRaWAN",
-  "Spektrofotometri UV-Vis",
-  "Titrasi Kimia",
-  "Kromatografi Gas",
-  "Quality Assurance",
-];
+const TOOLS_BY_MAJOR: Record<JurusanSlug, string[]> = {
+  "analis-kimia": [
+    "Spektrofotometri UV-Vis",
+    "Titrasi Kimia (Volumetri)",
+    "Kromatografi Gas (GC)",
+    "HPLC",
+    "AAS (Serapan Atom)",
+    "Gravimetri",
+    "Uji Mikrobiologi",
+    "Refraktometer",
+    "pH Meter Digital",
+    "Quality Assurance (QA/QC)",
+    "ISO 17025",
+    "Preparasi Sampel Lab",
+  ],
+  tkj: [
+    "MikroTik RouterOS",
+    "Cisco Packet Tracer",
+    "Linux Debian / Ubuntu",
+    "Wireshark",
+    "IoT / ESP32",
+    "Arduino",
+    "LoRaWAN",
+    "Fiber Optic Fusion Splicer",
+    "Routing OSPF/BGP",
+    "Network Security / Firewall",
+    "Docker / Container",
+    "SNMP Monitoring",
+  ],
+  rpl: [
+    "Next.js",
+    "React",
+    "TypeScript",
+    "Tailwind CSS",
+    "Node.js",
+    "Python",
+    "PostgreSQL",
+    "Prisma ORM",
+    "Flutter",
+    "RESTful API",
+    "Git & GitHub",
+    "Docker",
+  ],
+};
 
 export default function CreateProjectPage() {
   const router = useRouter();
@@ -66,7 +134,17 @@ export default function CreateProjectPage() {
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isUploadingCover, setIsUploadingCover] = useState<boolean>(false);
-  const [isUploadingGallery, setIsUploadingGallery] = useState<boolean>(false);
+
+  /*
+   * Mode edit draf.
+   *
+   * Id karya dibaca dari query string (`?edit=<id>`) di dalam efek, bukan lewat
+   * `useSearchParams()`. Hook itu mewajibkan Suspense boundary pada halaman
+   * yang diprerender statis, sedangkan halaman ini memang statis — membacanya
+   * lewat `window` di efek menjaga status render itu tetap sama.
+   */
+  const [editId, setEditId] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Form states
   const [title, setTitle] = useState("");
@@ -74,9 +152,8 @@ export default function CreateProjectPage() {
   const [major, setMajor] = useState<JurusanSlug>("rpl");
   const [year, setYear] = useState<number>(new Date().getFullYear());
   const [isPrivate, setIsPrivate] = useState<boolean>(false);
-  const [coverImage, setCoverImage] = useState<string>("/images/preview-rpl.jpg");
-  const [galleryImages, setGalleryImages] = useState<string[]>(["/images/preview-rpl.jpg"]);
-  const [newGalleryUrl, setNewGalleryUrl] = useState("");
+  const [coverImage, setCoverImage] = useState<string>("");
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [description, setDescription] = useState("");
   const [mainFeatures, setMainFeatures] = useState<string[]>([
     "Memecahkan kendala operasional dengan otomasi sistem terverifikasi.",
@@ -93,8 +170,134 @@ export default function CreateProjectPage() {
   const [githubUrl, setGithubUrl] = useState("");
   const [docUrl, setDocUrl] = useState("");
 
+  // Advisor State
+  type AdvisorItem = { id: string; name: string; nip: string | null; majorName: string; majorFullName?: string };
+  const [advisors, setAdvisors] = useState<AdvisorItem[]>([]);
+  const [advisorId, setAdvisorId] = useState("");
+  const [targetAdvisorId, setTargetAdvisorId] = useState<string>("");
+  const [isLoadingAdvisors, setIsLoadingAdvisors] = useState(true);
+
+  // ── Mode edit draf: baca id karya dari query string ──
+  React.useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("edit");
+    setEditId(id && id.trim() ? id.trim() : null);
+  }, []);
+
+  // ── Isi formulir dengan data draf yang akan diedit ──
+  React.useEffect(() => {
+    if (!editId) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch(`/api/student/projects/${editId}`, { cache: "no-store" });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Gagal memuat data karya.");
+        if (cancelled) return;
+
+        const p = data.project ?? {};
+        setTitle(p.title ?? "");
+        setTagline(p.tagline ?? (p.description ? p.description.slice(0, 110) : ""));
+        setDescription(p.description ?? "");
+        setMajor((p.major as JurusanSlug) ?? "rpl");
+        setYear(Number(p.year) || new Date().getFullYear());
+        setSelectedTools(Array.isArray(p.tools) ? p.tools : []);
+
+        const advId = p.advisorId || p.advisor?.id || "";
+        if (advId) {
+          setTargetAdvisorId(advId);
+          setAdvisorId(advId);
+        }
+
+        // Parsing BLUD & Highlights
+        const rawHighlights: string[] = Array.isArray(p.solutionHighlights) ? p.solutionHighlights : [];
+        const bludItem = rawHighlights.find((h) => typeof h === "string" && h.includes("Komersialisasi BLUD"));
+        if (bludItem) {
+          setIsBludReady(true);
+          if (bludItem.toLowerCase().includes("jasa custom")) {
+            setBludType("jasa");
+          } else if (bludItem.toLowerCase().includes("jasa uji") || bludItem.toLowerCase().includes("konsultasi")) {
+            setBludType("pengujian");
+          } else {
+            setBludType("produk");
+          }
+          const priceMatch = bludItem.match(/Estimasi:\s*([^)]+)/);
+          if (priceMatch && priceMatch[1]) {
+            setBludPrice(priceMatch[1].trim());
+          }
+        } else {
+          setIsBludReady(false);
+        }
+        const cleanHighlights = rawHighlights.filter(
+          (h) => typeof h === "string" && !h.includes("Komersialisasi BLUD")
+        );
+        if (cleanHighlights.length > 0) {
+          setMainFeatures(cleanHighlights);
+        }
+
+        setCoverImage(p.coverImage ?? "");
+        setGalleryImages(Array.isArray(p.galleryImages) && p.galleryImages.length > 0 ? p.galleryImages : (p.coverImage ? [p.coverImage] : []));
+        setGithubUrl(p.links?.githubUrl ?? p.githubUrl ?? "");
+        setDemoUrl(p.links?.demoUrl ?? p.demoUrl ?? "");
+        setIsPrivate(Boolean(p.isPrivate || p.status === "private"));
+      } catch (err) {
+        if (!cancelled) {
+          setLoadError(err instanceof Error ? err.message : "Gagal memuat data karya.");
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [editId]);
+
+  // BLUD (Teaching Factory) States
+  const [isBludReady, setIsBludReady] = useState<boolean>(false);
+  const [bludType, setBludType] = useState<string>("produk");
+  const [bludPrice, setBludPrice] = useState<string>("");
+  const [bludNotes, setBludNotes] = useState<string>("");
+
+  React.useEffect(() => {
+    let cancelled = false;
+    setIsLoadingAdvisors(true);
+    fetch(`/api/student/advisors?major=${major}`)
+      .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+      .then((data) => {
+        if (cancelled) return;
+        const list: AdvisorItem[] = data.advisors ?? [];
+        setAdvisors(list);
+        if (list.length > 0) {
+          setAdvisorId((prev) => {
+            const preferred = targetAdvisorId || prev;
+            if (preferred && list.some((a) => a.id === preferred)) {
+              return preferred;
+            }
+            return list[0].id;
+          });
+        } else {
+          setAdvisorId("");
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load advisors:", err);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingAdvisors(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [major, targetAdvisorId]);
+
   const coverFileInputRef = useRef<HTMLInputElement | null>(null);
-  const galleryFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // ── Jurusan Change Handler ──
+  const handleMajorChange = (newMajor: JurusanSlug) => {
+    setMajor(newMajor);
+    const defaultTools = TOOLS_BY_MAJOR[newMajor] || [];
+    setSelectedTools(defaultTools.slice(0, 3));
+  };
 
   // ── Image Upload Handlers ──
   const handleCoverUpload = async (file: File) => {
@@ -120,52 +323,13 @@ export default function CreateProjectPage() {
       const data = await res.json();
       if (data.url) {
         setCoverImage(data.url);
-        // Tambahkan juga ke gallery bila belum ada
-        if (!galleryImages.includes(data.url)) {
-          setGalleryImages([data.url, ...galleryImages]);
-        }
+        setGalleryImages([data.url]);
       }
     } catch (err) {
       console.error("Cover upload error:", err);
       alert("Gagal mengunggah gambar sampul. Silakan coba lagi.");
     } finally {
       setIsUploadingCover(false);
-    }
-  };
-
-  const handleGalleryUpload = async (files: FileList) => {
-    setIsUploadingGallery(true);
-    try {
-      const uploadedUrls: string[] = [];
-
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        if (!file.type.startsWith("image/")) continue;
-
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const res = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          if (data.url) {
-            uploadedUrls.push(data.url);
-          }
-        }
-      }
-
-      if (uploadedUrls.length > 0) {
-        setGalleryImages((prev) => [...prev, ...uploadedUrls]);
-      }
-    } catch (err) {
-      console.error("Gallery upload error:", err);
-      alert("Sebagian atau seluruh gambar galeri gagal diunggah.");
-    } finally {
-      setIsUploadingGallery(false);
     }
   };
 
@@ -197,23 +361,16 @@ export default function CreateProjectPage() {
     }
   };
 
-  // Gallery URL handlers
-  const handleAddGalleryUrl = () => {
-    if (newGalleryUrl.trim()) {
-      setGalleryImages([...galleryImages, newGalleryUrl.trim()]);
-      setNewGalleryUrl("");
-    }
-  };
-
-  const handleRemoveGalleryImage = (idx: number) => {
-    setGalleryImages(galleryImages.filter((_, i) => i !== idx));
-  };
-
   // Submit Handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !description.trim()) {
       alert("Mohon lengkapi judul dan deskripsi karya.");
+      return;
+    }
+
+    if (!isPrivate && !coverImage) {
+      alert("Mohon pilih dan unggah berkas thumbnail karya terlebih dahulu.");
       return;
     }
 
@@ -225,18 +382,42 @@ export default function CreateProjectPage() {
         "analis-kimia": "Analis Kimia",
       };
 
+      const bludFeatures = isBludReady
+        ? [
+            `Tersedia Komersialisasi BLUD (${
+              bludType === "produk"
+                ? "Produk Jadi / Lisensi"
+                : bludType === "jasa"
+                ? "Jasa Custom Order"
+                : "Jasa Uji / Konsultasi"
+            }${bludPrice.trim() ? ` — Estimasi: ${bludPrice.trim()}` : ""})`,
+          ]
+        : [];
+
+      const fallbackCover =
+        major === "analis-kimia"
+          ? "/images/preview-kimia.jpg"
+          : major === "tkj"
+          ? "/images/preview-iot.jpg"
+          : "/images/preview-rpl.jpg";
+
+      const finalCover = coverImage || fallbackCover;
+
       const newProjectData = {
         title: title.trim(),
         description: description.trim(),
-        mainFeatures,
+        mainFeatures: [...mainFeatures, ...bludFeatures],
         major,
         majorLabel: majorLabels[major],
         year: Number(year),
-        coverImage,
-        galleryImages,
+        coverImage: finalCover,
+        galleryImages: coverImage ? [coverImage] : [fallbackCover],
         status: isPrivate ? "private" : "pending",
         isPrivate,
         tools: selectedTools,
+        githubUrl: githubUrl.trim() || undefined,
+        demoUrl: demoUrl.trim() || undefined,
+        ...(advisorId ? { advisorId } : {}),
         links: {
           demoUrl: demoUrl.trim() || undefined,
           githubUrl: githubUrl.trim() || undefined,
@@ -244,18 +425,45 @@ export default function CreateProjectPage() {
         },
       };
 
-      const response = await fetch("/api/student/projects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newProjectData),
-      });
+      /*
+       * Mode edit memakai PUT, yang menerima seluruh kolom yang dapat diubah siswa.
+       */
+      const payload = editId
+        ? {
+            title: newProjectData.title,
+            description: newProjectData.description,
+            mainFeatures: newProjectData.mainFeatures,
+            major,
+            year: newProjectData.year,
+            coverImage: finalCover,
+            galleryImages: newProjectData.galleryImages,
+            tools: selectedTools,
+            githubUrl: githubUrl.trim(),
+            demoUrl: demoUrl.trim(),
+            isPrivate,
+            advisorId: advisorId || null,
+          }
+        : newProjectData;
+
+      const response = await fetch(
+        editId ? `/api/student/projects/${editId}` : "/api/student/projects",
+        {
+          method: editId ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || "Gagal menyimpan karya ke database.");
       }
 
-      router.push("/student/my-projects");
+      // Setelah menyimpan perubahan, kembali ke halaman detailnya supaya hasil
+      // perubahannya langsung terlihat (halaman itu memuat ulang dari API).
+      router.push(
+        editId ? `/student/my-projects/${editId}` : "/student?tab=karya-saya&uploaded=true"
+      );
     } catch (err: any) {
       console.error("Submit project error:", err);
       alert(err.message || "Terjadi kesalahan saat menyimpan karya.");
@@ -269,27 +477,51 @@ export default function CreateProjectPage() {
       roleTitle="Siswa"
       roleSlug="student"
       icon={GraduationCap}
-      pageTitle="Unggah Karya Baru"
+      activeTab="karya-saya"
+      breadcrumbLabel="Karya Saya"
+      breadcrumbHref="/student?tab=karya-saya"
+      pageTitle={editId ? (isPrivate ? "Edit Draf Karya" : "Edit Karya") : "Unggah Karya Baru"}
     >
-      {isLoading && <Loading text="Menyimpan karya inovasi ke database..." />}
+      {isLoading && (
+        <Loading
+          text={
+            editId
+              ? "Menyimpan perubahan karya..."
+              : "Menyimpan karya inovasi ke database..."
+          }
+        />
+      )}
 
-      {/* ── Header Welcome Section ── */}
-      <section className="mb-8 rounded-3xl bg-gradient-to-r from-primary-dark to-primary text-white p-7 sm:p-9 relative overflow-hidden shadow-xl shadow-primary/15">
-        <div className="relative z-10 max-w-3xl">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-accent text-xs font-semibold mb-3">
-            <Sparkles className="w-3.5 h-3.5 text-accent" aria-hidden="true" />
-            <span>Formulir Publikasi Karya Digital</span>
-          </div>
-
-          <h1 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight">
-            Unggah Karya Inovasi Siswa
+      {/* ── Page Header & Tombol Kembali ── */}
+      <div className="mb-6 flex items-center gap-3.5">
+        <Link
+          href="/student?tab=karya-saya"
+          className="p-2.5 rounded-xl border border-ink-150 hover:bg-ink-100 text-ink-600 hover:text-ink transition inline-flex items-center justify-center cursor-pointer bg-white shadow-xs shrink-0"
+          title="Kembali ke Daftar Karya"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </Link>
+        <div>
+          <h1 className="font-heading text-xl sm:text-2xl font-extrabold text-ink">
+            {editId ? (isPrivate ? "Edit Draf Karya" : "Edit Karya") : "Unggah Karya Baru"}
           </h1>
-
-          <p className="text-white/80 text-sm sm:text-base mt-2 leading-relaxed">
-            Abadikan proyek tugas akhir, dokumentasi laboratorium, dan modul perangkat lunak Anda ke dalam peti penyimpanan Kandaga SMKN 13 Bandung.
+          <p className="text-xs text-ink-600 mt-1">
+            {editId
+              ? "Perbarui isi dan data karya portofolio Anda. Klik simpan untuk menerapkan seluruh perubahan."
+              : "Lengkapi formulir proyek portofolio Anda untuk diajukan ke kurasi guru pembimbing."}
           </p>
         </div>
-      </section>
+      </div>
+
+      {loadError && (
+        <div className="mb-6 flex items-start gap-2.5 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <div className="text-xs leading-relaxed">
+            <p className="font-bold">Draf karya gagal dimuat</p>
+            <p className="mt-0.5">{loadError}</p>
+          </div>
+        </div>
+      )}
 
       {/* ── Form Container ── */}
       <form onSubmit={handleSubmit} className="space-y-8">
@@ -309,7 +541,7 @@ export default function CreateProjectPage() {
 
           {/* Judul Karya */}
           <div>
-            <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-ink mb-2">
               Judul Karya Proyek <span className="text-rose-600">*</span>
             </label>
             <input
@@ -324,7 +556,7 @@ export default function CreateProjectPage() {
 
           {/* Tagline */}
           <div>
-            <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-ink mb-2">
               Ringkasan Singkat (Tagline)
             </label>
             <input
@@ -339,7 +571,7 @@ export default function CreateProjectPage() {
           {/* Program Keahlian & Tahun */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div className="sm:col-span-2">
-              <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-2">
+              <label className="block text-xs font-bold text-ink mb-2">
                 Program Keahlian (Jurusan) <span className="text-rose-600">*</span>
               </label>
               <div className="grid grid-cols-3 gap-2.5">
@@ -351,7 +583,7 @@ export default function CreateProjectPage() {
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => setMajor(item.id as JurusanSlug)}
+                    onClick={() => handleMajorChange(item.id as JurusanSlug)}
                     className={`py-3 px-3 rounded-xl border text-xs font-bold transition cursor-pointer text-center ${
                       major === item.id
                         ? "bg-primary text-white border-primary shadow-xs"
@@ -365,7 +597,7 @@ export default function CreateProjectPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-2">
+              <label className="block text-xs font-bold text-ink mb-2">
                 Tahun Pembuatan
               </label>
               <input
@@ -377,6 +609,40 @@ export default function CreateProjectPage() {
                 className="w-full px-4 py-3 rounded-xl border border-ink-150 focus:border-primary focus:ring-2 focus:ring-primary/10 text-sm font-sans outline-hidden transition bg-white"
               />
             </div>
+          </div>
+
+          {/* Guru Pembimbing */}
+          <div>
+            <label className="block text-xs font-bold text-ink mb-2">
+              Guru Pembimbing Kurasi <span className="text-rose-600">*</span>
+            </label>
+            {isLoadingAdvisors ? (
+              <div className="w-full px-4 py-3 rounded-xl border border-ink-150 bg-ink-100 text-ink-400 text-xs flex items-center gap-2">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Memuat daftar guru pembimbing...</span>
+              </div>
+            ) : advisors.length === 0 ? (
+              <div className="w-full px-4 py-3 rounded-xl border border-amber-200 bg-amber-50 text-amber-800 text-xs">
+                Tidak ada guru pembimbing yang terdaftar untuk jurusan ini saat ini.
+              </div>
+            ) : (
+              <select
+                required
+                value={advisorId}
+                onChange={(e) => setAdvisorId(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-ink-150 focus:border-primary focus:ring-2 focus:ring-primary/10 text-sm font-sans outline-hidden transition bg-white"
+              >
+                <option value="">-- Pilih Guru Pembimbing --</option>
+                {advisors.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name} {a.nip ? `(NIP: ${a.nip})` : ""} — {a.majorName}
+                  </option>
+                ))}
+              </select>
+            )}
+            <p className="text-[11px] text-ink-400 mt-1.5">
+              Guru yang dipilih akan menerima draf karya Anda di antrean verifikasi untuk ditinjau kelayakannya.
+            </p>
           </div>
         </div>
 
@@ -394,30 +660,30 @@ export default function CreateProjectPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl">
             <button
               type="button"
               onClick={() => setIsPrivate(false)}
-              className={`p-5 rounded-2xl border text-left transition cursor-pointer flex items-start gap-4 ${
+              className={`p-6 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between gap-4 min-h-[160px] ${
                 !isPrivate
                   ? "bg-white border-emerald-500 shadow-md ring-2 ring-emerald-500/20"
                   : "bg-cream/40 border-ink-150 hover:bg-white"
               }`}
             >
-              <div
-                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                  !isPrivate ? "bg-emerald-100 text-emerald-800" : "bg-ink-100 text-ink-600"
-                }`}
-              >
-                <Globe className="w-5 h-5" />
+              <div className="flex items-center justify-between w-full">
+                <div
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
+                    !isPrivate ? "bg-emerald-100 text-emerald-800" : "bg-ink-100 text-ink-600"
+                  }`}
+                >
+                  <Globe className="w-6 h-6" />
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                  Direkomendasikan
+                </span>
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-heading font-bold text-sm text-ink">Karya Publik</span>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                    Direkomendasikan
-                  </span>
-                </div>
+                <span className="font-heading font-bold text-sm text-ink block">Karya Publik</span>
                 <p className="text-xs text-ink-600 mt-1 leading-relaxed">
                   Tampil di etalase galeri sekolah, dapat dilihat juri, dan dapat menerima minat magang via BKK.
                 </p>
@@ -427,21 +693,26 @@ export default function CreateProjectPage() {
             <button
               type="button"
               onClick={() => setIsPrivate(true)}
-              className={`p-5 rounded-2xl border text-left transition cursor-pointer flex items-start gap-4 ${
+              className={`p-6 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between gap-4 min-h-[160px] ${
                 isPrivate
                   ? "bg-white border-amber-500 shadow-md ring-2 ring-amber-500/20"
                   : "bg-cream/40 border-ink-150 hover:bg-white"
               }`}
             >
-              <div
-                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                  isPrivate ? "bg-amber-100 text-amber-800" : "bg-ink-100 text-ink-600"
-                }`}
-              >
-                <Lock className="w-5 h-5" />
+              <div className="flex items-center justify-between w-full">
+                <div
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
+                    isPrivate ? "bg-amber-100 text-amber-800" : "bg-ink-100 text-ink-600"
+                  }`}
+                >
+                  <Lock className="w-6 h-6" />
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
+                  Internal
+                </span>
               </div>
               <div>
-                <span className="font-heading font-bold text-sm text-ink">Karya Privat</span>
+                <span className="font-heading font-bold text-sm text-ink block">Karya Privat</span>
                 <p className="text-xs text-ink-600 mt-1 leading-relaxed">
                   Hanya dapat dilihat dan diuji oleh Anda dan guru pembimbing kompetensi keahlian.
                 </p>
@@ -450,42 +721,183 @@ export default function CreateProjectPage() {
           </div>
         </div>
 
-        {/* ── BAGIAN 3: Gambar Sampul & Upload Lokal (/public/assets/uploads/) ── */}
+        {/* ── BAGIAN 3: Komersialisasi BLUD (Teaching Factory) ── */}
         <div className="p-6 sm:p-8 rounded-2xl bg-white border border-ink-150 shadow-xs space-y-6">
           <div className="border-b border-ink-150 pb-4">
             <h2 className="font-heading text-base sm:text-lg font-bold text-ink flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-bold">
                 3
               </span>
-              <span>Gambar Sampul & Tangkapan Layar (Upload Lokal)</span>
+              <span>Komersialisasi & Layanan BLUD</span>
             </h2>
             <p className="text-xs text-ink-600 mt-1">
-              Unggah foto karya langsung dari perangkat Anda. Berkas otomatis tersimpan di direktori server <code className="text-primary font-mono font-semibold">/public/assets/uploads/</code>.
+              Tentukan apakah karya inovasi ini bersedia diperjualbelikan atau dipasarkan melalui unit bisnis Badan Layanan Umum Daerah (BLUD) & Teaching Factory SMKN 13.
             </p>
           </div>
 
-          {/* 1. Cover Image Upload Section */}
-          <div>
-            <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-2">
-              Gambar Sampul Utama (16:9) <span className="text-rose-600">*</span>
-            </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl">
+            {/* Opsi 1: Tidak Diperjualbelikan */}
+            <button
+              type="button"
+              onClick={() => setIsBludReady(false)}
+              className={`p-6 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between gap-4 min-h-[160px] ${
+                !isBludReady
+                  ? "bg-white border-primary shadow-md ring-2 ring-primary/20"
+                  : "bg-cream/40 border-ink-150 hover:bg-white"
+              }`}
+            >
+              <div className="flex items-center justify-between w-full">
+                <div
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
+                    !isBludReady ? "bg-primary/10 text-primary" : "bg-ink-100 text-ink-600"
+                  }`}
+                >
+                  <GraduationCap className="w-6 h-6" />
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-ink-100 text-ink-700 text-[10px] font-bold">
+                  Akademik
+                </span>
+              </div>
+              <div>
+                <span className="font-heading font-bold text-sm text-ink block">Tidak Diperjualbelikan</span>
+                <p className="text-xs text-ink-600 mt-1 leading-relaxed">
+                  Khusus portofolio akademik, uji kompetensi kelulusan, dan dokumentasi riset sekolah (non-komersial).
+                </p>
+              </div>
+            </button>
 
-            {/* Hidden native file input */}
-            <input
-              type="file"
-              ref={coverFileInputRef}
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleCoverUpload(file);
-              }}
-            />
+            {/* Opsi 2: Siap Diperjualbelikan BLUD */}
+            <button
+              type="button"
+              onClick={() => setIsBludReady(true)}
+              className={`p-6 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between gap-4 min-h-[160px] ${
+                isBludReady
+                  ? "bg-white border-emerald-500 shadow-md ring-2 ring-emerald-500/20"
+                  : "bg-cream/40 border-ink-150 hover:bg-white"
+              }`}
+            >
+              <div className="flex items-center justify-between w-full">
+                <div
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
+                    isBludReady ? "bg-emerald-100 text-emerald-800" : "bg-ink-100 text-ink-600"
+                  }`}
+                >
+                  <Store className="w-6 h-6" />
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                  BLUD SMKN 13
+                </span>
+              </div>
+              <div>
+                <span className="font-heading font-bold text-sm text-ink block">Siap Diperjualbelikan</span>
+                <p className="text-xs text-ink-600 mt-1 leading-relaxed">
+                  Karya bersedia ditawarkan, diproduksi, atau dilisensikan kepada mitra industri via unit bisnis BLUD.
+                </p>
+              </div>
+            </button>
+          </div>
 
-            {/* Upload Area / Dropzone */}
-            <div className="p-5 rounded-2xl border-2 border-dashed border-ink-150 bg-cream/30 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-white border border-ink-150 text-primary flex items-center justify-center shrink-0 shadow-xs">
+          {/* Form Detail Tambahan Jika Siap BLUD */}
+          {isBludReady && (
+            <div className="p-5 rounded-2xl bg-cream/40 border border-ink-150 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-ink mb-2">
+                  Bentuk Penawaran Komersial BLUD <span className="text-rose-600">*</span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  {[
+                    { id: "produk", label: "Produk Jadi / Lisensi", desc: "Barang fisik atau aplikasi siap pakai" },
+                    { id: "jasa", label: "Jasa Custom Order", desc: "Pengerjaan pesanan kustom industri" },
+                    { id: "pengujian", label: "Jasa Uji / Konsultasi", desc: "Analisis lab atau setup teknis" },
+                  ].map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setBludType(item.id)}
+                      className={`p-3 rounded-xl border text-left transition cursor-pointer ${
+                        bludType === item.id
+                          ? "bg-white border-primary shadow-xs ring-1 ring-primary/20"
+                          : "bg-white/70 border-ink-150 hover:bg-white"
+                      }`}
+                    >
+                      <p className="text-xs font-bold text-ink">{item.label}</p>
+                      <p className="text-[11px] text-ink-500 mt-0.5 leading-tight">{item.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-ink mb-2">
+                    Estimasi Nilai / Tarif Penawaran (Opsional)
+                  </label>
+                  <input
+                    type="text"
+                    value={bludPrice}
+                    onChange={(e) => setBludPrice(e.target.value)}
+                    placeholder="Contoh: Mulai Rp 1.500.000 atau Sesuai Negosiasi"
+                    className="w-full px-4 py-2.5 rounded-xl border border-ink-150 text-xs text-ink bg-white outline-hidden focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-ink mb-2">
+                    Catatan Kesiapan Produksi (Opsional)
+                  </label>
+                  <input
+                    type="text"
+                    value={bludNotes}
+                    onChange={(e) => setBludNotes(e.target.value)}
+                    placeholder="Contoh: Memerlukan waktu 2 minggu, bahan dari pemesan"
+                    className="w-full px-4 py-2.5 rounded-xl border border-ink-150 text-xs text-ink bg-white outline-hidden focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              <p className="text-[11px] text-ink-500 flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>
+                  Karya yang ditandai siap BLUD akan dikurasi oleh tim Teaching Factory & pengelola unit usaha sekolah.
+                </span>
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* ── BAGIAN 4: Thumbnail Karya (Hanya muncul jika Karya Publik) ── */}
+        {!isPrivate && (
+        <div className="p-6 sm:p-8 rounded-2xl bg-white border border-ink-150 shadow-xs space-y-6">
+            <div className="border-b border-ink-150 pb-4">
+              <h2 className="font-heading text-base sm:text-lg font-bold text-ink flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-bold">
+                  4
+                </span>
+                <span>Thumbnail Karya</span>
+              </h2>
+            </div>
+
+            {/* Cover Image Upload Section */}
+            <div>
+              <label className="block text-xs font-bold text-ink mb-2">
+                Gambar Sampul Utama (16:9) <span className="text-rose-600">*</span>
+              </label>
+
+              {/* Hidden native file input */}
+              <input
+                type="file"
+                ref={coverFileInputRef}
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleCoverUpload(file);
+                }}
+              />
+
+              {/* Upload Area / Dropzone Persegi */}
+              <div className="p-8 rounded-2xl border-2 border-dashed border-ink-200 bg-cream/20 hover:bg-cream/40 transition flex flex-col items-center justify-center text-center gap-3.5 max-w-sm">
+                <div className="w-14 h-14 rounded-2xl bg-white border border-ink-150 text-primary flex items-center justify-center shadow-xs shrink-0">
                   {isUploadingCover ? (
                     <Loader2 className="w-6 h-6 animate-spin text-primary" />
                   ) : (
@@ -494,158 +906,59 @@ export default function CreateProjectPage() {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-ink">
-                    {isUploadingCover ? "Sedang Mengunggah Gambar..." : "Unggah Gambar Sampul dari Komputer"}
+                    {isUploadingCover ? "Sedang Mengunggah Gambar..." : "Unggah Thumbnail dari Perangkat"}
                   </p>
-                  <p className="text-xs text-ink-600 mt-0.5">
-                    Mendukung JPG, PNG, WebP hingga 10MB. Tersimpan di /public/assets/uploads/
+                  <p className="text-xs text-ink-500 mt-1">
+                    Mendukung JPG, PNG, WebP (Maksimal 10MB)
                   </p>
                 </div>
-              </div>
 
-              <button
-                type="button"
-                onClick={() => coverFileInputRef.current?.click()}
-                disabled={isUploadingCover}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-heading font-semibold text-xs hover:bg-primary-dark transition cursor-pointer shadow-xs disabled:opacity-50 shrink-0"
-              >
-                <Upload className="w-4 h-4" />
-                <span>Pilih Berkas Lokal</span>
-              </button>
-            </div>
-
-            {/* Manual URL input or Preset chips */}
-            <div className="mt-4 flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-ink-600">Atau pilih preset cepat:</span>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {PRESET_COVERS.map((preset) => (
-                    <button
-                      key={preset.url}
-                      type="button"
-                      onClick={() => setCoverImage(preset.url)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium border transition cursor-pointer ${
-                        coverImage === preset.url
-                          ? "bg-primary text-white border-primary shadow-xs"
-                          : "bg-white text-ink-700 border-ink-150 hover:bg-cream"
-                      }`}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <input
-                type="text"
-                value={coverImage}
-                onChange={(e) => setCoverImage(e.target.value)}
-                placeholder="Path atau URL berkas gambar..."
-                className="w-full px-3 py-2 rounded-xl border border-ink-150 text-xs font-mono text-ink-700 bg-white"
-              />
-            </div>
-
-            {/* Live Cover Preview */}
-            {coverImage && (
-              <div className="mt-4 p-4 rounded-2xl bg-cream/40 border border-ink-150 max-w-md">
-                <span className="block text-xs font-bold text-ink-700 mb-2">
-                  Pratinjau Sampul Aktif:
-                </span>
-                <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden border border-ink-150 shadow-xs">
-                  <Image src={coverImage} alt="Pratinjau Sampul" fill className="object-cover" />
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* 2. Additional Gallery Images Upload */}
-          <div className="pt-6 border-t border-ink-150">
-            <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-2">
-              Foto Tambahan / Tangkapan Layar Riset
-            </label>
-
-            {/* Hidden native multiple file input */}
-            <input
-              type="file"
-              ref={galleryFileInputRef}
-              multiple
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                if (e.target.files) handleGalleryUpload(e.target.files);
-              }}
-            />
-
-            <div className="flex flex-wrap items-center gap-3 mb-3">
-              <button
-                type="button"
-                onClick={() => galleryFileInputRef.current?.click()}
-                disabled={isUploadingGallery}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-ink-150 hover:border-primary text-xs font-bold text-ink hover:text-primary transition cursor-pointer shadow-xs disabled:opacity-50"
-              >
-                {isUploadingGallery ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                    <span>Mengunggah...</span>
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-4 h-4 text-primary" />
-                    <span>Unggah Berkas Tambahan (Bisa Banyak)</span>
-                  </>
-                )}
-              </button>
-
-              <div className="flex items-center gap-2 flex-1 min-w-[240px]">
-                <input
-                  type="text"
-                  value={newGalleryUrl}
-                  onChange={(e) => setNewGalleryUrl(e.target.value)}
-                  placeholder="Atau tempel URL gambar..."
-                  className="flex-1 px-3 py-2 rounded-xl border border-ink-150 text-xs text-ink bg-white"
-                />
                 <button
                   type="button"
-                  onClick={handleAddGalleryUrl}
-                  className="px-3.5 py-2 rounded-xl bg-ink text-white text-xs font-bold hover:bg-ink-700 transition cursor-pointer"
+                  onClick={() => coverFileInputRef.current?.click()}
+                  disabled={isUploadingCover}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-heading font-semibold text-xs hover:bg-primary-dark transition cursor-pointer shadow-xs disabled:opacity-50 mt-1"
                 >
-                  + Tambah
+                  <Upload className="w-4 h-4" />
+                  <span>Pilih Thumbnail</span>
                 </button>
               </div>
-            </div>
 
-            {/* Gallery Image Thumbnails */}
-            {galleryImages.length > 0 && (
-              <div className="mt-3 flex items-center gap-3 overflow-x-auto pb-2">
-                {galleryImages.map((img, idx) => (
-                  <div
-                    key={idx}
-                    className="relative w-28 h-20 rounded-xl overflow-hidden shrink-0 border border-ink-150 group shadow-xs"
-                  >
-                    <Image src={img} alt={`Galeri ${idx + 1}`} fill className="object-cover" />
+              {/* Live Cover Preview (hanya muncul setelah berkas diunggah) */}
+              {coverImage && (
+                <div className="mt-4 p-4 rounded-2xl bg-cream/40 border border-ink-150 max-w-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-ink-700">
+                      Pratinjau Thumbnail Terpilih:
+                    </span>
                     <button
                       type="button"
-                      onClick={() => handleRemoveGalleryImage(idx)}
-                      className="absolute top-1 right-1 p-1 bg-black/70 hover:bg-rose-600 text-white rounded-md transition cursor-pointer"
-                      title="Hapus foto ini"
+                      onClick={() => {
+                        setCoverImage("");
+                        setGalleryImages([]);
+                        if (coverFileInputRef.current) coverFileInputRef.current.value = "";
+                      }}
+                      className="text-xs font-bold text-rose-600 hover:text-rose-700 transition cursor-pointer flex items-center gap-1"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
+                      <span>Hapus</span>
                     </button>
-                    <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded-md bg-black/60 text-white text-[10px] font-mono">
-                      #{idx + 1}
-                    </span>
                   </div>
-                ))}
-              </div>
-            )}
+                  <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden border border-ink-150 shadow-xs">
+                    <Image src={coverImage} alt="Pratinjau Thumbnail" fill className="object-cover" />
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* ── BAGIAN 4: Narasi Solusi & Poin Inovasi ── */}
+        {/* ── BAGIAN: Narasi Solusi & Poin Inovasi ── */}
         <div className="p-6 sm:p-8 rounded-2xl bg-white border border-ink-150 shadow-xs space-y-6">
           <div className="border-b border-ink-150 pb-4">
             <h2 className="font-heading text-base sm:text-lg font-bold text-ink flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-bold">
-                4
+                {!isPrivate ? 5 : 4}
               </span>
               <span>Narasi Solusi & Poin Inovasi</span>
             </h2>
@@ -656,7 +969,7 @@ export default function CreateProjectPage() {
 
           {/* Deskripsi Lengkap */}
           <div>
-            <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-ink mb-2">
               Deskripsi Lengkap Karya <span className="text-rose-600">*</span>
             </label>
             <textarea
@@ -671,7 +984,7 @@ export default function CreateProjectPage() {
 
           {/* Poin Solusi / Highlights */}
           <div>
-            <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-ink mb-2">
               Poin Keunggulan / Fitur Utama
             </label>
             <div className="space-y-2 mb-3">
@@ -720,27 +1033,28 @@ export default function CreateProjectPage() {
           </div>
         </div>
 
-        {/* ── BAGIAN 5: Alat, Bahasa & Tautan Eksternal ── */}
+        {/* ── BAGIAN: Alat, Bahasa & Tautan Eksternal (Adaptif Jurusan) ── */}
         <div className="p-6 sm:p-8 rounded-2xl bg-white border border-ink-150 shadow-xs space-y-6">
           <div className="border-b border-ink-150 pb-4">
             <h2 className="font-heading text-base sm:text-lg font-bold text-ink flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-bold">
-                5
+                {!isPrivate ? 6 : 5}
               </span>
-              <span>Teknologi, Instrumen & Tautan Proyek</span>
+              <span>{MAJOR_SECTION_CONFIG[major]?.title || "Teknologi, Instrumen & Tautan Proyek"}</span>
             </h2>
             <p className="text-xs text-ink-600 mt-1">
-              Pilih instrumen laboratorium atau teknologi yang digunakan serta sematkan repositori karya.
+              {MAJOR_SECTION_CONFIG[major]?.description ||
+                "Pilih instrumen atau teknologi yang digunakan serta sematkan tautan proyek."}
             </p>
           </div>
 
           {/* Tools & Skills selection */}
           <div>
-            <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-2">
-              Teknologi / Alat Praktik yang Digunakan
+            <label className="block text-xs font-bold text-ink mb-2">
+              {MAJOR_SECTION_CONFIG[major]?.toolsLabel || "Teknologi / Alat Praktik yang Digunakan"}
             </label>
             <div className="flex flex-wrap gap-2 mb-4">
-              {SUGGESTED_TOOLS.map((tool) => {
+              {(TOOLS_BY_MAJOR[major] || []).map((tool) => {
                 const isSelected = selectedTools.includes(tool);
                 return (
                   <button
@@ -765,15 +1079,21 @@ export default function CreateProjectPage() {
                 type="text"
                 value={customToolInput}
                 onChange={(e) => setCustomToolInput(e.target.value)}
-                placeholder="Alat/alat lab lain..."
+                placeholder={MAJOR_SECTION_CONFIG[major]?.customPlaceholder || "Alat/metode lain..."}
                 className="flex-1 px-3 py-2 rounded-xl border border-ink-150 text-xs text-ink bg-white outline-hidden focus:border-primary"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddCustomTool();
+                  }
+                }}
               />
               <button
                 type="button"
                 onClick={handleAddCustomTool}
-                className="px-3 py-2 bg-ink text-white rounded-xl text-xs font-bold hover:bg-ink-700 transition cursor-pointer"
+                className="px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary-dark transition cursor-pointer shadow-xs shrink-0"
               >
-                Tambah
+                + Tambah
               </button>
             </div>
           </div>
@@ -781,27 +1101,27 @@ export default function CreateProjectPage() {
           {/* External links */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-ink-150">
             <div>
-              <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-2">
-                Tautan Live Demo / Aplikasi (Opsional)
+              <label className="block text-xs font-bold text-ink mb-2">
+                {MAJOR_SECTION_CONFIG[major]?.link1Label || "Tautan Live Demo / Aplikasi (Opsional)"}
               </label>
               <input
                 type="url"
                 value={demoUrl}
                 onChange={(e) => setDemoUrl(e.target.value)}
-                placeholder="https://..."
+                placeholder={MAJOR_SECTION_CONFIG[major]?.link1Placeholder || "https://..."}
                 className="w-full px-3 py-2.5 rounded-xl border border-ink-150 text-xs text-ink bg-white outline-hidden focus:border-primary"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-2">
-                Tautan Repositori GitHub / Git (Opsional)
+              <label className="block text-xs font-bold text-ink mb-2">
+                {MAJOR_SECTION_CONFIG[major]?.link2Label || "Tautan Repositori GitHub / Git (Opsional)"}
               </label>
               <input
                 type="url"
                 value={githubUrl}
                 onChange={(e) => setGithubUrl(e.target.value)}
-                placeholder="https://github.com/..."
+                placeholder={MAJOR_SECTION_CONFIG[major]?.link2Placeholder || "https://github.com/..."}
                 className="w-full px-3 py-2.5 rounded-xl border border-ink-150 text-xs text-ink bg-white outline-hidden focus:border-primary"
               />
             </div>
@@ -809,23 +1129,21 @@ export default function CreateProjectPage() {
         </div>
 
         {/* ── Submit Action Toolbar ── */}
-        <div className="flex items-center justify-between gap-4 p-6 rounded-2xl bg-white border border-ink-150 shadow-xs">
-          <Link
-            href="/student/my-projects"
-            className="px-5 py-2.5 rounded-xl border border-ink-150 text-xs font-bold text-ink-700 hover:bg-cream transition"
-          >
-            Batal
-          </Link>
-
+        <div className="flex flex-col items-center justify-center gap-2.5 p-6 rounded-2xl bg-white border border-ink-150 shadow-xs text-center">
           <button
             type="submit"
             disabled={isLoading}
-            className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-primary text-white font-heading font-bold text-xs sm:text-sm hover:bg-primary-dark transition shadow-md cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-primary text-white font-heading font-bold text-xs sm:text-sm hover:bg-primary-dark transition shadow-md cursor-pointer disabled:opacity-50"
           >
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Menerbitkan ke Database...</span>
+                <span>{editId ? "Menyimpan Perubahan..." : "Menerbitkan ke Database..."}</span>
+              </>
+            ) : editId ? (
+              <>
+                <Save className="w-4 h-4 text-accent" />
+                <span>{isPrivate ? "Simpan Perubahan Draf" : "Simpan Perubahan Karya"}</span>
               </>
             ) : (
               <>
@@ -834,6 +1152,11 @@ export default function CreateProjectPage() {
               </>
             )}
           </button>
+          <p className="text-xs text-ink-500">
+            {editId
+              ? "Perubahan langsung diperbarui pada karya ini."
+              : "Pastikan semua data sudah lengkap"}
+          </p>
         </div>
       </form>
     </DashboardLayout>

@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Poppins, Plus_Jakarta_Sans, Tangerine, Montserrat, Bebas_Neue } from "next/font/google";
 import SmoothScrollProvider from "@/lib/SmoothScrollProvider";
 import AuthProvider from "@/lib/AuthProvider";
+import ThemeWatcher from "@/lib/ThemeWatcher";
+import { DASHBOARD_PREFIXES } from "@/lib/theme";
 import KeepTitle from "@/components/layout/KeepTitle";
 import ChatWidget from "@/components/chat/ChatWidget";
 import "./globals.css";
@@ -156,6 +158,28 @@ const JSON_LD = {
   ],
 };
 
+/**
+ * Skrip anti-kedip (anti-FOUC) untuk tema.
+ *
+ * Harus berjalan SEBELUM halaman dicat, jadi ditulis sebagai skrip klasik
+ * sebaris dan bukan komponen React — kalau menunggu hidrasi, tema gelap baru
+ * muncul setelah halaman terang sempat terlihat berkedip. Isinya defensif:
+ * kalau localStorage diblokir, halaman tetap tampil normal.
+ *
+ * Tema gelap hanya dipasang di area login; halaman publik selalu terang.
+ * Daftar areanya diambil dari DASHBOARD_PREFIXES supaya tidak ada dua sumber
+ * kebenaran yang bisa saling menyimpang.
+ */
+const THEME_BOOTSTRAP = `(function(){try{
+var p=location.pathname;
+var dash=${JSON.stringify(DASHBOARD_PREFIXES)}.some(function(x){return p===x||p.indexOf(x+"/")===0});
+var r=document.documentElement;
+if(!dash){r.classList.remove("dark");r.style.colorScheme="light";return}
+var m=localStorage.getItem("kandaga_theme")||"system";
+var d=m==="dark"||(m==="system"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);
+r.classList.toggle("dark",!!d);r.style.colorScheme=d?"dark":"light";
+}catch(e){}})();`;
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -165,7 +189,24 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${poppins.variable} ${jakartaSans.variable} ${tangerine.variable} ${montserrat.variable} ${bebasNeue.variable}`}
     >
+      {/*
+        Skrip anti-kedip tema diletakkan di <head>, bukan di dalam <body>.
+
+        Dua alasan:
+        1. HARUS berjalan sebelum halaman digambar. Elemen <script> di <head>
+           dieksekusi saat HTML diurai, jadi tema sudah benar sebelum piksel
+           pertama muncul — ini inti anti-kedipnya.
+        2. React hanya menghidrasi isi <body>. Skrip inline di dalam pohon
+           React memicu peringatan "Encountered a script tag while rendering
+           React component" karena React tidak pernah mengeksekusi skrip inline
+           buatan klien. Di <head>, React tidak menyentuhnya.
+      */}
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
+      </head>
       <body suppressHydrationWarning>
+        {/* Skrip anti-kedip TIDAK di sini — lihat <head> di atas. */}
+        <ThemeWatcher />
         <KeepTitle />
         <script
           type="application/ld+json"

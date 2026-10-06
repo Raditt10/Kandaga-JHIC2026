@@ -1,19 +1,18 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useCallback, Suspense } from "react"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { useRouter, useSearchParams } from "next/navigation"
 import DashboardLayout, { DashboardTab } from "@/components/DashboardLayout"
 import AccountSettings from "@/components/settings/AccountSettings"
+import StudentProfileView from "@/components/profile/StudentProfileView"
 import EmptyState from "@/components/ui/EmptyState"
 import { FilterDropdown } from "@/components/ui/FilterDropdown"
 import { useSession } from "next-auth/react"
 import {
   GraduationCap,
-  Sparkles,
-  Upload,
   CheckCircle2,
-  Award,
   FileCode,
   FlaskConical,
   Wifi,
@@ -23,6 +22,7 @@ import {
   User,
   Plus,
   ExternalLink,
+  ArrowRight,
   ArrowUpRight,
   Eye,
   Clock,
@@ -33,15 +33,8 @@ import {
   AlertCircle,
   Building2,
   ChevronRight,
-  BookOpen,
-  Settings,
   Loader2,
   Lock,
-  ImagePlus,
-  Video,
-  Trash2,
-  Inbox,
-  SearchX,
 } from "lucide-react"
 
 export interface StudentProject {
@@ -59,6 +52,8 @@ export interface StudentProject {
   score: number | null
   github: string | null
   demo: string | null
+  coverImage?: string | null
+  isPrivate?: boolean
 }
 
 // ── Data karya dari database ────────────────────────────────────────────
@@ -80,13 +75,17 @@ type ApiProject = {
   title: string
   description?: string
   majorLabel?: string
+  major?: string
   tools?: string[]
   status?: string
+  isPrivate?: boolean
+  coverImage?: string | null
   score?: number | null
   createdAt?: string
   updatedAt?: string | null
   metrics?: { views?: number }
   advisor?: { name?: string; reviewNotes?: string }
+  links?: { githubUrl?: string; demoUrl?: string }
 }
 
 type LowonganItem = {
@@ -125,31 +124,91 @@ function dariApi(p: ApiProject): StudentProject {
     submittedAt: tgl(p.createdAt),
     verifiedAt: p.status === "approved" ? tgl(p.updatedAt) : null,
     score: p.score ?? null,
-    github: null,
-    demo: null,
+    github: p.links?.githubUrl ?? null,
+    demo: p.links?.demoUrl ?? null,
+    coverImage: p.coverImage || null,
+    isPrivate: Boolean(p.isPrivate),
   }
 }
 
 // internshipOpportunities sekarang diambil dari /api/student/lowongan (lihat state di bawah)
 
-export default function StudentDashboardPage() {
+const VALID_TABS = ["dashboard", "karya-saya", "magang", "profil", "pengaturan"]
+
+function StudentDashboardContent() {
   const { data: session } = useSession()
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState("dashboard")
+  const searchParams = useSearchParams()
+  const tabParam = searchParams.get("tab")
+  const initialTab = tabParam && VALID_TABS.includes(tabParam) ? tabParam : "dashboard"
+  const [activeTab, setActiveTab] = useState<string>(initialTab)
   const [projects, setProjects] = useState<StudentProject[]>([])
   const [memuatKarya, setMemuatKarya] = useState(true)
   const [galatKarya, setGalatKarya] = useState<string | null>(null)
   const [filterStatus, setFilterStatus] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
-  const [isSubmittingKarya, setIsSubmittingKarya] = useState(false)
-  const [submitKaryaError, setSubmitKaryaError] = useState<string | null>(null)
-  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null)
+  const [showUploadSuccess, setShowUploadSuccess] = useState(false)
+  const [isSuccessToastLeaving, setIsSuccessToastLeaving] = useState(false)
+  const [showDeleteSuccess, setShowDeleteSuccess] = useState(false)
+  const [isDeleteToastLeaving, setIsDeleteToastLeaving] = useState(false)
 
-  // ── Guru pembimbing untuk dropdown ────────────────────────────────────
-  type AdvisorItem = { id: string; name: string; nip: string | null; majorName: string }
-  const [advisors, setAdvisors] = useState<AdvisorItem[]>([])
-  const [newAdvisorId, setNewAdvisorId] = useState("")
+  const dismissUploadSuccess = () => {
+    setIsSuccessToastLeaving(true)
+    setTimeout(() => {
+      setShowUploadSuccess(false)
+      setIsSuccessToastLeaving(false)
+      if (typeof window !== "undefined") {
+        const url = new URL(window.location.href)
+        if (url.searchParams.has("uploaded")) {
+          url.searchParams.delete("uploaded")
+          window.history.replaceState({}, "", url.pathname + (url.search ? url.search : ""))
+        }
+      }
+    }, 450)
+  }
+
+  const dismissDeleteSuccess = () => {
+    setIsDeleteToastLeaving(true)
+    setTimeout(() => {
+      setShowDeleteSuccess(false)
+      setIsDeleteToastLeaving(false)
+      if (typeof window !== "undefined") {
+        const url = new URL(window.location.href)
+        if (url.searchParams.has("deleted")) {
+          url.searchParams.delete("deleted")
+          window.history.replaceState({}, "", url.pathname + (url.search ? url.search : ""))
+        }
+      }
+    }, 450)
+  }
+
+  useEffect(() => {
+    if (searchParams.get("uploaded") === "true") {
+      setShowUploadSuccess(true)
+      setIsSuccessToastLeaving(false)
+      muatKarya()
+
+      const timer = setTimeout(() => {
+        dismissUploadSuccess()
+      }, 5000)
+
+      return () => clearTimeout(timer)
+    }
+  }, [searchParams])
+
+  useEffect(() => {
+    if (searchParams.get("deleted") === "true") {
+      setShowDeleteSuccess(true)
+      setIsDeleteToastLeaving(false)
+      muatKarya()
+
+      const timer = setTimeout(() => {
+        dismissDeleteSuccess()
+      }, 5000)
+
+      return () => clearTimeout(timer)
+    }
+  }, [searchParams])
 
   // ── Lowongan magang dari database ─────────────────────────────────────────
   const [lowongan, setLowongan] = useState<LowonganItem[]>([])
@@ -169,16 +228,6 @@ export default function StudentDashboardPage() {
   const [kontak, setKontak] = useState<KontakItem[]>([])
   const [memuatKontak, setMemuatKontak] = useState(true)
 
-  // Form State untuk modal Tambah Karya
-  const [newTitle, setNewTitle] = useState("")
-  const [newDescription, setNewDescription] = useState("")
-  const [newMajor, setNewMajor] = useState("RPL")
-  const [newCategory, setNewCategory] = useState("Web & Mobile App")
-  const [newTechStack, setNewTechStack] = useState("")
-  const [newYear, setNewYear] = useState(new Date().getFullYear())
-  const [newGithub, setNewGithub] = useState("")
-  const [newDemo, setNewDemo] = useState("")
-
   // ── Ambil karya milik siswa dari database ─────────────────────────────
   const muatKarya = async () => {
     setMemuatKarya(true)
@@ -186,6 +235,13 @@ export default function StudentDashboardPage() {
     try {
       const res = await fetch("/api/student/projects", { cache: "no-store" })
       const data = await res.json()
+      if (res.status === 401) {
+        setGalatKarya(data.error || "Sesi login tidak valid. Mengalihkan ke login...")
+        setTimeout(() => {
+          router.push("/auth/login")
+        }, 1500)
+        return
+      }
       if (!res.ok) {
         setGalatKarya(data.error || "Gagal memuat karya dari database.")
       } else {
@@ -203,103 +259,7 @@ export default function StudentDashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // ── Konfigurasi adaptif per jurusan ──────────────────────────────────────
-  // Placeholder dan label berubah sesuai jurusan supaya siswa TKJ dan
-  // Analis Kimia tidak bingung mengisi form yang terasa "untuk RPL saja".
-  const JURUSAN_CONFIG: Record<string, {
-    titlePlaceholder: string
-    descPlaceholder: string
-    toolsLabel: string
-    toolsPlaceholder: string
-    linkALabel: string
-    linkAPlaceholder: string
-    linkBLabel: string
-    linkBPlaceholder: string
-    mediaHint: string
-  }> = {
-    RPL: {
-      titlePlaceholder: "Misal: EduClass — LMS & Presensi QR Cerdas",
-      descPlaceholder:  "Jelaskan masalah yang diselesaikan, teknologi yang dipakai, dan hasil akhirnya...",
-      toolsLabel:       "Teknologi / Stack",
-      toolsPlaceholder: "Next.js, TypeScript, PostgreSQL, Tailwind CSS",
-      linkALabel:       "Tautan GitHub / Repositori",
-      linkAPlaceholder: "https://github.com/...",
-      linkBLabel:       "Tautan Demo / Aplikasi",
-      linkBPlaceholder: "https://aplikasi.vercel.app",
-      mediaHint:        "Unggah screenshot UI, diagram arsitektur, atau video demo aplikasi.",
-    },
-    TKJ: {
-      titlePlaceholder: "Misal: Monitoring Jaringan Sekolah Berbasis SNMP",
-      descPlaceholder:  "Jelaskan topologi jaringan, perangkat yang dipakai, masalah yang diatasi, dan hasil konfigurasinya...",
-      toolsLabel:       "Perangkat & Protokol yang Digunakan",
-      toolsPlaceholder: "Cisco Packet Tracer, Mikrotik, SNMP, VPN, Wireshark",
-      linkALabel:       "Tautan Dokumentasi / Laporan",
-      linkAPlaceholder: "https://docs.google.com/...",
-      linkBLabel:       "Tautan Video Demo / Simulasi",
-      linkBPlaceholder: "https://youtube.com/...",
-      mediaHint:        "Unggah foto topologi jaringan, screenshot konfigurasi, atau video simulasi.",
-    },
-    "Analis Kimia": {
-      titlePlaceholder: "Misal: Analisis Kadar Vitamin C pada Buah Lokal Bandung",
-      descPlaceholder:  "Jelaskan tujuan riset, metode analisis yang digunakan, sampel yang diuji, dan kesimpulan hasilnya...",
-      toolsLabel:       "Metode & Instrumen Laboratorium",
-      toolsPlaceholder: "Titrasi Iodometri, Spektrofotometri UV-Vis, HPLC, AAS",
-      linkALabel:       "Tautan Laporan Riset / Jurnal",
-      linkAPlaceholder: "https://drive.google.com/...",
-      linkBLabel:       "Tautan Data Pendukung",
-      linkBPlaceholder: "https://drive.google.com/...",
-      mediaHint:        "Unggah foto proses pengujian laboratorium, grafik hasil, atau poster riset.",
-    },
-  }
 
-  const cfg = JURUSAN_CONFIG[newMajor] ?? JURUSAN_CONFIG["RPL"]
-
-  // ── Media upload state ────────────────────────────────────────────────────
-  type MediaItem = { url: string; type: "photo" | "video"; name: string; uploading?: boolean }
-  const [mediaFiles, setMediaFiles] = useState<MediaItem[]>([])
-  const [mediaError, setMediaError] = useState<string | null>(null)
-
-  const handleMediaUpload = async (files: FileList | null) => {
-    if (!files || files.length === 0) return
-    setMediaError(null)
-
-    for (const file of Array.from(files)) {
-      const isImage = file.type.startsWith("image/")
-      const isVideo = file.type.startsWith("video/")
-      if (!isImage && !isVideo) {
-        setMediaError("Hanya file gambar (JPG, PNG, WebP) atau video (MP4, WebM, MOV) yang diizinkan.")
-        continue
-      }
-      const maxSize = isVideo ? 100 * 1024 * 1024 : 10 * 1024 * 1024
-      if (file.size > maxSize) {
-        setMediaError(`${file.name} terlalu besar (maks ${isVideo ? "100MB" : "10MB"}).`)
-        continue
-      }
-
-      // Tambah placeholder saat upload berjalan
-      const placeholder: MediaItem = { url: "", type: isVideo ? "video" : "photo", name: file.name, uploading: true }
-      setMediaFiles((prev) => [...prev, placeholder])
-
-      const formData = new FormData()
-      formData.append("file", file)
-
-      try {
-        const res = await fetch("/api/upload", { method: "POST", body: formData })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.error ?? "Gagal mengunggah.")
-        setMediaFiles((prev) =>
-          prev.map((m) =>
-            m === placeholder
-              ? { url: data.url, type: data.mediaType ?? (isVideo ? "video" : "photo"), name: file.name }
-              : m
-          )
-        )
-      } catch (err) {
-        setMediaFiles((prev) => prev.filter((m) => m !== placeholder))
-        setMediaError(err instanceof Error ? err.message : "Gagal mengunggah file.")
-      }
-    }
-  }
   useEffect(() => {
     let cancelled = false
     setMemuatLowongan(true)
@@ -310,6 +270,26 @@ export default function StudentDashboardPage() {
       .finally(() => { if (!cancelled) setMemuatLowongan(false) })
     return () => { cancelled = true }
   }, [])
+
+  const handleTabChange = useCallback((tabId: string) => {
+    if (!VALID_TABS.includes(tabId)) return
+    setActiveTab(tabId)
+    if (tabId === "dashboard") {
+      router.replace("/student", { scroll: false })
+    } else {
+      router.replace(`/student?tab=${tabId}`, { scroll: false })
+    }
+  }, [router])
+
+  // Sinkronisasi state tab saat query param berubah
+  useEffect(() => {
+    const tab = searchParams.get("tab")
+    if (tab && VALID_TABS.includes(tab)) {
+      setActiveTab(tab)
+    } else if (!tab && activeTab !== "dashboard") {
+      setActiveTab("dashboard")
+    }
+  }, [searchParams])
 
   // ── Ambil permintaan kontak yang diteruskan BKK ──────────────────────────
   useEffect(() => {
@@ -323,88 +303,7 @@ export default function StudentDashboardPage() {
     return () => { cancelled = true }
   }, [])
 
-  // ── Ambil daftar guru pembimbing saat modal dibuka ──────────────────────
-  useEffect(() => {
-    if (!isUploadModalOpen) return
-    let cancelled = false
-    fetch("/api/student/advisors")
-      .then((res) => res.ok ? res.json() : Promise.reject(res.status))
-      .then((data) => {
-        if (cancelled) return
-        const list: AdvisorItem[] = data.advisors ?? []
-        setAdvisors(list)
-        // Auto-pilih guru pertama jika belum dipilih
-        if (list.length > 0 && !newAdvisorId) setNewAdvisorId(list[0].id)
-      })
-      .catch(() => { /* gagal — dropdown tetap kosong */ })
-    return () => { cancelled = true }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isUploadModalOpen])
 
-  const handleCreateProject = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newTitle.trim()) return
-
-    setIsSubmittingKarya(true)
-    setSubmitKaryaError(null)
-
-    try {
-      const tools = newTechStack
-        ? newTechStack.split(",").map((t) => t.trim()).filter(Boolean)
-        : []
-
-      const res = await fetch("/api/student/projects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: newTitle.trim(),
-          description: newDescription.trim(),
-          major: newMajor.toLowerCase().replace(/ /g, "-"),
-          year: newYear,
-          tools,
-          ...(newAdvisorId ? { advisorId: newAdvisorId } : {}),
-          ...(newGithub.trim() ? { githubUrl: newGithub.trim() } : {}),
-          ...(newDemo.trim()   ? { demoUrl:   newDemo.trim()   } : {}),
-          ...(mediaFiles.filter(m => m.url && !m.uploading).length > 0 ? {
-            coverImage: mediaFiles.find(m => m.url && !m.uploading)?.url,
-            galleryImages: mediaFiles.filter(m => m.url && !m.uploading).map(m => m.url),
-          } : {}),
-        }),
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        setSubmitKaryaError(data.error ?? "Gagal menyimpan karya. Coba lagi.")
-        setIsSubmittingKarya(false)
-        return
-      }
-
-      // Sukses — tutup modal, reset form, refresh daftar dari DB
-      setIsUploadModalOpen(false)
-      setNewTitle("")
-      setNewDescription("")
-      setNewMajor("RPL")
-      setNewCategory("Web & Mobile App")
-      setNewTechStack("")
-      setNewYear(new Date().getFullYear())
-      setNewGithub("")
-      setNewDemo("")
-      setNewAdvisorId("")
-      setSubmitKaryaError(null)
-      setMediaFiles([])
-      setMediaError(null)
-      setUploadSuccess(
-        `Karya "${data.project?.title ?? newTitle.trim()}" berhasil dikirim dan sedang menunggu kurasi dari guru pembimbing. Karya akan tampil di Galeri Kandaga setelah disetujui.`
-      )
-      setActiveTab("karya-saya")
-      await muatKarya()
-    } catch {
-      setSubmitKaryaError("Terjadi kesalahan koneksi. Periksa koneksi internet Anda.")
-    } finally {
-      setIsSubmittingKarya(false)
-    }
-  }
 
   // Filter Projects
   const filteredProjects = projects.filter((p) => {
@@ -446,7 +345,7 @@ export default function StudentDashboardPage() {
       icon={GraduationCap}
       tabs={studentTabs}
       activeTab={activeTab}
-      onTabChange={setActiveTab}
+      onTabChange={handleTabChange}
     >
       {/* ── Status pemuatan karya dari database ── */}
       {memuatKarya && (
@@ -460,24 +359,80 @@ export default function StudentDashboardPage() {
         </div>
       )}
 
-      {/* ── Banner sukses setelah upload ── */}
-      {uploadSuccess && (
-        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800 flex items-start gap-2.5 animate-in fade-in duration-200">
-          <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
-          <div className="flex-1">
-            <p>{uploadSuccess}</p>
-            <p className="font-normal mt-1 text-emerald-700">
-              Login sebagai <strong>guru pembimbing</strong> untuk menyetujui karya dari tab Antrean Verifikasi.
-            </p>
+      {/* ── Pop-out notifikasi sukses dari atas (Hijau Friendly, Joyful, Tanpa Emoji, Smooth In/Out) ── */}
+      {showUploadSuccess && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 max-w-lg w-[92vw] sm:w-[480px] pointer-events-auto transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            isSuccessToastLeaving
+              ? "-translate-y-28 opacity-0 scale-95"
+              : "translate-y-0 opacity-100 scale-100"
+          }`}
+        >
+          <div className="bg-emerald-600 text-white rounded-2xl shadow-2xl shadow-emerald-950/25 border border-emerald-500 p-4 sm:p-5 flex items-start gap-3.5 relative overflow-hidden">
+            {/* Ikon Sukses */}
+            <div className="w-8 h-8 rounded-xl bg-white/20 text-white flex items-center justify-center shrink-0 mt-0.5">
+              <CheckCircle2 className="w-5 h-5" aria-hidden="true" />
+            </div>
+
+            {/* Isi Pesan */}
+            <div className="flex-1 min-w-0 pr-1">
+              <h4 className="font-heading font-bold text-sm text-white leading-snug">
+                Karya Berhasil Diajukan
+              </h4>
+              <p className="text-xs text-emerald-100 mt-1 leading-relaxed">
+                Karya baru Anda sedang menunggu kurasi dari guru pembimbing sebelum otomatis tampil di Galeri Utama Kandaga.
+              </p>
+            </div>
+
+              {/* Tombol Tutup */}
+            <button
+              type="button"
+              onClick={dismissUploadSuccess}
+              className="p-1 rounded-lg text-emerald-200 hover:text-white hover:bg-white/10 transition cursor-pointer shrink-0"
+              aria-label="Tutup notifikasi"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setUploadSuccess(null)}
-            className="shrink-0 text-emerald-600 hover:text-emerald-800 cursor-pointer"
-            aria-label="Tutup notifikasi"
-          >
-            <X className="w-4 h-4" />
-          </button>
+        </div>
+      )}
+
+      {/* ── Pop-out notifikasi sukses hapus/arsip dari atas ── */}
+      {showDeleteSuccess && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 max-w-lg w-[92vw] sm:w-[480px] pointer-events-auto transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            isDeleteToastLeaving
+              ? "-translate-y-28 opacity-0 scale-95"
+              : "translate-y-0 opacity-100 scale-100"
+          }`}
+        >
+          <div className="bg-ink text-white rounded-2xl shadow-2xl shadow-ink/25 border border-ink-700 p-4 sm:p-5 flex items-start gap-3.5 relative overflow-hidden">
+            <div className="w-8 h-8 rounded-xl bg-white/20 text-white flex items-center justify-center shrink-0 mt-0.5">
+              <CheckCircle2 className="w-5 h-5 text-emerald-400" aria-hidden="true" />
+            </div>
+
+            <div className="flex-1 min-w-0 pr-1">
+              <h4 className="font-heading font-bold text-sm text-white leading-snug">
+                Karya Berhasil Diproses
+              </h4>
+              <p className="text-xs text-ink-300 mt-1 leading-relaxed">
+                Karya telah dihapus dan dipindahkan ke arsip alumni. Data tidak lagi muncul di daftar aktif karya Anda.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={dismissDeleteSuccess}
+              className="p-1 rounded-lg text-ink-400 hover:text-white hover:bg-white/10 transition cursor-pointer shrink-0"
+              aria-label="Tutup notifikasi"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       )}
 
@@ -517,7 +472,7 @@ export default function StudentDashboardPage() {
             {/* Card 1: Total Karya Diunggah */}
             <button
               type="button"
-              onClick={() => setActiveTab("karya-saya")}
+              onClick={() => handleTabChange("karya-saya")}
               className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between text-left cursor-pointer"
             >
               <div className="flex items-center justify-between">
@@ -539,7 +494,7 @@ export default function StudentDashboardPage() {
             <button
               type="button"
               onClick={() => {
-                setActiveTab("karya-saya")
+                handleTabChange("karya-saya")
                 setFilterStatus("verified")
               }}
               className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between text-left cursor-pointer"
@@ -563,7 +518,7 @@ export default function StudentDashboardPage() {
             <button
               type="button"
               onClick={() => {
-                setActiveTab("karya-saya")
+                handleTabChange("karya-saya")
                 setFilterStatus("review")
               }}
               className="group p-5 rounded-2xl bg-white border border-ink-150 shadow-xs hover:border-primary/30 hover:shadow-md transition flex flex-col justify-between text-left cursor-pointer"
@@ -605,24 +560,14 @@ export default function StudentDashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Alur Kurasi Siswa */}
             <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-ink-150 shadow-xs space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="font-heading text-lg font-bold text-ink">Alur Verifikasi Karya Sekolah</h2>
-                  <p className="text-xs text-ink-600 max-w-[65ch]">Setiap karya melalui 4 tahapan kurasi sebelum ditayangkan ke publik dan mitra industri.</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsUploadModalOpen(true)}
-                  className="px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary-dark transition cursor-pointer flex items-center gap-1.5 shrink-0"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Tambah Karya</span>
-                </button>
+              <div>
+                <h2 className="font-heading text-lg font-bold text-ink">Alur Verifikasi Karya Sekolah</h2>
+                <p className="text-xs text-ink-600 max-w-[65ch]">Setiap karya melalui 4 tahapan kurasi sebelum ditayangkan ke publik dan mitra industri.</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2">
                 {[
-                  { step: "01", title: "Unggah Draf", desc: "Isi data proyek, stack, tautan GitHub/laporan", active: true },
+                  { step: "01", title: "Unggah di Halaman Baru", desc: "Isi data proyek & media lengkap di formulir halaman mandiri", active: true },
                   { step: "02", title: "Review Guru", desc: "Verifikasi kelayakan riset oleh Guru Pembimbing", active: true },
                   { step: "03", title: "Approval Sekolah", desc: "Standarisasi ISO & kurasi tim kurikulum", active: true },
                   { step: "04", title: "Publikasi Galeri", desc: "Tampil di galeri utama & diakses industri", active: true },
@@ -630,31 +575,103 @@ export default function StudentDashboardPage() {
                   <div key={idx} className="p-3.5 rounded-2xl bg-ink-100 border border-ink-150 relative">
                     <span className="font-mono text-xs font-extrabold text-primary block mb-1">{s.step}</span>
                     <h3 className="font-heading text-xs font-bold text-ink">{s.title}</h3>
-                    <p className="text-[12px] text-ink-600 mt-1 leading-snug">{s.desc}</p>
+                      <p className="text-[12px] text-ink-600 mt-1 leading-snug">{s.desc}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Quick Action Card */}
-            <div className="bg-gradient-to-br from-ink to-ink text-white rounded-2xl p-6 shadow-xs flex flex-col justify-between">
-              <div>
-                <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-white mb-4">
-                  <Award className="w-5 h-5" />
-                </div>
-                <h2 className="font-heading text-lg font-bold">Siapkan Portofolio PKL</h2>
-                <p className="font-sans text-xs text-ink-300 mt-2 leading-relaxed">
+            {/* Quick Action Card - Organic Abstract Graphic */}
+            {/* `kandaga-island-gelap` = pulau gelap. Latar kartu ini literal
+                `bg-[#18181b]` dan tidak ikut tema, jadi isinya — termasuk
+                tombol putihnya — dipaksa kembali ke palet terang lewat
+                globals.css. */}
+            <div className="kandaga-island-gelap relative overflow-hidden bg-[#18181b] text-white rounded-2xl p-6 shadow-md border border-zinc-800 flex flex-col justify-between group">
+              {/* Organic Fluid Abstract Shapes - Anchored to the Bottom Right Corner */}
+              <div
+                className="pointer-events-none absolute -right-3 -bottom-3 w-36 h-36 sm:w-44 sm:h-44 select-none z-0"
+                aria-hidden="true"
+              >
+                <svg
+                  className="w-full h-full transform group-hover:scale-105 group-hover:rotate-6 transition-transform duration-500 ease-out"
+                  viewBox="0 0 160 160"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <defs>
+                    <linearGradient id="blobGradA" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#BE123C" />
+                      <stop offset="100%" stopColor="#881337" />
+                    </linearGradient>
+                    <linearGradient id="blobGradB" x1="0%" y1="100%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#FB7185" />
+                      <stop offset="100%" stopColor="#E11D48" />
+                    </linearGradient>
+                    <linearGradient id="blobGradC" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#F59E0B" />
+                      <stop offset="100%" stopColor="#D97706" />
+                    </linearGradient>
+                    <linearGradient id="blobGradD" x1="100%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#A855F7" />
+                      <stop offset="100%" stopColor="#6366F1" />
+                    </linearGradient>
+                  </defs>
+
+                  {/* Base Organic Blob */}
+                  <path
+                    d="M95 15 C130 5 155 35 155 75 C155 115 130 150 90 155 C50 160 15 130 20 90 C25 50 60 25 95 15 Z"
+                    fill="url(#blobGradA)"
+                    opacity="0.9"
+                  />
+
+                  {/* Overlapping Purple Blob */}
+                  <path
+                    d="M100 35 C135 25 150 55 145 90 C140 125 105 145 75 135 C45 125 35 90 50 60 C65 30 85 40 100 35 Z"
+                    fill="url(#blobGradD)"
+                    opacity="0.85"
+                  />
+
+                  {/* Vibrant Coral-Rose Front Wave */}
+                  <path
+                    d="M110 50 C135 40 145 70 140 95 C135 120 105 135 85 125 C65 115 60 85 75 65 C90 45 95 55 110 50 Z"
+                    fill="url(#blobGradB)"
+                  />
+
+                  {/* Amber Accent Blob */}
+                  <path
+                    d="M80 55 C95 45 110 60 105 75 C100 90 85 95 70 85 C55 75 65 65 80 55 Z"
+                    fill="url(#blobGradC)"
+                  />
+
+                  {/* Small Decorative Floating Circles */}
+                  <circle cx="45" cy="40" r="7" fill="#FB7185" />
+                  <circle cx="35" cy="115" r="9" fill="#F59E0B" />
+                  <circle cx="130" cy="20" r="5" fill="#FDA4AF" />
+                  <circle cx="150" cy="125" r="6" fill="#C084FC" />
+                </svg>
+              </div>
+
+              {/* Card Content - Clean, Unobstructed Text on top */}
+              <div className="relative z-10">
+                <h2 className="font-heading text-lg font-bold text-white tracking-tight">
+                  Siapkan Portofolio PKL
+                </h2>
+                <p className="font-sans text-xs text-zinc-300 mt-2 leading-relaxed">
                   Mitra industri saat ini sedang membuka rekrutmen magang untuk periode semester mendatang melalui unit BKK SMKN 13.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setActiveTab("magang")}
-                className="mt-6 w-full py-2.5 px-4 bg-white text-ink rounded-xl font-bold text-xs hover:bg-ink-100 transition flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <span>Lihat Lowongan Magang</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
+
+              {/* Action Button */}
+              <div className="relative z-10 mt-6">
+                <button
+                  type="button"
+                  onClick={() => handleTabChange("magang")}
+                  className="w-full py-2.5 px-4 bg-white text-zinc-900 rounded-xl font-bold text-xs hover:bg-zinc-100 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer group/btn"
+                >
+                  <span>Lihat Lowongan Magang</span>
+                  <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform text-zinc-900" />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -664,45 +681,57 @@ export default function StudentDashboardPage() {
               <h2 className="font-heading text-lg font-bold text-ink">Karya Terkini Anda</h2>
               <button
                 type="button"
-                onClick={() => setActiveTab("karya-saya")}
+                onClick={() => handleTabChange("karya-saya")}
                 className="text-xs font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
               >
-                <span>Buka Menu Karya Saya ({projects.length})</span>
-                <ChevronRight className="w-3.5 h-3.5" />
+                <span>Lihat semua</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            <div className="divide-y divide-ink-150">
-              {projects.slice(0, 3).map((item) => (
-                <div key={item.id} className="py-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-rose-50 text-primary flex items-center justify-center shrink-0">
-                      {item.major === "RPL" ? <FileCode className="w-5 h-5" /> : item.major === "TKJ" ? <Wifi className="w-5 h-5" /> : <FlaskConical className="w-5 h-5" />}
+            {projects.length === 0 ? (
+              <EmptyState
+                compact
+                title="Belum Ada Karya yang Diunggah"
+                description="Anda belum memiliki proyek tugas akhir atau inovasi yang terdaftar di portofolio."
+              />
+            ) : (
+              <div className="divide-y divide-ink-150">
+                {projects.slice(0, 3).map((item) => (
+                  <div key={item.id} className="py-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-heading text-sm font-bold text-ink truncate" title={item.title}>
+                        {item.title}
+                      </h3>
+                      <p className="text-xs text-ink-500 mt-0.5">
+                        {item.submittedAt}
+                      </p>
                     </div>
-                    <div>
-                      <h3 className="font-heading text-sm font-bold text-ink">{item.title}</h3>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-xs font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md">{item.major}</span>
-                        <span className="text-xs text-ink-600">{item.category}</span>
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center gap-3 self-end sm:self-center">
-                    <span className="text-xs text-ink-600 font-mono">{item.views} views</span>
-                    <span
-                      className={`text-xs px-2.5 py-1 rounded-full font-bold ${
-                        item.status === "verified"
-                          ? "bg-emerald-100 text-emerald-800"
-                          : "bg-amber-100 text-amber-800"
-                      }`}
-                    >
-                      {item.status === "verified" ? "Terverifikasi" : "Review Pembimbing"}
-                    </span>
+                    <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
+                      {item.status === "verified" && (
+                        <span className="text-xs text-ink-600 font-mono">{item.views} views</span>
+                      )}
+                      <span
+                        className={`text-xs px-2.5 py-1 rounded-full font-bold ${
+                          item.status === "verified"
+                            ? "bg-emerald-100 text-emerald-800"
+                            : item.status === "revisi"
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-amber-100 text-amber-800"
+                        }`}
+                      >
+                        {item.status === "verified"
+                          ? "Terverifikasi"
+                          : item.status === "revisi"
+                          ? "Perlu Revisi"
+                          : "Review Pembimbing"}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -717,18 +746,17 @@ export default function StudentDashboardPage() {
                 Karya & Portofolio Saya
               </h1>
               <p className="font-sans text-xs sm:text-sm text-ink-600 mt-1 max-w-[65ch]">
-                Koleksi karya portofolio Anda. Unggah proyek tugas akhir baru atau pantau status kurasi guru pembimbing.
+                Koleksi karya portofolio Anda. Buka formulir halaman penuh untuk mendaftarkan proyek inovasi baru atau pantau status kurasi guru pembimbing.
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setIsUploadModalOpen(true)}
+            <Link
+              href="/student/create-project"
               className="px-4 py-2.5 bg-primary text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-primary-dark transition cursor-pointer flex items-center justify-center gap-2 shadow-xs shrink-0"
             >
               <Plus className="w-4 h-4" />
               <span>Unggah Karya Baru</span>
-            </button>
+            </Link>
           </div>
 
           {/* Filter & Search Bar */}
@@ -760,133 +788,155 @@ export default function StudentDashboardPage() {
             </div>
           </div>
 
-          {/* Project List Items */}
-          <div className="space-y-4">
-            {filteredProjects.length === 0 ? (
+          {/* Project List Items - Grid Card Persegi */}
+          {projects.length === 0 ? (
+            <div className="p-8 bg-white rounded-2xl border border-ink-150 shadow-xs">
               <EmptyState
-                icon={<SearchX className="w-8 h-8" />}
+                title="Belum Ada Karya yang Diunggah"
+                description="Anda belum memiliki proyek tugas akhir atau inovasi yang terdaftar di portofolio."
+              />
+            </div>
+          ) : filteredProjects.length === 0 ? (
+            <div className="p-8 bg-white rounded-2xl border border-ink-150 shadow-xs">
+              <EmptyState
                 title="Tidak Ada Karya yang Cocok"
                 description="Coba sesuaikan kata kunci pencarian atau reset filter kategori karya Anda."
+                action={{
+                  label: "Reset Filter",
+                  onClick: () => {
+                    setSearchQuery("")
+                    setFilterStatus("all")
+                  },
+                }}
               />
-            ) : (
-              filteredProjects.map((project) => (
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredProjects.map((project) => (
                 <div
                   key={project.id}
-                  className="p-6 bg-white rounded-2xl border border-ink-150 shadow-xs hover:border-ink-300 transition space-y-4"
+                  className="relative group bg-white rounded-2xl border border-ink-150 shadow-xs hover:border-primary/40 hover:shadow-lg transition-all duration-300 flex flex-col justify-between overflow-hidden"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-xs font-bold text-rose-800 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">
-                          {project.major}
-                        </span>
-                        <span className="text-xs font-semibold text-ink-600">
-                          {project.category}
-                        </span>
-                        <span className="text-ink-300">•</span>
-                        <span className="text-xs text-ink-300">Diajukan: {project.submittedAt}</span>
+                  {/* Hover Action Overlay (Sama seperti Admin Moderasi) */}
+                  <Link
+                    href={`/student/my-projects/${project.id}`}
+                    className="absolute inset-0 bg-ink/75 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 z-30 flex flex-col items-center justify-center p-4 text-center cursor-pointer no-underline"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-white/20 hover:bg-white text-white hover:text-ink flex items-center justify-center backdrop-blur-md shadow-xl transition-all duration-200 transform scale-90 group-hover:scale-100 mb-2">
+                      <Eye className="w-6 h-6" />
+                    </div>
+                    <span className="text-white text-xs font-semibold tracking-wide drop-shadow-sm">
+                      Lihat Detail Karya
+                    </span>
+                  </Link>
+
+                  {/* Thumbnail Cover Header (Persegi / Proporsional, Tanpa Label Jurusan & Status Floating) */}
+                  <div className="relative aspect-[16/10] w-full bg-ink-100 overflow-hidden border-b border-ink-100">
+                    {project.isPrivate ? (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-ink-100 via-ink-150 to-ink-200/90 text-ink-600 p-4 text-center">
+                        <div className="w-10 h-10 rounded-full bg-white/90 shadow-xs flex items-center justify-center text-ink-600 mb-1.5">
+                          <Lock className="w-5 h-5" />
+                        </div>
+                        <span className="text-xs font-bold text-ink-700">Karya Privat</span>
+                        <span className="text-[10px] text-ink-400 mt-0.5">Thumbnail terproteksi</span>
                       </div>
-                      <h2 className="font-heading text-lg font-bold text-ink pt-1">
+                    ) : project.coverImage ? (
+                      <Image
+                        src={project.coverImage}
+                        alt={project.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition duration-300"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-rose-50 to-rose-100/70 text-primary p-4 text-center">
+                        <div className="w-10 h-10 rounded-full bg-white/90 shadow-xs flex items-center justify-center text-primary mb-1">
+                          {project.major === "TKJ" ? (
+                            <Wifi className="w-5 h-5" />
+                          ) : project.major.toLowerCase().includes("kimia") || project.major === "KA" ? (
+                            <FlaskConical className="w-5 h-5" />
+                          ) : (
+                            <FileCode className="w-5 h-5" />
+                          )}
+                        </div>
+                        <span className="text-[11px] font-semibold text-ink-500">Pratinjau Belum Diunggah</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Card Content */}
+                  <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                    <div>
+                      {/* Tanggal & Status Kurasi (Menggantikan Icon Mata Views) */}
+                      <div className="flex items-center justify-between text-xs mb-2">
+                        <span className="text-[11px] text-ink-400 font-medium">Diajukan: {project.submittedAt}</span>
+                        {project.status === "verified" ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[11px] font-bold">
+                            <CheckCircle2 className="w-3 h-3" />
+                            <span>Terkurasi</span>
+                          </span>
+                        ) : project.status === "revisi" ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-[11px] font-bold">
+                            <AlertCircle className="w-3 h-3" />
+                            <span>Perlu Revisi</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-[11px] font-bold">
+                            <Clock className="w-3 h-3" />
+                            <span>Belum Dikurasi</span>
+                          </span>
+                        )}
+                      </div>
+                      <h2
+                        className="font-heading text-base font-bold text-ink line-clamp-1 group-hover:text-primary transition"
+                        title={project.title}
+                      >
                         {project.title}
                       </h2>
-                    </div>
-
-                    {/* Status Badge */}
-                    <div className="shrink-0">
-                      {project.status === "verified" ? (
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200 text-xs font-bold">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>Terverifikasi Sekolah</span>
-                        </div>
-                      ) : project.status === "revisi" ? (
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-200 text-xs font-bold">
-                          <AlertCircle className="w-3.5 h-3.5" />
-                          <span>Perlu Revisi</span>
-                        </div>
-                      ) : (
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 rounded-full border border-amber-200 text-xs font-bold">
-                          <Clock className="w-3.5 h-3.5" />
-                          <span>Menunggu Kurasi Guru</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <p className="font-sans text-xs sm:text-sm text-ink-600 leading-relaxed max-w-[65ch]">
-                    {project.description}
-                  </p>
-
-                  {/* Tech stack chips */}
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {project.techStack.map((tech, idx) => (
-                      <span
-                        key={idx}
-                        className="px-2.5 py-1 rounded-md bg-ink-100 text-ink-700 text-xs font-mono font-medium"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Footer info: Pembimbing, Nilai, Aksi */}
-                  <div className="pt-4 border-t border-ink-150 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                    <div className="space-y-0.5">
-                      <p className="text-ink-600">
-                        Pembimbing: <strong className="text-ink">{project.mentor}</strong>
+                      <p className="font-sans text-xs text-ink-600 line-clamp-2 leading-relaxed mt-1">
+                        {project.description}
                       </p>
-                      {project.score && (
-                        <p className="text-emerald-700 font-semibold">
-                          Nilai Kelayakan Kurasi: {project.score} / 100
-                        </p>
+                    </div>
+
+                    {/* Tech stack chips */}
+                    <div className="flex flex-wrap gap-1 min-h-[1.5rem] items-center pt-0.5">
+                      {project.techStack.length > 0 ? (
+                        <>
+                          {project.techStack.slice(0, 3).map((tech, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-0.5 rounded-md bg-ink-100 text-ink-700 text-[10px] font-mono font-medium truncate max-w-[110px]"
+                            >
+                              {tech}
+                            </span>
+                          ))}
+                          {project.techStack.length > 3 && (
+                            <span className="px-1.5 py-0.5 rounded-md bg-ink-100 text-ink-400 text-[10px] font-mono font-medium">
+                              +{project.techStack.length - 3}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-[11px] text-ink-300 italic">Belum ada instrumen</span>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      {project.github && (
-                        <a
-                          href={project.github}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3 py-1.5 rounded-xl border border-ink-150 text-ink-700 font-semibold hover:bg-ink-100 transition flex items-center gap-1.5"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                          <span>GitHub</span>
-                        </a>
-                      )}
-                      {project.demo && (
-                        <a
-                          href={project.demo}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3 py-1.5 rounded-xl bg-ink text-white font-semibold hover:bg-black transition flex items-center gap-1.5"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>Live Demo</span>
-                        </a>
-                      )}
-                      {project.status === "verified" ? (
-                        <span
-                          title="Karya terverifikasi tidak dapat diedit"
-                          className="px-3 py-1.5 rounded-xl border border-ink-100 text-ink-300 font-semibold text-xs flex items-center gap-1.5 cursor-not-allowed select-none"
-                        >
-                          <Lock className="w-3 h-3" />
-                          Terkunci
+                    {/* Footer info: Pembimbing & Nilai (Tanpa Tombol Edit Draf) */}
+                    <div className="pt-3 border-t border-ink-150 flex items-center justify-between text-xs mt-auto">
+                      <span className="text-ink-600 truncate text-[11px]" title={project.mentor}>
+                        Pembimbing: <strong className="text-ink font-semibold">{project.mentor}</strong>
+                      </span>
+                      {project.score ? (
+                        <span className="text-emerald-700 font-bold text-[11px] bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">
+                          Nilai: {project.score}/100
                         </span>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => router.push(`/student/my-projects/${project.id}`)}
-                          className="px-3 py-1.5 rounded-xl border border-ink-150 text-ink-600 font-semibold hover:bg-ink-100 transition cursor-pointer"
-                        >
-                          {project.status === "revisi" ? "Lihat Catatan & Revisi" : "Edit Draf"}
-                        </button>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -1055,312 +1105,18 @@ export default function StudentDashboardPage() {
       )}
 
       {/* ──────────────── TAB 4: PROFIL SISWA ──────────────── */}
-      {activeTab === "profil" && (
-        <div className="max-w-4xl space-y-6 animate-in fade-in duration-200">
-          <div className="p-6 bg-white rounded-2xl border border-ink-150 shadow-xs">
-            <h1 className="font-heading text-xl sm:text-2xl font-extrabold text-ink">
-              Profil & Informasi Siswa
-            </h1>
-            <p className="font-sans text-xs sm:text-sm text-ink-600 mt-1 max-w-[65ch]">
-              Data identitas siswa yang tercatat di sistem akademik SMKN 13 Bandung dan lampiran portofolio resmi.
-            </p>
-          </div>
+      {activeTab === "profil" && <StudentProfileView />}
 
-          <div className="p-6 bg-white rounded-2xl border border-ink-150 shadow-xs space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div>
-                <label className="block text-ink-600 font-medium mb-1">Nama Siswa</label>
-                <input
-                  type="text"
-                  readOnly
-                  value={session?.user?.username || "Ahmad Rizky Pratama"}
-                  className="w-full px-3 py-2 bg-ink-100 border border-ink-150 rounded-xl font-bold text-ink"
-                />
-              </div>
-
-              <div>
-                <label className="block text-ink-600 font-medium mb-1">Email Akademik</label>
-                <input
-                  type="text"
-                  readOnly
-                  value={session?.user?.email || "ahmad.rizky@smkn13bandung.sch.id"}
-                  className="w-full px-3 py-2 bg-ink-100 border border-ink-150 rounded-xl font-mono text-ink-700"
-                />
-              </div>
-
-              <div>
-                <label className="block text-ink-600 font-medium mb-1">Kompetensi Keahlian</label>
-                <input
-                  type="text"
-                  readOnly
-                  value="Rekayasa Perangkat Lunak (RPL)"
-                  className="w-full px-3 py-2 bg-ink-100 border border-ink-150 rounded-xl font-semibold text-rose-800"
-                />
-              </div>
-
-              <div>
-                <label className="block text-ink-600 font-medium mb-1">Tingkat / Kelas</label>
-                <input
-                  type="text"
-                  readOnly
-                  value="XII RPL 1 (Tahun Ajaran 2026/2027)"
-                  className="w-full px-3 py-2 bg-ink-100 border border-ink-150 rounded-xl text-ink"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs text-ink-600 font-medium mb-1">Bio Singkat Portofolio</label>
-              <textarea
-                readOnly
-                rows={3}
-                value="Siswa tingkat akhir jurusan RPL SMKN 13 Bandung dengan spesialisasi Next.js, TypeScript, dan arsitektur database relasional PostgreSQL. Memiliki sertifikasi junior web developer BNSP."
-                className="w-full px-3 py-2 bg-ink-100 border border-ink-150 rounded-xl text-xs text-ink leading-relaxed resize-none"
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ──────────────── MODAL UNGGAH KARYA BARU ──────────────── */}
-      {isUploadModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[92vh]">
-            {/* Header — fixed */}
-            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-ink-150 shrink-0">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-rose-50 text-primary flex items-center justify-center shrink-0">
-                  <Upload className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="font-heading text-base font-bold text-ink leading-tight">Unggah Karya Baru</h3>
-                  <p className="text-[10px] text-ink-400 mt-0.5">
-                    {newMajor === "TKJ" ? "Infrastruktur Jaringan & Sistem" : newMajor === "Analis Kimia" ? "Riset & Analisis Laboratorium" : "Pengembangan Perangkat Lunak"}
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => { setIsUploadModalOpen(false); setSubmitKaryaError(null); setNewAdvisorId(""); setMediaFiles([]); setMediaError(null) }}
-                className="p-1 rounded-lg text-ink-300 hover:text-ink-600 hover:bg-ink-100 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Scrollable body */}
-            <div className="overflow-y-auto flex-1 min-h-0 px-6 py-5">
-              <form id="upload-karya-form" onSubmit={handleCreateProject} className="space-y-4 text-xs">
-
-                {/* Judul */}
-                <div>
-                  <label className="block font-semibold text-ink-700 mb-1">Judul Karya *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder={cfg.titlePlaceholder}
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                    className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none focus:ring-1 focus:ring-primary"
-                  />
-                </div>
-
-                {/* Jurusan + Tahun */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-semibold text-ink-700 mb-1">Kompetensi Keahlian</label>
-                    <select
-                      value={newMajor}
-                      onChange={(e) => { setNewMajor(e.target.value); setMediaFiles([]); setMediaError(null) }}
-                      className="w-full px-3 py-2 border border-ink-150 rounded-xl bg-white focus:outline-none"
-                    >
-                      <option value="RPL">RPL — Perangkat Lunak</option>
-                      <option value="TKJ">TKJ — Komputer Jaringan</option>
-                      <option value="Analis Kimia">Analis Kimia</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block font-semibold text-ink-700 mb-1">Tahun Karya</label>
-                    <input
-                      type="number"
-                      min={2000}
-                      max={2100}
-                      value={newYear}
-                      onChange={(e) => setNewYear(Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                {/* Deskripsi */}
-                <div>
-                  <label className="block font-semibold text-ink-700 mb-1">Deskripsi Karya</label>
-                  <textarea
-                    rows={3}
-                    placeholder={cfg.descPlaceholder}
-                    value={newDescription}
-                    onChange={(e) => setNewDescription(e.target.value)}
-                    className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none resize-none"
-                  />
-                </div>
-
-                {/* Guru */}
-                <div>
-                  <label className="block font-semibold text-ink-700 mb-1">
-                    Guru Pembimbing <span className="text-rose-500">*</span>
-                  </label>
-                  {advisors.length === 0 ? (
-                    <div className="w-full px-3 py-2 border border-ink-150 rounded-xl bg-ink-100 text-ink-400 flex items-center gap-2">
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />Memuat daftar guru…
-                    </div>
-                  ) : (
-                    <select
-                      required
-                      value={newAdvisorId}
-                      onChange={(e) => setNewAdvisorId(e.target.value)}
-                      className="w-full px-3 py-2 border border-ink-150 rounded-xl bg-white focus:outline-none focus:ring-1 focus:ring-primary"
-                    >
-                      <option value="">-- Pilih guru pembimbing --</option>
-                      {advisors.map((a) => (
-                        <option key={a.id} value={a.id}>{a.name}{a.nip ? ` · ${a.nip}` : ""}</option>
-                      ))}
-                    </select>
-                  )}
-                </div>
-
-                {/* Tools — adaptive */}
-                <div>
-                  <label className="block font-semibold text-ink-700 mb-1">
-                    {cfg.toolsLabel}
-                    <span className="font-normal text-ink-400 ml-1">(pisahkan koma)</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder={cfg.toolsPlaceholder}
-                    value={newTechStack}
-                    onChange={(e) => setNewTechStack(e.target.value)}
-                    className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none"
-                  />
-                </div>
-
-                {/* Tautan — adaptive */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-semibold text-ink-700 mb-1">{cfg.linkALabel}</label>
-                    <input type="url" placeholder={cfg.linkAPlaceholder} value={newGithub}
-                      onChange={(e) => setNewGithub(e.target.value)}
-                      className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none" />
-                  </div>
-                  <div>
-                    <label className="block font-semibold text-ink-700 mb-1">{cfg.linkBLabel}</label>
-                    <input type="url" placeholder={cfg.linkBPlaceholder} value={newDemo}
-                      onChange={(e) => setNewDemo(e.target.value)}
-                      className="w-full px-3 py-2 border border-ink-150 rounded-xl focus:outline-none" />
-                  </div>
-                </div>
-
-                {/* ── Media upload ── */}
-                <div>
-                  <label className="block font-semibold text-ink-700 mb-1">
-                    Foto / Video Karya
-                    <span className="font-normal text-ink-400 ml-1">(opsional, maks 5 file)</span>
-                  </label>
-                  <p className="text-[10px] text-ink-400 mb-2">{cfg.mediaHint}</p>
-
-                  {mediaFiles.length < 5 && (
-                    <label className="flex flex-col items-center justify-center gap-1.5 w-full py-5 border-2 border-dashed border-ink-200 rounded-xl cursor-pointer hover:border-primary hover:bg-primary/5 transition">
-                      <div className="flex items-center gap-2 text-ink-400">
-                        <ImagePlus className="w-5 h-5" />
-                        <Video className="w-5 h-5" />
-                      </div>
-                      <span className="text-[11px] text-ink-500 font-medium">Klik atau seret file ke sini</span>
-                      <span className="text-[10px] text-ink-300">Gambar maks 10 MB · Video maks 100 MB</span>
-                      <input type="file" accept="image/*,video/mp4,video/webm,video/quicktime" multiple className="hidden"
-                        onChange={(e) => handleMediaUpload(e.target.files)} />
-                    </label>
-                  )}
-
-                  {mediaError && (
-                    <p className="mt-1.5 text-[11px] text-rose-600 flex items-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />{mediaError}
-                    </p>
-                  )}
-
-                  {mediaFiles.length > 0 && (
-                    <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
-                      {mediaFiles.map((m, idx) => (
-                        <div key={idx} className="relative w-14 h-14 rounded-xl overflow-hidden bg-ink-100 border border-ink-150 shrink-0">
-                          {m.uploading ? (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Loader2 className="w-4 h-4 animate-spin text-ink-300" />
-                            </div>
-                          ) : m.type === "video" ? (
-                            <div className="w-full h-full flex flex-col items-center justify-center gap-0.5 p-1">
-                              <Video className="w-4 h-4 text-ink-400" />
-                              <span className="text-[8px] text-ink-400 text-center truncate w-full px-0.5 leading-tight">{m.name.slice(0, 8)}…</span>
-                            </div>
-                          ) : (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={m.url} alt={m.name} className="w-full h-full object-cover" />
-                          )}
-                          {!m.uploading && (
-                            <button type="button" onClick={() => setMediaFiles((prev) => prev.filter((_, i) => i !== idx))}
-                              className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-rose-600 transition cursor-pointer" aria-label="Hapus">
-                              <X className="w-2.5 h-2.5" />
-                            </button>
-                          )}
-                          {idx === 0 && !m.uploading && (
-                            <span className="absolute bottom-0 left-0 right-0 text-center text-[8px] bg-primary/80 text-white py-0.5 leading-tight">Cover</span>
-                          )}
-                        </div>
-                      ))}
-                      {mediaFiles.length < 5 && !mediaFiles.some(m => m.uploading) && (
-                        <label className="w-14 h-14 rounded-xl border-2 border-dashed border-ink-200 flex flex-col items-center justify-center gap-0.5 cursor-pointer hover:border-primary hover:bg-primary/5 transition shrink-0">
-                          <ImagePlus className="w-4 h-4 text-ink-300" />
-                          <span className="text-[8px] text-ink-300">Tambah</span>
-                          <input type="file" accept="image/*,video/mp4,video/webm,video/quicktime" multiple className="hidden"
-                            onChange={(e) => handleMediaUpload(e.target.files)} />
-                        </label>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Notice */}
-                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-start gap-2 text-amber-800">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <p className="text-[11px] leading-relaxed">
-                    Karya disimpan sebagai <strong>Menunggu Kurasi Guru</strong> dan belum tayang publik. Guru akan meninjau sebelum karya muncul di Galeri Kandaga.
-                  </p>
-                </div>
-
-                {submitKaryaError && (
-                  <div className="p-3 bg-rose-50 rounded-xl border border-rose-200 flex items-start gap-2 text-rose-700">
-                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                    <p className="text-[11px] leading-relaxed">{submitKaryaError}</p>
-                  </div>
-                )}
-              </form>
-            </div>
-
-            {/* Footer — fixed */}
-            <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-ink-150 shrink-0">
-              <button type="button" disabled={isSubmittingKarya}
-                onClick={() => { setIsUploadModalOpen(false); setSubmitKaryaError(null); setNewAdvisorId(""); setMediaFiles([]); setMediaError(null) }}
-                className="px-4 py-2 border border-ink-150 text-ink-600 rounded-xl text-xs font-bold hover:bg-ink-100 transition cursor-pointer disabled:opacity-50">
-                Batal
-              </button>
-              <button type="submit" form="upload-karya-form"
-                disabled={isSubmittingKarya || mediaFiles.some(m => m.uploading)}
-                className="px-5 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary-dark transition cursor-pointer flex items-center gap-1.5 disabled:opacity-60">
-                {isSubmittingKarya ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Menyimpan…</> : "Simpan & Ajukan Kurasi"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       {/* ──────────────── TAB 5: PENGATURAN AKUN ──────────────── */}
       {activeTab === "pengaturan" && <AccountSettings />}
     </DashboardLayout>
+  )
+}
+
+export default function StudentDashboardPage() {
+  return (
+    <Suspense fallback={null}>
+      <StudentDashboardContent />
+    </Suspense>
   )
 }

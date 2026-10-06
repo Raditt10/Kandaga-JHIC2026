@@ -41,7 +41,7 @@ export async function GET() {
         status: true,
         createdAt: true,
         studentProfile: {
-          select: { nis: true, class: true, major: { select: { name: true } } },
+          select: { nis: true, class: true, major: { select: { name: true } }, photoUrl: true },
         },
         teacherProfile: {
           select: { nip: true, major: { select: { name: true } } },
@@ -85,6 +85,17 @@ export async function GET() {
     `;
     const googleEmail = userRows[0]?.google_email ?? null;
 
+    const { getCache } = await import("@/lib/redis");
+    const cachedAvatar = await getCache<string>(`cache:user:avatar:${user.id}`);
+    const defaultAvatarByRole: Record<string, string> = {
+      student: "/images/siswa.webp",
+      teacher: "/images/guru.webp",
+      bkk: "/images/bkk.webp",
+      admin: "/images/admin.webp",
+      company: "/images/perusahaan.webp",
+    };
+    const photoUrl = user.studentProfile?.photoUrl || cachedAvatar || defaultAvatarByRole[auth.role] || null;
+
     return NextResponse.json(
       {
         akun: {
@@ -92,6 +103,7 @@ export async function GET() {
           nama: user.name,
           email: user.email,
           googleEmail,
+          photoUrl,
           role: auth.role,
           status: user.status,
           bergabung: user.createdAt ? user.createdAt.toISOString() : null,

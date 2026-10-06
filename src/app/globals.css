@@ -1,9 +1,31 @@
 @import "tailwindcss";
 
-@theme inline {
+/*
+ * JANGAN kembalikan ke `@theme inline`.
+ *
+ * `inline` menyuruh Tailwind menyalin nilai token langsung ke setiap utilitas
+ * (mis. `.bg-ink-100 { background-color: #f2f2f2 }`). Akibatnya token tidak
+ * pernah menjadi CSS variable, sehingga tidak bisa ditimpa — dan tema gelap
+ * mustahil dibuat tanpa menulis ulang ratusan kelas.
+ *
+ * Dengan `@theme` biasa, token di-emit sebagai CSS variable di `:root`, dan
+ * blok `.dark` di bagian bawah berkas ini cukup menimpa variabelnya. Seluruh
+ * pemakaian `text-ink`, `bg-ink-100`, `border-ink-150`, `hover:text-ink`, dst.
+ * otomatis ikut berubah tanpa menyentuh satu pun komponen.
+ */
+@theme {
   /* ── Warna utama (marun) ── */
   --color-primary:      #8B1A2F;
   --color-primary-dark: #6B1424;
+
+  /*
+   * Isian marun pekat — khusus bidang SOLID yang bertulisan putih (tombol,
+   * header kartu, gelembung chat). Dipisah dari `--color-primary` karena di
+   * mode gelap warna marun sebagai teks harus diterangkan, sementara isian
+   * solid tidak boleh ikut diterang: teks putih di atasnya akan hilang.
+   */
+  --color-primary-fill:       #8B1A2F;
+  --color-primary-fill-hover: #6B1424;
 
   /* ── Krem (background section industri) ── */
   --color-cream: #F5F0E8;
@@ -23,6 +45,13 @@
   /* ── Background & foreground ── */
   --color-background: #ffffff;
   --color-foreground: #1A1A1A;
+
+  /* ── Permukaan (kartu, panel, garis) — inti tema terang/gelap ── */
+  --color-surface:   #ffffff;
+  --color-surface-2: #F2F2F2;
+  --color-surface-3: #E4E4E7;
+  --color-line:      #E8E8E8;
+  --color-line-soft: #F2F2F2;
 
   /* ── Font ── */
   --font-heading:     var(--font-poppins);
@@ -136,6 +165,568 @@ html.lenis.lenis-scrolling {
   background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='%239CA3AF' stroke-width='2' stroke-dasharray='12%2c 8'/%3e%3c/svg%3e");
 }
 
+
+/* ══════════════════════════════════════════════════════════════════════════
+   TEMA GELAP
+   ──────────────────────────────────────────────────────────────────────────
+   Cara kerjanya dua lapis:
+
+   1. Token di `@theme` (primary, ink, surface, line, dll.) sudah menjadi CSS
+      variable. Blok `.dark` di bawah menimpa nilainya, sehingga SELURUH
+      utilitas berbasis token ikut gelap tanpa menyentuh komponen:
+      `text-ink`, `bg-ink-100`, `border-ink-150`, `hover:text-ink`,
+      `hover:bg-ink-100`, `hover:border-ink-300`, `bg-cream`, dan seterusnya.
+
+   2. Warna bawaan Tailwind (white, zinc-*, slate-*) ditulis literal di dalam
+      utilitasnya dan tidak lewat token, jadi harus dipetakan per kelas pada
+      bagian kedua. `--color-white` SENGAJA tidak diubah karena `text-white`
+      dan `border-white` dipakai untuk tulisan di atas warna marun.
+
+   Soal spesifisitas — ini yang membuat pemetaan tidak saling menimpa:
+   • Pemetaan dasar memakai `:where(.dark)` supaya bobotnya tetap 0-1-0, sama
+     seperti satu kelas utilitas. Dengan begitu varian seperti
+     `hover:bg-rose-50` pada elemen ber-`bg-white` tetap menang dan tetap
+     berfungsi.
+   • Pemetaan varian (hover/focus) sengaja ditulis `.dark .hover\:x:hover`
+     sehingga bobotnya 0-3-0 dan mengalahkan varian aslinya — mencegah warna
+     terang muncul kembali saat kursor melintas di mode gelap.
+
+   Kelas `.dark` dipasang pada <html> oleh skrip anti-kedip di
+   src/app/layout.tsx, dan dikelola oleh src/lib/theme.ts.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Varian `dark:` tersedia bila nanti perlu gaya khusus di satu tempat. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+.dark {
+  color-scheme: dark;
+
+  /* ── Permukaan ── */
+  --color-background: #0F1013;
+  --color-foreground: #F2F3F5;
+  --color-surface:    #17191E;
+  --color-surface-2:  #1E2126;
+  --color-surface-3:  #272B32;
+  --color-line:       #2C3037;
+  --color-line-soft:  #23262B;
+
+  /*
+   * ── `--color-ink` dan `--color-ink-900` SENGAJA TIDAK DIBALIK ──
+   *
+   * Keduanya dipakai ganda: sebagai warna teks (`text-ink`, 307 pemakaian)
+   * DAN sebagai latar gelap untuk tombol/overlay berteks putih (`bg-ink`,
+   * `bg-ink/70`, `bg-ink-900`). Kalau tokennya dibalik jadi terang, tombol
+   * "Simpan Kata Sandi" berubah jadi putih dengan tulisan putih — teksnya
+   * hilang. Jadi token dibiarkan gelap, dan HANYA kelas teksnya yang
+   * diterangkan lewat aturan `.text-ink` di blok utilitas di bawah.
+   */
+  --color-ink:     #1A1A1A;
+  --color-ink-900: #1A1A1A;
+
+  /* ── Token yang murni dipakai sebagai teks — aman dibalik ── */
+  --color-ink-700: #C6CAD1;
+  --color-ink-600: #99A0AA;
+  /*
+   * ink-300 dipakai untuk teks redup, ikon, dan placeholder. Jangan dibuat
+   * segelap permukaan, nanti tulisannya tenggelam ke latar.
+   */
+  --color-ink-300: #7A828E;
+
+  /* ── Permukaan & garis redup ── */
+  --color-ink-150: #2C3037;
+  --color-ink-100: #1E2126;
+
+  /* ── Krem hangat di halaman publik ikut gelap ── */
+  --color-cream: #17161A;
+
+  /*
+   * ── MARUN DI MODE GELAP ──
+   *
+   * Marun #8B1A2F di atas permukaan #17191E hanya punya rasio kontras ~2:1 —
+   * batasnya di bawah ambang baca 4,5:1, jadi teks, ikon, dan garis marun
+   * nyaris tenggelam. Karena itu hue-nya dipertahankan tetapi kecerahan
+   * dinaikkan sampai rasio kontrasnya ~6:1 terhadap permukaan gelap.
+   *
+   * Isian solid dipisah ke `--color-primary-fill`: bidang marun yang
+   * bertulisan putih tidak boleh ikut diterang, kalau tidak tulisannya hilang.
+   * Aturan pemisahannya ada di blok utilitas di bawah.
+   */
+  --color-primary:      #E4738C;
+  --color-primary-dark: #D2617A;
+
+  --color-primary-fill:       #B92E4C;
+  --color-primary-fill-hover: #CE3A5A;
+}
+
+@layer utilities {
+  /* ── Latar ── */
+  :where(.dark) .bg-white              { background-color: var(--color-surface); }
+  :where(.dark) .bg-zinc-50,
+  :where(.dark) .bg-slate-50           { background-color: var(--color-surface); }
+  :where(.dark) .bg-zinc-100,
+  :where(.dark) .bg-slate-100          { background-color: var(--color-surface-2); }
+  :where(.dark) .bg-zinc-200           { background-color: var(--color-surface-3); }
+
+  /*
+   * ── Teks ──
+   * Nilainya ditulis literal, bukan lewat `var(--color-ink-*)`, karena
+   * ink/ink-900 sengaja dibiarkan gelap (lihat penjelasan di blok `.dark`).
+   */
+  :where(.dark) .text-zinc-950,
+  :where(.dark) .text-zinc-900,
+  :where(.dark) .text-black            { color: #F2F3F5; }
+  :where(.dark) .text-zinc-800,
+  :where(.dark) .text-zinc-700,
+  :where(.dark) .text-slate-900,
+  :where(.dark) .text-slate-800,
+  :where(.dark) .text-slate-700        { color: #C6CAD1; }
+  :where(.dark) .text-zinc-600,
+  :where(.dark) .text-slate-600        { color: #99A0AA; }
+  :where(.dark) .text-zinc-500,
+  :where(.dark) .text-zinc-400,
+  :where(.dark) .text-slate-500,
+  :where(.dark) .text-slate-400        { color: #98A0AA; }
+  :where(.dark) .text-zinc-300         { color: #5A626C; }
+
+  /*
+   * ── Kelas teks dari token ink ──
+   * Hanya kelas teksnya yang diterangkan; nilai tokennya tetap gelap supaya
+   * `bg-ink` / `bg-ink/70` / `bg-ink-900` tetap jadi latar gelap yang layak
+   * untuk tulisan putih.
+   */
+  :where(.dark) .text-ink,
+  :where(.dark) .text-ink-900          { color: #F2F3F5; }
+  /* Dipakai sebagai teks sangat redup — jangan sampai hilang di latar gelap. */
+  :where(.dark) .text-ink-150          { color: #5A626C; }
+
+  /*
+   * Varian OPACITY dari `text-ink` punya nama kelas sendiri, jadi tidak
+   * tertangkap aturan di atas. Karena nilai `--color-ink` sengaja dibiarkan
+   * gelap demi `bg-ink`, `text-ink/75` menghasilkan hitam 75% — praktis
+   * hilang di latar gelap. Ini yang membuat judul EmptyState ("Belum Ada
+   * Permintaan Kontak", "Belum Ada Data", dll.) tak terbaca di seluruh
+   * dashboard.
+   *
+   * CATATAN: bila nanti ada varian opacity baru untuk `text-ink` atau
+   * `text-ink-900` (mis. `text-ink/60`), tambahkan pasangannya di sini —
+   * polanya `color-mix(in oklab, #F2F3F5 <angka>%, transparent)`.
+   */
+  :where(.dark) .text-ink\/75          { color: color-mix(in oklab, #F2F3F5 75%, transparent); }
+
+  /* ── Garis ── */
+  :where(.dark) .border-zinc-200,
+  :where(.dark) .border-zinc-300,
+  :where(.dark) .border-slate-200,
+  :where(.dark) .border-slate-300      { border-color: var(--color-line); }
+  :where(.dark) .border-zinc-100,
+  :where(.dark) .border-slate-100      { border-color: var(--color-line-soft); }
+  :where(.dark) .border-zinc-400       { border-color: #3C424B; }
+
+  :where(.dark) .divide-slate-100 > :not(:last-child) { border-color: var(--color-line-soft); }
+  :where(.dark) .placeholder-zinc-400::placeholder    { color: var(--color-ink-600); }
+
+  /* ── Latar krem/hangat yang ditulis sebagai nilai arbitrer ── */
+  :where(.dark) .bg-\[\#FBF9F6\],
+  :where(.dark) .bg-\[\#FAF7F2\],
+  :where(.dark) .bg-\[\#faf8f5\],
+  :where(.dark) .bg-\[\#F8F9FA\]       { background-color: var(--color-surface); }
+
+  /* ── Stop gradien putih → permukaan gelap ── */
+  :where(.dark) .to-white   { --tw-gradient-to:   var(--color-surface); }
+  :where(.dark) .via-white  { --tw-gradient-via:  var(--color-surface); }
+  :where(.dark) .from-white { --tw-gradient-from: var(--color-surface); }
+
+  /* ── Varian hover/focus pada warna bawaan (bobot 0-3-0) ── */
+  .dark .hover\:bg-white:hover,
+  .dark .focus\:bg-white:focus          { background-color: var(--color-surface-2); }
+  .dark .hover\:bg-zinc-50:hover,
+  .dark .hover\:bg-slate-50:hover       { background-color: var(--color-surface-2); }
+  .dark .hover\:bg-zinc-100:hover,
+  .dark .hover\:bg-slate-100:hover,
+  .dark .hover\:bg-zinc-200:hover       { background-color: var(--color-surface-3); }
+
+  .dark .hover\:text-zinc-950:hover,
+  .dark .hover\:text-zinc-900:hover,
+  .dark .hover\:text-zinc-800:hover     { color: #F2F3F5; }
+  .dark .hover\:text-zinc-600:hover,
+  .dark .hover\:text-slate-600:hover    { color: #C6CAD1; }
+  .dark .hover\:text-ink:hover,
+  .dark .hover\:text-ink-900:hover      { color: #F2F3F5; }
+
+  .dark .hover\:border-zinc-300:hover,
+  .dark .hover\:border-slate-300:hover,
+  .dark .hover\:border-zinc-400:hover   { border-color: #3C424B; }
+
+  /* ── Marun sebagai ISIAN SOLID ────────────────────────────────────────────
+     `--color-primary` sudah diterangkan supaya terbaca sebagai teks. Bidang
+     marun yang menjadi LATAR dan bertulisan putih tidak boleh ikut diterang,
+     jadi di sini isiannya dikembalikan ke `--color-primary-fill` yang pekat. */
+  :where(.dark) .bg-primary        { background-color: var(--color-primary-fill); }
+  :where(.dark) .bg-primary-dark   { background-color: var(--color-primary-fill-hover); }
+  :where(.dark) .from-primary      { --tw-gradient-from: var(--color-primary-fill); }
+  :where(.dark) .to-primary        { --tw-gradient-to:   var(--color-primary-fill); }
+  :where(.dark) .via-primary       { --tw-gradient-via:  var(--color-primary-fill); }
+  :where(.dark) .from-primary-dark { --tw-gradient-from: var(--color-primary-fill-hover); }
+  :where(.dark) .to-primary-dark   { --tw-gradient-to:   var(--color-primary-fill-hover); }
+
+  .dark .hover\:bg-primary:hover      { background-color: var(--color-primary-fill-hover); }
+  .dark .hover\:bg-primary-dark:hover { background-color: var(--color-primary-fill-hover); }
+
+  /* ── Marun yang ditulis literal (nilai arbitrer) ─────────────────────────
+     Sebagian komponen masih memakai `text-[#8B1A2F]` dan kerabatnya. Nilai
+     arbitrer tidak lewat token, jadi setiap kelas dipetakan di sini. */
+  :where(.dark) .text-\[\#8B1A2F\]          { color: var(--color-primary); }
+  :where(.dark) .text-\[\#6B1424\]          { color: var(--color-primary-dark); }
+
+  :where(.dark) .bg-\[\#8B1A2F\]            { background-color: var(--color-primary-fill); }
+  :where(.dark) .bg-\[\#8B1A2F\]\/5,
+  :where(.dark) .bg-\[\#8B1A2F\]\/10        { background-color: color-mix(in oklab, var(--color-primary) 16%, transparent); }
+
+  :where(.dark) .border-\[\#8B1A2F\]        { border-color: var(--color-primary); }
+  :where(.dark) .border-\[\#8B1A2F\]\/20    { border-color: color-mix(in oklab, var(--color-primary) 30%, transparent); }
+
+  :where(.dark) .ring-\[\#8B1A2F\]\/15,
+  :where(.dark) .ring-\[\#8B1A2F\]\/30      { --tw-ring-color: color-mix(in oklab, var(--color-primary) 35%, transparent); }
+
+  :where(.dark) .shadow-\[\#8B1A2F\]\/20,
+  :where(.dark) .shadow-\[\#8B1A2F\]\/25    { --tw-shadow-color: color-mix(in oklab, var(--color-primary) 30%, transparent); }
+
+  :where(.dark) .from-\[\#8B1A2F\]          { --tw-gradient-from: var(--color-primary-fill); }
+  :where(.dark) .to-\[\#6B1424\]            { --tw-gradient-to:   var(--color-primary-fill); }
+
+  /* Varian hover/focus pada literal — bobot 0-3-0 agar menang dari aslinya. */
+  .dark .hover\:text-\[\#8B1A2F\]:hover                 { color: var(--color-primary); }
+  .dark .hover\:bg-\[\#8B1A2F\]:hover                   { background-color: var(--color-primary-fill-hover); }
+  .dark .hover\:bg-\[\#8B1A2F\]\/10:hover               { background-color: color-mix(in oklab, var(--color-primary) 22%, transparent); }
+  .dark .hover\:bg-\[\#6B1424\]:hover                   { background-color: var(--color-primary-fill); }
+  .dark .hover\:border-\[\#8B1A2F\]:hover               { border-color: var(--color-primary); }
+  .dark .hover\:border-\[\#8B1A2F\]\/40:hover           { border-color: color-mix(in oklab, var(--color-primary) 50%, transparent); }
+  .dark .focus\:border-\[\#8B1A2F\]:focus               { border-color: var(--color-primary); }
+  .dark .focus\:ring-\[\#8B1A2F\]\/15:focus             { --tw-ring-color: color-mix(in oklab, var(--color-primary) 35%, transparent); }
+  .dark .focus-within\:border-\[\#8B1A2F\]:focus-within { border-color: var(--color-primary); }
+  .dark .focus-visible\:ring-\[\#8B1A2F\]:focus-visible { --tw-ring-color: var(--color-primary); }
+   .dark .group:hover .group-hover\:bg-\[\#8B1A2F\]      { background-color: var(--color-primary-fill-hover); }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   TOMBOL TERBALIK — jangan sampai hitam di mode gelap
+   ──────────────────────────────────────────────────────────────────────────
+   Sebagian tombol dibuat "terbalik": latar hampir hitam dengan tulisan putih.
+   Di mode terang itu terbaca tegas. Di mode gelap latarnya nyaris sama dengan
+   latar halaman sehingga tombolnya menghilang, dan tulisannya pun memutih di
+   atas putih. Jadi pembalikannya dibalik lagi: latar putih, teks hampir
+   hitam. Ini konvensi baku mode gelap.
+
+   Yang dibalik hanya elemen netral/hitam (`bg-ink`, `bg-black`, `bg-ink-900`).
+   Tombol marun (`bg-primary` dan nilai literal `#8B1A2F`) TIDAK ikut dibalik:
+   warnanya identitas sekolah, bukan "tombol hitam", dan tetap kontras di
+   latar gelap.
+
+   Hover-nya juga dibalik. `hover:bg-ink` dipakai di banyak tempat dan membuat
+   elemen menghitam saat kursor melintas — di mode gelap itu sama saja dengan
+   menjadikan tombolnya hitam, jadi diganti sorotan terang.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@layer utilities {
+  :where(.dark) .bg-ink.text-white,
+  :where(.dark) .bg-black.text-white,
+  :where(.dark) .bg-ink-900.text-white {
+    background-color: #FFFFFF;
+    color: #1A1A1A;
+  }
+
+  /* Jangan kembali menghitam saat kursor melintas. */
+  .dark .bg-ink.text-white:hover,
+  .dark .bg-black.text-white:hover,
+  .dark .bg-ink-900.text-white:hover {
+    background-color: #E4E4E7;
+    color: #1A1A1A;
+  }
+
+  /* Hover gelap pada elemen terang → sorotan terang berteks gelap.
+     `color` ikut ditulis supaya `hover:text-white` yang biasanya menempel di
+     elemen yang sama tidak menghasilkan tulisan putih di atas putih. */
+  .dark .hover\:bg-ink:hover,
+  .dark .hover\:bg-black:hover {
+    background-color: #F2F3F5;
+    color: #1A1A1A;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   VARIAN OPACITY DARI WARNA TERANG
+   ──────────────────────────────────────────────────────────────────────────
+   `bg-white/90` dan `border-zinc-200/80` adalah nama kelas yang BERBEDA dari
+   `bg-white` dan `border-zinc-200`, sehingga tidak ikut terpetakan di blok
+   sebelumnya. Padahal navbar, kerangka pemuatan, dan beberapa kartu dashboard
+   memakainya — kalau dibiarkan, di mode gelap muncul bilah putih terang.
+
+   Hanya varian beropasitas tinggi (70% ke atas) yang dibalik: itulah yang
+   berperan sebagai permukaan hampir padat. Varian rendah (`bg-white/10`,
+   `/20`) justru lapisan tembus pandang di atas latar marun/gelap dan memang
+   harus tetap putih.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@layer utilities {
+  :where(.dark) .bg-white\/70 { background-color: color-mix(in oklab, #17191E 70%, transparent); }
+  :where(.dark) .bg-white\/80 { background-color: color-mix(in oklab, #17191E 82%, transparent); }
+  :where(.dark) .bg-white\/85 { background-color: color-mix(in oklab, #17191E 86%, transparent); }
+  :where(.dark) .bg-white\/90 { background-color: color-mix(in oklab, #17191E 90%, transparent); }
+  :where(.dark) .bg-white\/95 { background-color: color-mix(in oklab, #17191E 95%, transparent); }
+  :where(.dark) .bg-white\/98 { background-color: color-mix(in oklab, #17191E 98%, transparent); }
+
+  :where(.dark) .bg-zinc-50\/70,
+  :where(.dark) .bg-slate-50\/70 { background-color: color-mix(in oklab, #1E2126 70%, transparent); }
+
+  /*
+   * `hover:bg-white/50` di halaman pengaturan admin menumpuk lapisan putih 50%
+   * di atas permukaan gelap — hasilnya kabut terang, dan karena teksnya ikut
+   * diterangkan oleh `hover:text-ink`, tulisannya jadi menyatu dengan latar.
+   * Diganti sorotan gelap yang lembut.
+   */
+  .dark .hover\:bg-white\/50:hover {
+    background-color: color-mix(in oklab, #1E2126 60%, transparent);
+  }
+
+  :where(.dark) .border-zinc-200\/80,
+  :where(.dark) .border-zinc-200\/90,
+  :where(.dark) .border-slate-200\/80 { border-color: color-mix(in oklab, #2C3037 80%, transparent); }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PULAU TERANG
+   ──────────────────────────────────────────────────────────────────────────
+   Sebagian komponen sengaja TIDAK ikut tema gelap karena latarnya tetap
+   terang. Dua penanda dipakai:
+
+   • `.kala-light`            → widget chat KALA (lihat ChatWidget.tsx).
+   • `.kandaga-island-terang` → pill navbar publik dan lencana jurusan di atas
+                                sampul karya (lihat Navbar.tsx & ProjectCard.tsx).
+                                Keduanya berlatar varian opasitas
+                                `bg-white/98`/`bg-white/95`, bukan `bg-white`,
+                                sehingga latarnya harus dikembalikan secara
+                                terpisah — lihat blok "Latar pulau itu sendiri"
+                                di bawah.
+
+   Di dalam pulau ini seluruh palet terang dikembalikan — termasuk marun, yang
+   di mode gelap diterangkan supaya terbaca di latar gelap. Selektor sengaja
+   ditulis `.dark …` supaya bobotnya selalu di atas aturan tema gelap di blok
+   sebelumnya (0-3-0 melawan 0-1-0, dan 0-4-0 melawan 0-3-0 untuk varian
+   hover), sehingga hasilnya tidak bergantung pada urutan penulisan.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.dark :is(.kala-light, .kandaga-island-terang) {
+  color-scheme: light;
+  color: #1A1A1A;
+}
+
+@layer utilities {
+  .dark .kala-light .bg-white        { background-color: #ffffff; }
+  .dark .kala-light .bg-zinc-50      { background-color: #fafafa; }
+  .dark .kala-light .bg-zinc-200     { background-color: #e4e4e7; }
+
+  .dark .kala-light .text-zinc-800   { color: #27272a; }
+  .dark .kala-light .text-zinc-600   { color: #52525c; }
+  .dark .kala-light .text-zinc-500   { color: #71717b; }
+  .dark .kala-light .text-zinc-400   { color: #9f9fa9; }
+  .dark .kala-light .text-zinc-300   { color: #d4d4d8; }
+
+  .dark .kala-light .border-zinc-200 { border-color: #e4e4e7; }
+  .dark .kala-light .border-zinc-100 { border-color: #f4f4f5; }
+  .dark .kala-light .border-zinc-400 { border-color: #9f9fa9; }
+
+  /* Varian opacity-nya juga, kalau tidak garis di dalam panel jadi gelap. */
+  .dark .kala-light .border-zinc-200\/80 {
+    border-color: color-mix(in oklab, #e4e4e7 80%, transparent);
+  }
+  .dark .kala-light .border-zinc-200\/90 {
+    border-color: color-mix(in oklab, #e4e4e7 90%, transparent);
+  }
+
+  .dark .kala-light .placeholder-zinc-400::placeholder { color: #9f9fa9; }
+
+  .dark .kala-light .hover\:bg-white:hover { background-color: #ffffff; }
+
+  /*
+   * Navbar publik ikut berlatar terang, jadi warna teksnya juga dikembalikan:
+   * aturan tema gelap memetakan `text-zinc-600/700` jadi abu terang dan
+   * `hover:text-zinc-950` jadi hampir putih — di atas pill putih keduanya
+   * hilang.
+   */
+  .dark .kandaga-island-terang .text-zinc-600       { color: #52525c; }
+  .dark .kandaga-island-terang .text-zinc-700       { color: #3f3f46; }
+  .dark .kandaga-island-terang .hover\:text-zinc-950:hover { color: #0a0a0a; }
+  .dark .kandaga-island-terang .hover\:text-black:hover    { color: #000000; }
+  .dark .kandaga-island-terang .hover\:bg-zinc-100:hover   { background-color: #f4f4f5; }
+
+  /*
+   * ── Latar pulau itu sendiri ──
+   *
+   * Pill navbar dan lencana jurusan berlatar varian opasitas (`bg-white/98`,
+   * `bg-white/95`), BUKAN `bg-white`. Nama kelasnya berbeda, jadi tidak
+   * tertangkap aturan `.bg-white` di atas — dan aturan tema gelap untuk varian
+   * opasitas malah mengubahnya jadi gelap.
+   *
+   * Akibatnya fatal untuk pulau ini: `/logo.png` adalah marka HITAM pekat, dan
+   * tulisan "KANDAGA" memakai gradien gelap (zinc-950 → #a61743). Di atas latar
+   * gelap keduanya lenyap. Jadi latarnya dikembalikan ke putih.
+   *
+   * Selektor ditulis menempel (`.pulau.bg-white/95`) sekaligus sebagai
+   * keturunan, karena lencana di ProjectCard membawa kedua kelas pada elemen
+   * yang sama.
+   */
+  .dark :is(.kala-light, .kandaga-island-terang).bg-white\/95,
+  .dark :is(.kala-light, .kandaga-island-terang) .bg-white\/95 { background-color: #ffffff; }
+
+  .dark :is(.kala-light, .kandaga-island-terang).bg-white\/98,
+  .dark :is(.kala-light, .kandaga-island-terang) .bg-white\/98 { background-color: #ffffff; }
+
+  /*
+   * Token ink di dalam pulau juga dikembalikan supaya konsisten dengan
+   * latarnya yang terang. Kalau tidak, `text-ink` di ProjectCard memutih di
+   * atas lencana putih.
+   */
+  .dark :is(.kala-light, .kandaga-island-terang) .text-ink     { color: #1A1A1A; }
+  .dark :is(.kala-light, .kandaga-island-terang) .text-ink-900 { color: #1A1A1A; }
+  .dark :is(.kala-light, .kandaga-island-terang) .text-ink-700 { color: #3D3D3D; }
+  .dark :is(.kala-light, .kandaga-island-terang) .text-ink-600 { color: #555555; }
+  .dark :is(.kala-light, .kandaga-island-terang) .text-ink-300 { color: #CCCCCC; }
+
+  .dark :is(.kala-light, .kandaga-island-terang) .bg-ink-100   { background-color: #F2F2F2; }
+  .dark :is(.kala-light, .kandaga-island-terang) .bg-ink-150   { background-color: #E8E8E8; }
+}
+
+/* Scrollbar di dalam panel chat ikut terang. */
+.dark .kala-light ::-webkit-scrollbar-track { background: #f8f8f8; }
+.dark .kala-light ::-webkit-scrollbar-thumb { background: #d1d5db; }
+.dark .kala-light ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PULAU TERANG — marun dikembalikan ke pekat
+   ──────────────────────────────────────────────────────────────────────────
+   Marun muda (`--color-primary` versi gelap) hanya cocok di atas permukaan
+   gelap. Di dalam pulau terang ia justru tenggelam, jadi kelas marun literal
+   yang dipakai di sana dikembalikan ke #8B1A2F.
+
+   Selektor ditulis ganda: sebagai keturunan (`.pulau .text-[…]`) untuk
+   elemen di dalam pulau, dan menempel (`.pulau.text-[…]`) untuk elemen yang
+   dirinya sendiri adalah pulau — mis. lencana jurusan di ProjectCard yang
+   sekaligus membawa `bg-white/95` dan `text-[#8B1A2F]`.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@layer utilities {
+  .dark :is(.kala-light, .kandaga-island-terang) .text-\[\#8B1A2F\],
+  .dark :is(.kala-light, .kandaga-island-terang).text-\[\#8B1A2F\]          { color: #8B1A2F; }
+
+  .dark :is(.kala-light, .kandaga-island-terang) .bg-\[\#8B1A2F\],
+  .dark :is(.kala-light, .kandaga-island-terang).bg-\[\#8B1A2F\]            { background-color: #8B1A2F; }
+
+  .dark :is(.kala-light, .kandaga-island-terang) .bg-\[\#8B1A2F\]\/10,
+  .dark :is(.kala-light, .kandaga-island-terang).bg-\[\#8B1A2F\]\/10        { background-color: color-mix(in oklab, #8B1A2F 10%, transparent); }
+
+  .dark :is(.kala-light, .kandaga-island-terang) .border-\[\#8B1A2F\],
+  .dark :is(.kala-light, .kandaga-island-terang).border-\[\#8B1A2F\]        { border-color: #8B1A2F; }
+
+  .dark :is(.kala-light, .kandaga-island-terang) .border-\[\#8B1A2F\]\/20,
+  .dark :is(.kala-light, .kandaga-island-terang).border-\[\#8B1A2F\]\/20    { border-color: color-mix(in oklab, #8B1A2F 20%, transparent); }
+
+  .dark :is(.kala-light, .kandaga-island-terang) .ring-\[\#8B1A2F\]\/15     { --tw-ring-color: color-mix(in oklab, #8B1A2F 15%, transparent); }
+
+  .dark :is(.kala-light, .kandaga-island-terang) .hover\:text-\[\#8B1A2F\]:hover { color: #8B1A2F; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PULAU GELAP
+   ──────────────────────────────────────────────────────────────────────────
+   Kebalikan dari pulau terang. Ada kartu yang latarnya memang dicetak gelap
+   dengan nilai literal (`bg-[#18181b]`, `bg-zinc-900`) sehingga tidak ikut
+   berubah di mode gelap. Isinya harus tetap memakai palet terang.
+
+   Tanpa ini, `bg-white` yang di mode gelap dipetakan ke permukaan gelap
+   (#17191E) membuat tombol putih di dalam kartu itu lenyap — terlihat seperti
+   tombol hitam yang menempel dengan latar kartunya, dan teks `text-zinc-300`
+   ikut meredup jadi abu tua yang sulit dibaca.
+
+   Kelas `.kandaga-island-gelap` dipasang pada elemen akar kartunya.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@layer utilities {
+  /* Latar terang di dalam kartu gelap tetap terang. */
+  .dark .kandaga-island-gelap .bg-white        { background-color: #ffffff; }
+  .dark .kandaga-island-gelap .bg-zinc-100     { background-color: #f4f4f5; }
+
+  .dark .kandaga-island-gelap .hover\:bg-zinc-50:hover  { background-color: #fafafa; }
+  .dark .kandaga-island-gelap .hover\:bg-zinc-100:hover { background-color: #f4f4f5; }
+
+  /* Teks di dalamnya memakai kembali nilai terangnya. */
+  .dark .kandaga-island-gelap .text-zinc-900   { color: #18181b; }
+  .dark .kandaga-island-gelap .text-zinc-800   { color: #27272a; }
+  .dark .kandaga-island-gelap .text-zinc-700   { color: #3f3f46; }
+  .dark .kandaga-island-gelap .text-zinc-600   { color: #52525c; }
+  .dark .kandaga-island-gelap .text-zinc-300   { color: #d4d4d8; }
+
+  /* Varian hover-nya ikut dikembalikan. */
+  .dark .kandaga-island-gelap .hover\:text-zinc-950:hover { color: #0a0a0a; }
+}
+
+/* Kartu bergaris putus-putus: latarnya literal, jadi perlu dipetakan. */
+.dark .card-dashed-border {
+  background-color: var(--color-surface);
+}
+
+/* ── Scrollbar mode gelap ── */
+.dark ::-webkit-scrollbar-track { background: #17191E; }
+.dark ::-webkit-scrollbar-thumb { background: #3C424B; }
+.dark ::-webkit-scrollbar-thumb:hover { background: #4E5661; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   LOGO & JUDUL "KANDAGA" DI MODE GELAP
+   ──────────────────────────────────────────────────────────────────────────
+   Dua elemen ini bermasalah di area dashboard yang ikut menggelap:
+
+   1. `/logo.png` adalah marka HITAM PEKAT di atas latar transparan (RGBA).
+      Di navbar ia duduk di dalam pulau putih sehingga aman, tetapi di
+      DashboardShell ia menempel langsung pada permukaan yang menggelap —
+      logonya lenyap. Karena markanya murni hitam-putih, membalik warnanya
+      adalah perbaikan yang tepat.
+
+   2. Judul "KANDAGA" di dashboard memakai gradien yang dimulai dari
+      `from-ink`. Token `--color-ink` sengaja dibiarkan gelap demi tombol
+      (lihat blok `.dark`), jadi separuh kiri judulnya ikut lenyap. Gradiennya
+      diganti versi terang.
+
+   Keduanya dikecualikan dari pulau terang: di sana logo memang harus tetap
+   hitam dan judulnya memang harus tetap gelap di atas latar putih.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+:where(.dark) img[alt="Kandaga Logo"]:not(:where(.kala-light *, .kandaga-island-terang *)) {
+  filter: invert(1);
+}
+
+@layer utilities {
+  /* Kombinasi kelas ini hanya dipakai judul dashboard, jadi navbar tidak
+     terpengaruh — navbar memakai `from-zinc-950` dan berada di pulau terang. */
+  :where(.dark) .from-ink.via-\[\#4e0e20\].to-primary-dark {
+    background-image: linear-gradient(
+      to right,
+      #F2F3F5 0%,
+      #E6AEBE 55%,
+      var(--color-primary) 100%
+    );
+  }
+
+  /* Gradien di atas menggantikan `background-image`, sehingga perubahan warna
+     saat kursor melintas (lewat `group-hover:from-*`) tidak lagi berpengaruh.
+     Versi hover-nya ditulis ulang supaya efeknya tetap ada. */
+  :where(.dark) .group:hover .from-ink.via-\[\#4e0e20\].to-primary-dark {
+    background-image: linear-gradient(
+      to right,
+      #C6CAD1 0%,
+      #E6AEBE 55%,
+      #E4738C 100%
+    );
+  }
+}
 
 /* ── Reduced motion — aksesibilitas wajib ── */
 @media (prefers-reduced-motion: reduce) {
