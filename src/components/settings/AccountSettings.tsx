@@ -84,7 +84,7 @@ export default function AccountSettings() {
   const [pesanPassword, setPesanPassword] = useState<{ ok: boolean; text: string } | null>(null)
 
   // Tema tampilan (terang / gelap / ikut sistem)
-  const [themeMode, setThemeModeState] = useState<ThemeMode>("system")
+  const [themeMode, setThemeModeState] = useState<ThemeMode>("light")
 
   // Notifikasi perangkat
   const [notifSupported, setNotifSupported] = useState(true)
@@ -354,8 +354,7 @@ export default function AccountSettings() {
           </h2>
 
           <p className="text-xs text-ink-600 leading-relaxed">
-            Pilih tema antarmuka. Mode <strong>Sistem</strong> mengikuti pengaturan perangkat
-            Anda dan otomatis berganti begitu perangkat beralih ke mode gelap.
+            Secara bawaan antarmuka menggunakan tema <strong>Terang</strong>. Anda dapat beralih ke mode <strong>Gelap</strong> atau memilih <strong>Sistem</strong> untuk mengikuti pengaturan perangkat Anda.
           </p>
 
           <div

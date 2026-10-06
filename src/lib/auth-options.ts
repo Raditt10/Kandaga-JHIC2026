@@ -102,50 +102,72 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     // Simpan id, role, username & status verifikasi ke JWT saat login
     async jwt({ token, user, account }) {
-      if (user) {
-        if (account?.provider === "google" && user.email) {
-          try {
-            const googleEmail = user.email.toLowerCase().trim()
-            const existingUsers = await prisma.$queryRaw<Array<{
-              id: string
-              role: string
-              email: string
-              name: string
-              status: string
-              google_email: string | null
-            }>>`
-              SELECT id, role, email, username as name, status, google_email
-              FROM users
-              WHERE email = ${googleEmail}::citext OR google_email = ${googleEmail}
-              LIMIT 1
-            `
-            let dbUser = existingUsers[0] || null
+      const UUID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
 
+      if (user) {
+        const userEmail = (user.email || "").toLowerCase().trim()
+
+        if ((account?.provider === "google" || account?.provider === "github") && userEmail) {
+          try {
+            let dbUser: { id: string; role: string; email: string; name: string; status: string } | null = null
+
+            // Coba query dengan google_email jika provider Google
+            if (account.provider === "google") {
+              try {
+                const existingUsers = await prisma.$queryRaw<Array<{
+                  id: string
+                  role: string
+                  email: string
+                  name: string
+                  status: string
+                  google_email: string | null
+                }>>`
+                  SELECT id, role, email, username as name, status, google_email
+                  FROM users
+                  WHERE email = ${userEmail}::citext OR google_email = ${userEmail}
+                  LIMIT 1
+                `
+                if (existingUsers && existingUsers.length > 0) {
+                  dbUser = existingUsers[0]
+                }
+              } catch {
+                // Abaikan jika kolom google_email belum ada di database
+              }
+            }
+
+            // Fallback cari via Prisma standar berdasarkan email
+            if (!dbUser) {
+              const found = await prisma.users.findFirst({
+                where: { email: userEmail },
+                select: { id: true, role: true, email: true, name: true, status: true },
+              })
+              if (found) dbUser = found
+            }
+
+            // Jika belum ada akun, buat akun baru
             if (!dbUser) {
               const created = await prisma.users.create({
                 data: {
-                  name: user.name || googleEmail.split("@")[0],
-                  email: googleEmail,
+                  name: user.name || userEmail.split("@")[0],
+                  email: userEmail,
                   passwordHash: "",
                   role: "Student",
                   status: "aktif",
                 },
+                select: { id: true, role: true, email: true, name: true, status: true },
               })
-              await prisma.$executeRaw`
-                UPDATE users SET google_email = ${googleEmail} WHERE id = ${created.id}::uuid
-              `
-              dbUser = {
-                id: created.id,
-                role: created.role,
-                email: created.email,
-                name: created.name,
-                status: created.status,
-                google_email: googleEmail,
+              dbUser = created
+            }
+
+            // Update google_email jika kolom tersedia
+            if (account.provider === "google") {
+              try {
+                await prisma.$executeRaw`
+                  UPDATE users SET google_email = ${userEmail} WHERE id = ${dbUser.id}::uuid
+                `
+              } catch {
+                // Abaikan jika kolom google_email belum ada di database
               }
-            } else if (!dbUser.google_email) {
-              await prisma.$executeRaw`
-                UPDATE users SET google_email = ${googleEmail} WHERE id = ${dbUser.id}::uuid
-              `
             }
 
             token.id = dbUser.id
@@ -165,7 +187,7 @@ export const authOptions: NextAuthOptions = {
             }
             return token
           } catch (err) {
-            console.error("Google OAuth DB sync error:", err)
+            console.error("OAuth DB sync error:", err)
           }
         }
 
@@ -176,6 +198,24 @@ export const authOptions: NextAuthOptions = {
         token.username           = ((user as { username?: string }).username ?? user.name) ?? undefined
         token.verificationStatus = (user as { verificationStatus?: string | null }).verificationStatus ?? null
       }
+
+      // Self-healing: jika token.id bukan UUID (misal session Google 21 digit yang sudah aktif), perbaiki ke UUID DB
+      if (token && token.email && (!token.id || !UUID_REGEX.test(String(token.id)))) {
+        try {
+          const dbUser = await prisma.users.findFirst({
+            where: { email: String(token.email).toLowerCase().trim() },
+            select: { id: true, role: true, name: true },
+          })
+          if (dbUser) {
+            token.id = dbUser.id
+            token.role = normalizeRole(dbUser.role)
+            if (!token.name) token.name = dbUser.name
+          }
+        } catch (healErr) {
+          console.error("JWT token UUID repair error:", healErr)
+        }
+      }
+
       return token
     },
 

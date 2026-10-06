@@ -36,13 +36,13 @@ type AuthFail = { userId?: undefined; role?: undefined; error: NextResponse }
 export async function requireRole(allowed: string[]): Promise<AuthOk | AuthFail> {
   const session = await getServerSession(authOptions)
 
-  if (!session?.user?.id) {
+  if (!session?.user?.id && !session?.user?.email) {
     return {
       error: NextResponse.json({ error: "Sesi login diperlukan" }, { status: 401 }),
     }
   }
 
-  const role = normalizeRole(String(session.user.role))
+  const role = normalizeRole(String(session.user?.role || "student"))
 
   if (!allowed.includes(role)) {
     return {
@@ -53,10 +53,37 @@ export async function requireRole(allowed: string[]): Promise<AuthOk | AuthFail>
     }
   }
 
+  const UUID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
+  let candidateUserId = session.user?.id && UUID_REGEX.test(session.user.id) ? session.user.id : null
+
+  // Jika session.user.id bukan UUID (misal Google sub 21 digit), cari user UUID asli via email
+  if (!candidateUserId && session.user?.email) {
+    try {
+      const userByEmail = await prisma.users.findFirst({
+        where: { email: session.user.email.toLowerCase().trim() },
+        select: { id: true, status: true },
+      })
+      if (userByEmail) {
+        candidateUserId = userByEmail.id
+      }
+    } catch (e) {
+      console.error("requireRole user lookup by email error:", e)
+    }
+  }
+
+  if (!candidateUserId) {
+    return {
+      error: NextResponse.json(
+        { error: "Sesi login tidak valid atau telah kadaluarsa. Silakan login kembali." },
+        { status: 401 }
+      ),
+    }
+  }
+
   // Verifikasi akun benar-benar ada di database (mencegah error jika DB pernah di-seed/reset saat sesi masih aktif)
   try {
     const dbUser = await prisma.users.findUnique({
-      where: { id: session.user.id },
+      where: { id: candidateUserId },
       select: { id: true, status: true },
     })
 
@@ -77,11 +104,17 @@ export async function requireRole(allowed: string[]): Promise<AuthOk | AuthFail>
         ),
       }
     }
+
+    return { userId: dbUser.id, role }
   } catch (dbErr) {
     console.error("requireRole user validation error:", dbErr)
+    return {
+      error: NextResponse.json(
+        { error: "Terjadi kesalahan saat memvalidasi sesi pengguna." },
+        { status: 500 }
+      ),
+    }
   }
-
-  return { userId: session.user.id, role }
 }
 
 export async function requireStudent(): Promise<AuthOk | AuthFail> {

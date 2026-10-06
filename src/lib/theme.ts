@@ -18,23 +18,23 @@ export const THEME_STORAGE_KEY = "kandaga_theme"
 export const THEME_CHANGE_EVENT = "kandaga:theme-change"
 
 export const THEME_OPTIONS: { value: ThemeMode; label: string; hint: string }[] = [
+  { value: "light", label: "Terang", hint: "Mode terang bawaan" },
+  { value: "dark", label: "Gelap", hint: "Mode gelap" },
   { value: "system", label: "Sistem", hint: "Ikut pengaturan perangkat" },
-  { value: "light", label: "Terang", hint: "Selalu terang" },
-  { value: "dark", label: "Gelap", hint: "Selalu gelap" },
 ]
 
 export function isThemeMode(value: unknown): value is ThemeMode {
   return value === "system" || value === "light" || value === "dark"
 }
 
-/** Baca pilihan tersimpan; jatuh ke "system" bila belum ada atau rusak. */
+/** Baca pilihan tersimpan; jatuh ke "light" bila belum ada atau rusak. */
 export function getStoredTheme(): ThemeMode {
-  if (typeof window === "undefined") return "system"
+  if (typeof window === "undefined") return "light"
   try {
     const raw = window.localStorage.getItem(THEME_STORAGE_KEY)
-    return isThemeMode(raw) ? raw : "system"
+    return isThemeMode(raw) ? raw : "light"
   } catch {
-    return "system"
+    return "light"
   }
 }
 

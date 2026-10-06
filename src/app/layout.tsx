@@ -175,7 +175,7 @@ var p=location.pathname;
 var dash=${JSON.stringify(DASHBOARD_PREFIXES)}.some(function(x){return p===x||p.indexOf(x+"/")===0});
 var r=document.documentElement;
 if(!dash){r.classList.remove("dark");r.style.colorScheme="light";return}
-var m=localStorage.getItem("kandaga_theme")||"system";
+var m=localStorage.getItem("kandaga_theme")||"light";
 var d=m==="dark"||(m==="system"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);
 r.classList.toggle("dark",!!d);r.style.colorScheme=d?"dark":"light";
 }catch(e){}})();`;

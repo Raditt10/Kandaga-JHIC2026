@@ -80,10 +80,16 @@ export async function GET() {
       );
     }
 
-    const userRows = await prisma.$queryRaw<Array<{ google_email: string | null }>>`
-      SELECT google_email FROM users WHERE id = ${auth.userId}::uuid LIMIT 1
-    `;
-    const googleEmail = userRows[0]?.google_email ?? null;
+    let googleEmail: string | null = null;
+    try {
+      const userRows = await prisma.$queryRaw<Array<{ google_email: string | null }>>`
+        SELECT google_email FROM users WHERE id = ${auth.userId}::uuid LIMIT 1
+      `;
+      googleEmail = userRows[0]?.google_email ?? null;
+    } catch {
+      // Kolom google_email mungkin belum ada di database produksi
+      googleEmail = null;
+    }
 
     const { getCache } = await import("@/lib/redis");
     const cachedAvatar = await getCache<string>(`cache:user:avatar:${user.id}`);
@@ -148,24 +154,32 @@ export async function PATCH(req: NextRequest) {
 
     // ── Handle Tautan Akun Google ───────────────────────────────────────────
     if (unlinkGoogle) {
-      await prisma.$executeRaw`
-        UPDATE users SET google_email = NULL WHERE id = ${auth.userId}::uuid
-      `;
-      await audit({
-        userId: auth.userId,
-        action: "akun.putus_google",
-        entity: "users",
-        entityId: auth.userId,
-        data: {},
-      });
-      return NextResponse.json(
-        {
-          success: true,
-          pesan: "Tautan akun Google berhasil diputuskan.",
-          googleEmail: null,
-        },
-        { status: 200 }
-      );
+      try {
+        await prisma.$executeRaw`
+          UPDATE users SET google_email = NULL WHERE id = ${auth.userId}::uuid
+        `;
+        await audit({
+          userId: auth.userId,
+          action: "akun.putus_google",
+          entity: "users",
+          entityId: auth.userId,
+          data: {},
+        });
+        return NextResponse.json(
+          {
+            success: true,
+            pesan: "Tautan akun Google berhasil diputuskan.",
+            googleEmail: null,
+          },
+          { status: 200 }
+        );
+      } catch (unlinkErr) {
+        console.error("unlinkGoogle error:", unlinkErr);
+        return NextResponse.json(
+          { error: "Fitur tautan akun Google belum siap di database server." },
+          { status: 500 }
+        );
+      }
     }
 
     if (googleEmailInput !== undefined) {
@@ -178,40 +192,48 @@ export async function PATCH(req: NextRequest) {
         );
       }
 
-      // Pastikan email ini belum dipakai oleh akun lain di sistem
-      const conflicting = await prisma.$queryRaw<Array<{ id: string }>>`
-        SELECT id FROM users
-        WHERE (email = ${targetGoogleEmail}::citext OR google_email = ${targetGoogleEmail})
-          AND id != ${auth.userId}::uuid
-        LIMIT 1
-      `;
-      if (conflicting.length > 0) {
+      try {
+        // Pastikan email ini belum dipakai oleh akun lain di sistem
+        const conflicting = await prisma.$queryRaw<Array<{ id: string }>>`
+          SELECT id FROM users
+          WHERE (email = ${targetGoogleEmail}::citext OR google_email = ${targetGoogleEmail})
+            AND id != ${auth.userId}::uuid
+          LIMIT 1
+        `;
+        if (conflicting.length > 0) {
+          return NextResponse.json(
+            { error: "Alamat akun Google ini sudah tertaut dengan pengguna lain." },
+            { status: 409 }
+          );
+        }
+
+        await prisma.$executeRaw`
+          UPDATE users SET google_email = ${targetGoogleEmail} WHERE id = ${auth.userId}::uuid
+        `;
+
+        await audit({
+          userId: auth.userId,
+          action: "akun.tautkan_google",
+          entity: "users",
+          entityId: auth.userId,
+          data: { googleEmail: targetGoogleEmail },
+        });
+
         return NextResponse.json(
-          { error: "Alamat akun Google ini sudah tertaut dengan pengguna lain." },
-          { status: 409 }
+          {
+            success: true,
+            pesan: "Akun Google berhasil ditautkan! Anda kini dapat masuk menggunakan akun Google ini.",
+            googleEmail: targetGoogleEmail,
+          },
+          { status: 200 }
+        );
+      } catch (linkErr) {
+        console.error("linkGoogle error:", linkErr);
+        return NextResponse.json(
+          { error: "Gagal menautkan akun Google. Pastikan kolom google_email telah dibuat di database server." },
+          { status: 500 }
         );
       }
-
-      await prisma.$executeRaw`
-        UPDATE users SET google_email = ${targetGoogleEmail} WHERE id = ${auth.userId}::uuid
-      `;
-
-      await audit({
-        userId: auth.userId,
-        action: "akun.tautkan_google",
-        entity: "users",
-        entityId: auth.userId,
-        data: { googleEmail: targetGoogleEmail },
-      });
-
-      return NextResponse.json(
-        {
-          success: true,
-          pesan: "Akun Google berhasil ditautkan! Anda kini dapat masuk menggunakan akun Google ini.",
-          googleEmail: targetGoogleEmail,
-        },
-        { status: 200 }
-      );
     }
 
     const data: { name?: string; passwordHash?: string } = {};
