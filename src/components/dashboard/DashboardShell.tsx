@@ -60,6 +60,7 @@ import {
   X,
 } from "lucide-react"
 import { onAvatarUpdate } from "@/lib/socket"
+import { isCustomAvatar, getInitials } from "@/lib/avatar"
 
 export interface ShellNavItem {
   /** Kunci unik untuk list rendering. */
@@ -187,7 +188,7 @@ export default function DashboardShell({
   breadcrumbHref = "/",
   children,
 }: DashboardShellProps) {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const pathname = usePathname()
   const router = useRouter()
   /*
@@ -437,7 +438,9 @@ export default function DashboardShell({
   }
 
   const userName =
-    session?.user?.username || session?.user?.name || "Pengguna Kandaga"
+    status === "loading"
+      ? ""
+      : session?.user?.username || session?.user?.name || "Pengguna Kandaga"
 
   const isItemActive = (item: ShellNavItem) => {
     if (typeof item.active === "boolean") return item.active
@@ -749,9 +752,11 @@ export default function DashboardShell({
                 aria-haspopup="true"
               >
                 <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-primary-dark text-white flex items-center justify-center font-bold text-xs shadow-xs ring-2 ring-primary/10 group-hover:ring-primary/25 transition overflow-hidden relative shrink-0">
-                  {userAvatarUrl ? (
+                  {status === "loading" ? (
+                    <div className="w-9 h-9 rounded-full bg-ink-150 animate-pulse" />
+                  ) : isCustomAvatar(userAvatarUrl) ? (
                     <Image
-                      src={userAvatarUrl}
+                      src={userAvatarUrl!}
                       alt={userName}
                       width={36}
                       height={36}
@@ -759,7 +764,7 @@ export default function DashboardShell({
                       unoptimized
                     />
                   ) : (
-                    userName.slice(0, 2).toUpperCase()
+                    getInitials(userName)
                   )}
                 </div>
                 <div className="hidden sm:block text-left max-w-[160px] md:max-w-[200px]">
@@ -788,9 +793,9 @@ export default function DashboardShell({
                   {/* Header Profil Akun */}
                   <div className="px-3 py-2.5 mb-1 bg-ink-50/70 rounded-xl border border-ink-100/60 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary to-primary-dark text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0 overflow-hidden relative">
-                      {userAvatarUrl ? (
+                      {isCustomAvatar(userAvatarUrl) ? (
                         <Image
-                          src={userAvatarUrl}
+                          src={userAvatarUrl!}
                           alt={userName}
                           width={40}
                           height={40}
@@ -798,7 +803,7 @@ export default function DashboardShell({
                           unoptimized
                         />
                       ) : (
-                        userName.slice(0, 2).toUpperCase()
+                        getInitials(userName)
                       )}
                     </div>
                     <div className="min-w-0 flex-1">

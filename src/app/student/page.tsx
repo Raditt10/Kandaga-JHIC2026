@@ -136,7 +136,7 @@ function dariApi(p: ApiProject): StudentProject {
 const VALID_TABS = ["dashboard", "karya-saya", "magang", "profil", "pengaturan"]
 
 function StudentDashboardContent() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
   const searchParams = useSearchParams()
   const tabParam = searchParams.get("tab")
@@ -348,11 +348,6 @@ function StudentDashboardContent() {
       onTabChange={handleTabChange}
     >
       {/* ── Status pemuatan karya dari database ── */}
-      {memuatKarya && (
-        <div className="p-4 rounded-2xl bg-ink-100 border border-ink-150 text-xs font-semibold text-ink-600">
-          Memuat karya Anda dari database…
-        </div>
-      )}
       {galatKarya && (
         <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs font-semibold text-amber-800">
           {galatKarya}
@@ -445,7 +440,15 @@ function StudentDashboardContent() {
 
             <div className="relative z-10 max-w-xl pr-28 sm:pr-40 md:pr-0">
               <h1 className="font-heading text-2xl sm:text-3xl font-extrabold tracking-tight leading-snug">
-                Halo, <span className="capitalize">{session?.user?.username || session?.user?.name || "Siswa Kandaga"}</span>!
+                Halo,{" "}
+                {status === "loading" ? (
+                  <span className="inline-block w-36 h-7 rounded-lg bg-white/30 animate-pulse align-middle" />
+                ) : (
+                  <span className="capitalize">
+                    {session?.user?.username || session?.user?.name || "Siswa Kandaga"}
+                  </span>
+                )}
+                !
               </h1>
               <p className="text-rose-100 text-xs sm:text-sm mt-2 leading-relaxed opacity-90">
                 Kelola karya tugas akhir dan riset laboratorium Anda. Karya yang telah diverifikasi oleh guru pembimbing akan otomatis tampil di Galeri Utama Kandaga dan dapat diakses mitra industri nasional.
