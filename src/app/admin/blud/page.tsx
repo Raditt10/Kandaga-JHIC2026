@@ -27,7 +27,7 @@ export default function AdminBludPage() {
       desc: "Pengujian parameter COD, BOD, pH, dan logam berat bersertifikasi ISO 17025 untuk industri manufaktur & tekstil.",
       priceRange: "Mulai Rp 1.500.000 / batch",
       activeProjects: 5,
-      color: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      color: "bg-primary/10 text-primary border-primary/20",
     },
     {
       title: "Pengembangan Web App & Sistem Informasi",
@@ -35,7 +35,7 @@ export default function AdminBludPage() {
       desc: "Pembuatan aplikasi web kustom (Next.js, Laravel), portal pegawai, dashboard analitik, dan sistem absensi QR dinamis.",
       priceRange: "Mulai Rp 8.000.000 / sistem",
       activeProjects: 4,
-      color: "bg-rose-50 text-primary border-rose-200",
+      color: "bg-primary/10 text-primary border-primary/20",
     },
     {
       title: "Instalasi Jaringan Fiber Optic & Server",
@@ -43,7 +43,7 @@ export default function AdminBludPage() {
       desc: "Penataan kabel terstruktur, konfigurasi routerboard MikroTik, setup firewall keamanan, dan integrasi cloud VPS.",
       priceRange: "Mulai Rp 3.500.000 / titik",
       activeProjects: 3,
-      color: "bg-blue-50 text-blue-700 border-blue-200",
+      color: "bg-primary/10 text-primary border-primary/20",
     },
   ]
 
