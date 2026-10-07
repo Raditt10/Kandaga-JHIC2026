@@ -25,6 +25,7 @@ import {
   Eye,
   Pencil,
   Trash2,
+  ShoppingBag,
 } from "lucide-react"
 
 interface PageProps {
@@ -376,24 +377,84 @@ export default function StudentProjectDetailPage({ params }: PageProps) {
               </div>
 
               {/* Fitur Utama / Solusi Unggulan */}
-              {project.solutionHighlights && project.solutionHighlights.length > 0 && (
-                <div className="pt-2 space-y-2">
-                  <h3 className="text-sm font-bold text-ink">
-                    Fitur Utama & Solusi Unggulan
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {project.solutionHighlights.map((feat, idx) => (
-                      <div
-                        key={idx}
-                        className="p-3 rounded-xl bg-ink-50 border border-ink-150 text-xs font-medium text-ink-700 flex items-start gap-2"
-                      >
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                        <span>{feat}</span>
+              {project.solutionHighlights && project.solutionHighlights.length > 0 && (() => {
+                const bludItem = project.solutionHighlights.find((h) =>
+                  h.includes("Komersialisasi BLUD")
+                )
+                const cleanHighlights = project.solutionHighlights.filter(
+                  (h) => !h.includes("Komersialisasi BLUD")
+                )
+
+                // Parse tipe & estimasi harga dari string BLUD
+                // Contoh: "Tersedia Komersialisasi BLUD (Produk Jadi / Lisensi — Estimasi: 1.299.000)"
+                let bludType = ""
+                let bludEstimasi = ""
+                if (bludItem) {
+                  const match = bludItem.match(/\(([^)]+)\)/)
+                  if (match) {
+                    const inner = match[1]
+                    const parts = inner.split("—")
+                    bludType = parts[0].trim()
+                    if (parts[1]) {
+                      bludEstimasi = parts[1].replace("Estimasi:", "").trim()
+                    }
+                  }
+                }
+
+                return (
+                  <>
+                    {cleanHighlights.length > 0 && (
+                      <div className="pt-2 space-y-2">
+                        <h3 className="text-sm font-bold text-ink">
+                          Fitur Utama & Solusi Unggulan
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {cleanHighlights.map((feat, idx) => (
+                            <div
+                              key={idx}
+                              className="p-3 rounded-xl bg-ink-50 border border-ink-150 text-xs font-medium text-ink-700 flex items-start gap-2"
+                            >
+                              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                              <span>{feat}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                    )}
+
+                    {bludItem && (
+                      <div className="pt-2 space-y-2">
+                        <h3 className="text-sm font-bold text-ink">
+                          Penjualan Karya
+                        </h3>
+                        <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200">
+                          <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                            <ShoppingBag className="w-4 h-4 text-amber-600" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-amber-800">
+                              Karya ini tersedia untuk dijual
+                            </p>
+                            <p className="text-xs text-amber-700 mt-0.5">
+                              Tipe: <span className="font-semibold">{bludType || "—"}</span>
+                            </p>
+                            {bludEstimasi && (
+                              <p className="text-xs text-amber-700 mt-0.5">
+                                Estimasi harga:{" "}
+                                <span className="font-semibold">Rp {bludEstimasi}</span>
+                              </p>
+                            )}
+                            <p className="text-[11px] text-amber-600/80 mt-1.5 leading-relaxed">
+                              Komersialisasi melalui skema BLUD Teaching Factory. Hubungi sekolah untuk
+                              informasi pembelian atau kerja sama.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )
+              })()}
 
               {/* Alat & Teknologi yang Dipakai */}
               <div className="pt-2 space-y-2">

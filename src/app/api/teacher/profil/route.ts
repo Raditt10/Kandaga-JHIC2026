@@ -42,6 +42,10 @@ export async function GET() {
     const firstName = nameParts[0] || "";
     const lastName = nameParts.slice(1).join(" ") || "";
 
+    const rawPhoto = cachedAvatar || (cachedProfile?.photoUrl as string);
+    const { isCustomAvatar } = await import("@/lib/avatar");
+    const photoUrl = isCustomAvatar(rawPhoto) ? rawPhoto : null;
+
     return NextResponse.json({
       success: true,
       profile: {
@@ -63,7 +67,7 @@ export async function GET() {
         bio:
           (cachedProfile?.bio as string) ||
           "Guru pembimbing tugas akhir dan kurator portofolio riset laboratorium SMKN 13 Bandung dengan fokus rekayasa perangkat lunak dan arsitektur web modern.",
-        photoUrl: cachedAvatar || (cachedProfile?.photoUrl as string) || "/images/guru.webp",
+        photoUrl,
       },
     });
   } catch (err) {

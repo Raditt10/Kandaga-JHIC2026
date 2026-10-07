@@ -50,7 +50,10 @@ export async function GET() {
         bio:
           (cachedProfile?.bio as string) ||
           "Koordinator Bursa Kerja Khusus (BKK) SMKN 13 Bandung. Memfasilitasi hubungan kemitraan industri, verifikasi akun perusahaan, dan penyaluran kerja serta magang siswa.",
-        photoUrl: cachedAvatar || (cachedProfile?.photoUrl as string) || "/images/bkk.webp",
+        photoUrl: (() => {
+          const raw = cachedAvatar || (cachedProfile?.photoUrl as string);
+          return raw && !raw.includes("/images/bkk.webp") && !raw.startsWith("/images/") ? raw : null;
+        })(),
       },
     });
   } catch (err) {

@@ -93,14 +93,9 @@ export async function GET() {
 
     const { getCache } = await import("@/lib/redis");
     const cachedAvatar = await getCache<string>(`cache:user:avatar:${user.id}`);
-    const defaultAvatarByRole: Record<string, string> = {
-      student: "/images/siswa.webp",
-      teacher: "/images/guru.webp",
-      bkk: "/images/bkk.webp",
-      admin: "/images/admin.webp",
-      company: "/images/perusahaan.webp",
-    };
-    const photoUrl = user.studentProfile?.photoUrl || cachedAvatar || defaultAvatarByRole[auth.role] || null;
+    const rawPhoto = user.studentProfile?.photoUrl || cachedAvatar || null;
+    const { isCustomAvatar } = await import("@/lib/avatar");
+    const photoUrl = isCustomAvatar(rawPhoto) ? rawPhoto : null;
 
     return NextResponse.json(
       {

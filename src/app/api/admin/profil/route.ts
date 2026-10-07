@@ -50,7 +50,10 @@ export async function GET() {
         bio:
           (cachedProfile?.bio as string) ||
           "Administrator Utama Platform Digital Kandaga SMKN 13 Bandung. Mengelola tata kelola akses sistem, verifikasi kurasi karya, dan audit integrasi digital sekolah.",
-        photoUrl: cachedAvatar || (cachedProfile?.photoUrl as string) || "/images/admin.webp",
+        photoUrl: (() => {
+          const raw = cachedAvatar || (cachedProfile?.photoUrl as string);
+          return raw && !raw.includes("/images/admin.webp") && !raw.startsWith("/images/") ? raw : null;
+        })(),
       },
     });
   } catch (err) {

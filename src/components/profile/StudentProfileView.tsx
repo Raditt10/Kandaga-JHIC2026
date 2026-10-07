@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react"
 import { emitAvatarUpdate, onAvatarUpdate } from "@/lib/socket"
+import { isCustomAvatar, getInitials } from "@/lib/avatar"
 import {
   AVATAR_CACHE_BASE,
   PROFILE_CACHE_BASE,
@@ -73,7 +74,7 @@ const DEFAULT_PROFILE: ProfileState = {
   country: "Indonesia",
   address: "Jl. Soekarno-Hatta No. 584, Sekejati, Kec. Buahbatu, Kota Bandung, Jawa Barat 40286",
   bio: "Siswa tingkat akhir jurusan RPL SMKN 13 Bandung dengan spesialisasi Next.js, TypeScript, dan arsitektur database relasional PostgreSQL.",
-  photoUrl: "/images/siswa.webp",
+  photoUrl: "",
 }
 
 export default function StudentProfileView() {

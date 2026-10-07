@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireStudent } from "@/lib/api-auth";
+import { isCustomAvatar } from "@/lib/avatar";
 
 export async function GET() {
   try {
@@ -44,6 +45,9 @@ export async function GET() {
     const firstName = nameParts[0] || "";
     const lastName = nameParts.slice(1).join(" ") || "";
 
+    const rawPhoto = user.studentProfile?.photoUrl;
+    const photoUrl = isCustomAvatar(rawPhoto) ? rawPhoto : null;
+
     return NextResponse.json({
       success: true,
       profile: {
@@ -63,7 +67,7 @@ export async function GET() {
         country: "Indonesia",
         address: "Jl. Soekarno-Hatta No. 584, Sekejati, Buahbatu, Kota Bandung, Jawa Barat 40286",
         bio: user.studentProfile?.bio || "Siswa tingkat akhir jurusan RPL SMKN 13 Bandung dengan spesialisasi Next.js, TypeScript, dan arsitektur database relasional PostgreSQL.",
-        photoUrl: user.studentProfile?.photoUrl || "/images/siswa.webp",
+        photoUrl,
       },
     });
   } catch (err) {
