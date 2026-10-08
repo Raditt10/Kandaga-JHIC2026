@@ -13,10 +13,10 @@ import {
   AlertCircle,
   Loader2,
   Save,
-  User,
   X,
   GraduationCap,
 } from "lucide-react"
+import { isCustomAvatar, getInitials } from "@/lib/avatar"
 import { emitAvatarUpdate, onAvatarUpdate } from "@/lib/socket"
 import {
   AVATAR_CACHE_BASE,
@@ -334,7 +334,9 @@ export default function TeacherProfileView() {
                     unoptimized
                   />
                 ) : (
-                  <User className="w-12 h-12 text-ink-400" />
+                  <span className="text-2xl font-bold text-ink-500 select-none">
+                    {getInitials(`${form.firstName} ${form.lastName}`.trim()) || "?"}
+                  </span>
                 )}
 
                 {/* Overlay hover saat mode edit */}

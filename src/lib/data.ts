@@ -28,24 +28,24 @@ import type {
 // ─────────────────────────────────────────────
 
 export const FOOTER_NAV_LINKS: NavLink[] = [
-  { label: "Beranda",     href: "/" },
-  { label: "Gallery",     href: "/galeri" },
-  { label: "Leaderboard", href: "/leaderboard" },
-  { label: "About",       href: "/tentang" },
-  { label: "Kontak",      href: "/kontak" },
+  { label: "Beranda",          href: "/" },
+  { label: "Gallery Karya",    href: "/gallery" },
+  { label: "Jurusan",          href: "/#jurusan-section" },
+  { label: "Mitra Perusahaan", href: "/#industri-section" },
+  { label: "Kontak",           href: "/#footer" },
 ];
 
 export const FOOTER_LAYANAN_LINKS: NavLink[] = [
-  { label: "Verifikasi Karya", href: "/verifikasi" },
-  { label: "Akademi",          href: "/akademi" },
-  { label: "Komunitas",        href: "/komunitas" },
+  { label: "Unggah Karya",    href: "/student/create-project" },
+  { label: "Etalase Karya",    href: "/gallery" },
+  { label: "Info Magang",     href: "/auth/login" },
 ];
 
 export const FOOTER_INDUSTRI_LINKS: NavLink[] = [
-  { label: "Cari Talenta",    href: "/talenta" },
-  { label: "Daftar Mitra",    href: "/mitra" },
-  { label: "Program Magang",  href: "/magang" },
-  { label: "Hubungi Kami",    href: "/kontak" },
+  { label: "Jelajahi Karya",   href: "/gallery" },
+  { label: "Daftar Mitra",     href: "/mitra/daftar" },
+  { label: "Cara Kerja BKK",   href: "/mitra/cara-kerja-bkk" },
+  { label: "Hubungi Kami",     href: "/#footer" },
 ];
 
 // ─────────────────────────────────────────────

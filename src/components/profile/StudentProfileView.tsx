@@ -13,7 +13,6 @@ import {
   AlertCircle,
   Loader2,
   Save,
-  User,
   RotateCcw,
   X,
 } from "lucide-react"
@@ -371,7 +370,9 @@ export default function StudentProfileView() {
                     unoptimized
                   />
                 ) : (
-                  <User className="w-12 h-12 text-ink-400" />
+                  <span className="text-2xl font-bold text-ink-500 select-none">
+                    {getInitials(`${form.firstName} ${form.lastName}`.trim()) || "?"}
+                  </span>
                 )}
 
                 {/* Overlay hover saat mode edit */}

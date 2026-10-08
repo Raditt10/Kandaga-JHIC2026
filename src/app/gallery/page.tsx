@@ -9,7 +9,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import GalleryToolbar, { FilterMajor, SortOption } from "@/components/gallery/GalleryToolbar";
 import GalleryPagination from "@/components/gallery/GalleryPagination";
 import type { GalleryProjectItem } from "@/data/galleryData";
-import { Sparkles, Layers, ShieldCheck, SearchX } from "lucide-react";
+import { SearchX } from "lucide-react";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -127,37 +127,22 @@ export default function GalleryPage() {
 
       <main className="flex-1 pt-24 pb-20">
         {/* ── Hero / Page Header ── */}
-        <section className="border-b border-ink-150 bg-gradient-to-b from-[#FBF9F6] to-white pt-12 pb-16 md:pt-16 md:pb-20">
+        <section className="bg-gradient-to-b from-[#FBF9F6] to-white pt-12 pb-8 md:pt-14 md:pb-10">
           <div className="mx-auto max-w-7xl px-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#8B1A2F]/10 border border-[#8B1A2F]/20 text-[#8B1A2F] text-xs font-bold mb-4">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>KATALOG RESMI SMKN 13 BANDUNG</span>
-            </div>
-
-            <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-ink">
-              Etalase Karya Siswa
+            <h1 className="font-heading text-3xl font-semibold text-ink md:text-4xl">
+              Etalase Karya Kami
             </h1>
 
-            <p className="mt-4 text-base text-ink-700 leading-relaxed max-w-[65ch]">
+            <p className="mt-3 text-sm text-ink-600 md:text-base">
               Jelajahi karya inovasi perangkat lunak, infrastruktur jaringan, dan riset laboratorium sains terapan. Seluruh karya telah melalui proses bimbingan dan kurasi resmi guru SMKN 13 Bandung.
             </p>
 
             {/* Credibility highlights */}
-            <div className="mt-8 flex flex-wrap items-center gap-6 text-xs text-ink-600 border-t border-ink-150/70 pt-6">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span className="font-medium">100% Terverifikasi Guru Pembimbing</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Layers className="w-4 h-4 text-[#8B1A2F] shrink-0" />
-                <span className="font-medium">3 Program Keahlian: RPL &bull; TKJ &bull; Analis Kimia</span>
-              </div>
-            </div>
           </div>
         </section>
 
         {/* ── Main Catalog Section ── */}
-        <section id="katalog-karya" className="mx-auto max-w-7xl px-6 py-12 scroll-mt-28">
+        <section id="katalog-karya" className="mx-auto max-w-7xl px-6 py-6 scroll-mt-28">
           <h2 className="sr-only">Daftar Karya Proyek Siswa</h2>
 
           {/* Interactive Toolbar */}
@@ -189,7 +174,7 @@ export default function GalleryPage() {
                   icon={<SearchX className="w-8 h-8" />}
                   title="Karya Tidak Ditemukan"
                   description={`Tidak ada karya yang cocok dengan kata kunci “${searchQuery}” pada kategori yang dipilih. Cobalah kata kunci lain atau setel ulang filter.`}
-                  action={{ label: "Reset Semua Filter", onClick: handleResetFilters }}
+                  action={searchQuery.trim() || selectedMajor !== "semua" ? { label: "Reset Semua Filter", onClick: handleResetFilters } : undefined}
                 />
               )}
 
@@ -208,3 +193,4 @@ export default function GalleryPage() {
     </div>
   );
 }
+

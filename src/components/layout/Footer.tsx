@@ -187,14 +187,14 @@ export default function Footer() {
                   href="mailto:kandaga@smkn13bandung.sch.id"
                   className="break-all hover:text-white transition-colors"
                 >
-                  kandaga@smkn13bandung.sch.id
+                  ict.smkn13bandung@gmail.com
                 </a>
               </div>
 
               <div className="flex items-center gap-2.5">
                 <IconPhone className="h-4 w-4 shrink-0 text-white/50" />
                 <a href="tel:+62222012345" className="hover:text-white transition-colors">
-                  (022) 201-2345
+                    (022) 7318960
                 </a>
               </div>
 
@@ -228,7 +228,7 @@ export default function Footer() {
             {/* Hak cipta — rata bawah kolom */}
             <div className="mt-auto flex flex-col gap-1 pt-2">
               <p className="text-xs tracking-[0.1em] text-white/60">
-                © {new Date().getFullYear()} SMK NEGERI 13 BANDUNG. Seluruh Hak Cipta Dilindungi.
+                © {new Date().getFullYear()} IJIN TAMPIL TEAM. Seluruh Hak Cipta Dilindungi.
               </p>
             </div>
           </div>
@@ -258,7 +258,7 @@ export default function Footer() {
 
           {/* Kolom 3 — Layanan + untuk industri */}
           <div className="flex flex-col gap-8">
-            <FooterColumn title="Layanan" links={FOOTER_LAYANAN_LINKS} />
+            <FooterColumn title="Layanan Siswa" links={FOOTER_LAYANAN_LINKS} />
             <FooterColumn
               title="Untuk Industri"
               links={FOOTER_INDUSTRI_LINKS}
